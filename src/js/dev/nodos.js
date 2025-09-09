@@ -109,8 +109,8 @@ function drawLines() {
     const length = Math.sqrt(dx * dx + dy * dy);
     const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
-    // Ajustar longitud para que la punta toque el borde del nodo destino (radio ~30px)
-    const adjustedLength = length - 30;
+    // Ajustar longitud: reducir un 10%
+    const adjustedLength = length * 0.9;
     if (adjustedLength <= 0) return;
 
     // Crear línea
@@ -125,12 +125,12 @@ function drawLines() {
     const arrow = document.createElement('div');
     arrow.className = 'arrowhead';
 
-    // Posicionar la punta justo en el borde del nodo destino
-    arrow.style.left = adjustedLength + 'px'; // Al final de la línea
-    arrow.style.top = '-5px'; // Centrado vertical (mitad de 10px de altura)
+    // Posicionar la punta justo en el extremo final
+    arrow.style.left = adjustedLength + 'px'; // Justo después de la línea
+    arrow.style.top = '1px'; // Alineado con el borde superior del triángulo
 
-    // Rotar para que apunte en la dirección correcta
-    arrow.style.transform = 'rotate(180deg)';
+    // No rotar: el triángulo ya apunta hacia abajo por diseño
+    // arrow.style.transform = 'rotate(0deg)'; // Omitido, porque no es necesario
 
     // Agrupar línea + punta
     line.appendChild(arrow);
