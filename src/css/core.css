@@ -170,6 +170,8 @@ z-index: 1026;
     left: 5rem;  /* left-20 */
     right: 0;
     bottom: 0;
+    background-size: contain;
+    background-image: url('https://github.com/mizulegendsstudios/mizu-board/blob/main/src/img/jpg/mesa-escritorio-madera.jpg?raw=true');
     background-color: rgba(0, 0, 0, 0.5);
     border-radius: 0.5rem;
     padding: 1rem;
