@@ -40,7 +40,7 @@
   background-color: #ff0000;
 }
 
-/* Estilo para la punta de flecha (triángulo hecho con CSS) */
+/* Estilo para la punta de flecha (triángulo hecho con CSS) — ¡CENTRADA! */
 .arrowhead {
   position: absolute;
   width: 0;
@@ -48,7 +48,7 @@
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
   border-bottom: 10px solid #333; /* Color de la flecha */
-  transform-origin: center top;
+  transform-origin: center top; /* ¡Clave! Rota desde el centro del borde superior */
   pointer-events: none; /* La interacción se maneja en la línea */
   z-index: 1;
 }
