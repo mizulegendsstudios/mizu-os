@@ -163,5 +163,58 @@ function startDragContainer(e, container, ports, redrawCallback) {
 
   function drag(e) {
     const newX = e.clientX - offsetX;
-    const newY = e.clientY - offsetY
+    const newY = e.clientY - offsetY;
+
+    // Mover contenedor
+    container.style.left = newX + 'px';
+    container.style.top = newY + 'px';
+
+    // Reposicionar todos los puertos
+    ports.forEach(port => {
+      positionPort(port, port.dataset.port, container);
+    });
+
+    // Redibujar conexiones
+    if (typeof redrawCallback === 'function') {
+      redrawCallback();
+    }
+  }
+
+  function stopDrag() {
+    document.removeEventListener('mousemove', drag);
+    document.removeEventListener('mouseup', stopDrag);
+
+    // Aplicar límites (opcional, puedes ajustar según necesites)
+    const canvasRect = canvas.getBoundingClientRect();
+    const maxX = canvasRect.width - 120; // Ancho del contenedor
+    const maxY = canvasRect.height - 80; // Alto del contenedor
+
+    const currentX = parseFloat(container.style.left) || 0;
+    const currentY = parseFloat(container.style.top) || 0;
+
+    let correctedX = Math.max(0, Math.min(currentX, maxX));
+    let correctedY = Math.max(0, Math.min(currentY, maxY));
+
+    if (currentX !== correctedX || currentY !== correctedY) {
+      container.style.transition = 'left 0.3s ease-out, top 0.3s ease-out';
+      container.style.left = correctedX + 'px';
+      container.style.top = correctedY + 'px';
+
+      // Reposicionar puertos
+      ports.forEach(port => {
+        positionPort(port, port.dataset.port, container);
+      });
+
+      if (typeof redrawCallback === 'function') {
+        redrawCallback();
+      }
+
+      setTimeout(() => {
+        container.style.transition = '';
+      }, 300);
+    }
+  }
+
+  document.addEventListener('mousemove', drag);
+  document.addEventListener('mouseup', stopDrag);
 }
