@@ -58,7 +58,7 @@ Visita: https://mizulegendsstudios.github.io/mizu-board/
 
 📜 Licencia 
 
-MIT — Haz lo que quieras, mantén los créditos si lo redistribuyes. 
+AGPL 3.0 — Usa, modifica y redistribuye libremente. Al redistribuir o ejecutar como servicio en red, mantén créditos, ofrece el código fuente y usa la misma licencia.
  
 🧭 Filosofía del Proyecto 
 
