@@ -89,7 +89,6 @@ function handleNodeClick(e) {
 
 // Función para dibujar las líneas de conexión (CON DIVS, SIN SVG)
 function drawLines() {
-  // Limpiar capa de conexiones
   connectionsLayer.innerHTML = '';
 
   connections.forEach(conn => {
@@ -109,8 +108,8 @@ function drawLines() {
     const length = Math.sqrt(dx * dx + dy * dy);
     const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
-    // Ajustar longitud: reducir un 10%
-    const adjustedLength = length * 0.8;
+    // Ajustar longitud: restar el radio del nodo destino (30px)
+    const adjustedLength = length - 30; // Radio del nodo ~30px
     if (adjustedLength <= 0) return;
 
     // Crear línea
@@ -125,12 +124,12 @@ function drawLines() {
     const arrow = document.createElement('div');
     arrow.className = 'arrowhead';
 
-    // Posicionar la punta justo en el extremo final
+    // Posicionar la punta justo en el borde del nodo destino
     arrow.style.left = adjustedLength + 'px'; // Justo después de la línea
     arrow.style.top = '1px'; // Alineado con el borde superior del triángulo
 
-    // No rotar: el triángulo ya apunta hacia abajo por diseño
-    arrow.style.transform = 'rotate(90deg)'; // Omitido, porque no es necesario
+    // No rotar: el triángulo ya apunta hacia abajo
+    arrow.style.transform = 'rotate(90deg)';
 
     // Agrupar línea + punta
     line.appendChild(arrow);
