@@ -2,7 +2,7 @@
 let nodeId = 0;
 let selectedNode = null;
 let sourceNode = null;
-let connections = []; // [{from: id, to: id}]
+export let connections = []; // ✅ EXPORTADA para uso en drawlines.js
 const canvas = document.getElementById('canvas');
 const connectionsLayer = document.getElementById('connections-layer'); // Capa para DIVs
 const iconos = ["➕", "⚙️", "✅", "📥", "📤", "🔁", "⚠️", "🔍"];
@@ -169,5 +169,5 @@ function initDiagram(redrawCallback) {
   });
 }
 
-// Exportar funciones para uso en otros módulos
-export { addNode, initDiagram };
+// Exportar funciones y variable connections para uso en otros módulos
+export { addNode, initDiagram, connections };
