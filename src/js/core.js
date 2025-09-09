@@ -6,7 +6,7 @@
 import { initializeLoadingScreen } from "./stable/loading.js";
 import { initializeBarHiding } from "./stable/monitor_bars.js";
 import { initializeMonitor } from "./stable/monitor_axis.js";
-import { initializeZoomAndPan } from "./stable/zoom.js";
+//import { initializeZoomAndPan } from "./stable/zoom.js";
 //DEV
 //import { initializeNodeManager } from "./dev/node_manager.js"; // Importa el nuevo módulo
 import { initDiagram } from './dev/nodos.js';
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeMonitor();
     initializeBarHiding();
     initializeLoadingScreen();
-    initializeZoomAndPan();
+    //initializeZoomAndPan();
 //DEV
 initDiagram();
     const script = document.createElement('script');
