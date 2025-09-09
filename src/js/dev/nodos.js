@@ -108,8 +108,8 @@ function drawLines() {
     const length = Math.sqrt(dx * dx + dy * dy);
     const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
-    // Ajustar longitud: restar el radio del nodo destino (30px)
-    const adjustedLength = length - 30; // Radio del nodo ~30px
+    // Ajustar longitud: restar el radio del nodo destino (34px)
+    const adjustedLength = length - 34; // Radio del nodo ~34px
     if (adjustedLength <= 0) return;
 
     // Crear línea
@@ -128,7 +128,7 @@ function drawLines() {
     arrow.style.left = adjustedLength + 'px'; // Justo después de la línea
     arrow.style.top = '1px'; // Alineado con el borde superior del triángulo
 
-    // No rotar: el triángulo ya apunta hacia abajo
+    // rotar 90: el triángulo ya apunta hacia el nodo destino
     arrow.style.transform = 'rotate(90deg)';
 
     // Agrupar línea + punta
