@@ -1,6 +1,6 @@
 # 🌐 Mizu Board
 
-> **Versión 2.10.01** — Diagrama de flujo interactivo en navegador, sin frameworks, sin dependencias, 100% en la nube.
+> Diagrama de flujo interactivo en navegador, sin frameworks, sin dependencias, 100% en la nube.
 
 ---
 
