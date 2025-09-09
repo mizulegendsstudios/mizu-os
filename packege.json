@@ -1,12 +1,34 @@
 {
-  "name": "mi-web-app",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "mizulegends-canvas",
+  "version": "2.10.01",
+  "description": "Diagrama de flujo interactivo en navegador, sin frameworks, sin dependencias, 100% en la nube.",
+  "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npx serve",
+    "dev": "npx serve",
+    "serve": "npx serve",
+    "preview": "npx serve"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mizulegendsstudios/mizu-axiscore.git"
+  },
+  "keywords": [
+    "canvas",
+    "diagram",
+    "flowchart",
+    "vanilla-js",
+    "no-framework",
+    "cloud-app",
+    "interactive",
+    "drag-drop"
+  ],
+  "author": "Mizulegends Studios",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mizulegendsstudios/mizu-axiscore/issues"
+  },
+  "homepage": "https://github.com/mizulegendsstudios/mizu-axiscore#readme",
+  "dependencies": {},
+  "devDependencies": {}
 }
