@@ -33,7 +33,6 @@ Ideal para prototipos, herramientas educativas o sistemas donde la ligereza y la
 
 ## 🗂️ Estructura del Proyecto
 ```text
-
 index.html
 src/
 ├── css/
@@ -53,7 +52,7 @@ src/
 
 ## ▶️ Uso
 
-Visita: 
+Visita: https://mizulegendsstudios.github.io/mizu-board/
 
 ---
 
