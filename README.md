@@ -32,7 +32,8 @@ Ideal para prototipos, herramientas educativas o sistemas donde la ligereza y la
 ---
 
 ## 🗂️ Estructura del Proyecto
-'''
+```text
+
 index.html
 src/
 ├── css/
@@ -46,7 +47,7 @@ src/
         ├── loading.js      → Control de carga suave
         ├── monitor-axis.js → Monitor de mouse y viewport
         └── monitor-bars.js → Ocultación automática de barras
-'''
+```
 
 ---
 
