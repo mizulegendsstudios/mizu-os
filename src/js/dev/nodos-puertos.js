@@ -164,3 +164,4 @@ function startDragContainer(e, container, ports, redrawCallback) {
   function drag(e) {
     const newX = e.clientX - offsetX;
     const newY = e.clientY - offsetY
+}
