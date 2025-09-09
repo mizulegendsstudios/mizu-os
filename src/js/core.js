@@ -9,7 +9,7 @@ import { initializeMonitor } from "./stable/monitor_axis.js";
 import { initializeZoomAndPan } from "./stable/zoom.js";
 //DEV
 //import { initializeNodeManager } from "./dev/node_manager.js"; // Importa el nuevo módulo
-import { initDiagram } from './nodos.js';
+import { initDiagram } from './dev/nodos.js';
 /**
  * Versión de la aplicación.
  * @constant {string}
