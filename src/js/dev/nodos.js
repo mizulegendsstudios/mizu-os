@@ -110,7 +110,7 @@ function drawLines() {
     const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
     // Ajustar longitud: reducir un 10%
-    const adjustedLength = length * 0.9;
+    const adjustedLength = length * 0.7;
     if (adjustedLength <= 0) return;
 
     // Crear línea
