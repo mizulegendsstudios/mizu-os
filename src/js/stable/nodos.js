@@ -1,3 +1,5 @@
+// Exportar funciones y variable connections — ✅ SOLO AQUÍ, UNA VEZ
+export { addNode, initDiagram, connections };
 // Variables globales para el diagrama de flujo
 let nodeId = 0;
 let selectedNode = null;
@@ -6,6 +8,7 @@ let connections = []; // ✅ SIN 'export' aquí — se exporta al final
 const canvas = document.getElementById('canvas');
 const connectionsLayer = document.getElementById('connections-layer'); // Capa para DIVs
 const iconos = ["➕", "⚙️", "✅", "📥", "📤", "🔁", "⚠️", "🔍"];
+
 
 // Función para añadir un nuevo nodo — AHORA ACEPTA redrawCallback
 function addNode(x = 100, y = 100, redrawCallback) {
@@ -168,6 +171,3 @@ function initDiagram(redrawCallback) {
     }
   });
 }
-
-// Exportar funciones y variable connections — ✅ SOLO AQUÍ, UNA VEZ
-export { addNode, initDiagram, connections };
