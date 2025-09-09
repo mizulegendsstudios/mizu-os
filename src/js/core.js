@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Carga redundante por compatibilidad (se respeta, aunque no sea necesaria si usas imports)
     const script = document.createElement('script');
-    script.src = 'dev/nodos.js'; // O debería ser 'stable/nodos.js'? Ajusta según tu estructura final
+    script.src = 'stable/nodos.js'; // O debería ser 'stable/nodos.js'? Ajusta según tu estructura final
     document.head.appendChild(script);
 
     // Hacer visible el HTML después de cargar
