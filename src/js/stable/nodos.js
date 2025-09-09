@@ -1,3 +1,6 @@
+
+// Exportar funciones y variable connections — ✅ SOLO AQUÍ, UNA VEZ
+export { addNode, initDiagram, connections };
 // Variables globales para el diagrama de flujo
 let nodeId = 0;
 let selectedNode = null;
@@ -197,5 +200,3 @@ function initDiagram(redrawCallback) {
   });
 }
 
-// Exportar funciones y variable connections — ✅ SOLO AQUÍ, UNA VEZ
-export { addNode, initDiagram, connections };
