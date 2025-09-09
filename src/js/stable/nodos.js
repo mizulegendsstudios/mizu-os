@@ -1,8 +1,8 @@
-// Variables globales para el diagrama de flujod
+// Variables globales para el diagrama de flujo
 let nodeId = 0;
 let selectedNode = null;
 let sourceNode = null;
-export let connections = []; // ✅ EXPORTADA para uso en drawlines.js
+let connections = []; // ✅ SIN 'export' aquí — se exporta al final
 const canvas = document.getElementById('canvas');
 const connectionsLayer = document.getElementById('connections-layer'); // Capa para DIVs
 const iconos = ["➕", "⚙️", "✅", "📥", "📤", "🔁", "⚠️", "🔍"];
@@ -169,5 +169,5 @@ function initDiagram(redrawCallback) {
   });
 }
 
-// Exportar funciones y variable connections para uso en otros módulos
+// Exportar funciones y variable connections — ✅ SOLO AQUÍ, UNA VEZ
 export { addNode, initDiagram, connections };
