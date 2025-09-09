@@ -46,6 +46,25 @@
   <div id="black-bar" class="div">
     <div id="black-content-wrapper" class="w-full h-full">
         <!-- EL CONTENIDO DINÁMICO SERÁ INYECTADO AQUÍ POR JAVASCRIPT -->
+<div class="help-panel">
+  <h3>Controles de Teclado</h3>
+  <ul>
+    <li>Flechas: Navegar entre nodos</li>
+    <li>W: Seleccionar nodo actual</li>
+    <li>A: Cancelar selección</li>
+    <li>Doble clic: Cambiar ícono</li>
+  </ul>
+</div>
+<div id="canvas">
+  <svg id="svg">
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+              refX="10" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+      </marker>
+    </defs>
+  </svg>
+</div>
     </div>
   </div>
 </body>
