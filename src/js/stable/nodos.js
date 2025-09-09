@@ -7,8 +7,8 @@ const canvas = document.getElementById('canvas');
 const connectionsLayer = document.getElementById('connections-layer'); // Capa para DIVs
 const iconos = ["➕", "⚙️", "✅", "📥", "📤", "🔁", "⚠️", "🔍"];
 
-// Función para añadir un nuevo nodo
-function addNode(x = 100, y = 100) {
+// Función para añadir un nuevo nodo — AHORA ACEPTA redrawCallback
+function addNode(x = 100, y = 100, redrawCallback) {
   const node = document.createElement('div');
   node.className = 'node';
   node.id = 'node-' + nodeId++;
@@ -22,10 +22,10 @@ function addNode(x = 100, y = 100) {
   // Establecer contenido inicial con coordenadas
   updateNodeText(node, icono, x, y, 2);
 
-  // Eventos del nodo
+  // Eventos del nodo — PASAR redrawCallback
   node.addEventListener('dblclick', changeIcon);
-  node.addEventListener('mousedown', startDrag);
-  node.addEventListener('click', handleNodeClick);
+  node.addEventListener('mousedown', (e) => startDrag(e, redrawCallback));
+  node.addEventListener('click', (e) => handleNodeClick(e, redrawCallback));
   
   canvas.appendChild(node);
   return node;
@@ -58,7 +58,7 @@ function changeIcon(e) {
   updateNodeText(node, nuevoIcono, x, y, z);
 }
 
-// Función para manejar el clic en un nodo
+// Función para manejar el clic en un nodo — AHORA RECIBE redrawCallback
 function handleNodeClick(e, redrawCallback) {
   e.stopPropagation();
   const node = e.currentTarget;
@@ -80,6 +80,7 @@ function handleNodeClick(e, redrawCallback) {
     const to = node.id;
     if (!connections.some(c => c.from === from && c.to === to)) {
       connections.push({ from, to });
+      // Redibujar conexiones
       if (typeof redrawCallback === 'function') {
         redrawCallback();
       }
@@ -89,7 +90,7 @@ function handleNodeClick(e, redrawCallback) {
   }
 }
 
-// Función para iniciar el arrastre de un nodo (CORREGIDA: sin saltos)
+// Función para iniciar el arrastre de un nodo — AHORA RECIBE redrawCallback
 function startDrag(e, redrawCallback) {
   if (e.target.tagName === 'BUTTON') return;
   e.preventDefault();
@@ -138,12 +139,12 @@ function startDrag(e, redrawCallback) {
   document.addEventListener('mouseup', stopDrag);
 }
 
-// Inicializar el diagrama — ahora acepta redrawCallback
+// Inicializar el diagrama — AHORA PASA redrawCallback a todos los nodos
 function initDiagram(redrawCallback) {
-  // Añadir algunos nodos iniciales
-  addNode(150, 150);
-  addNode(350, 150);
-  addNode(250, 300);
+  // Añadir algunos nodos iniciales — PASAR redrawCallback
+  addNode(150, 150, redrawCallback);
+  addNode(350, 150, redrawCallback);
+  addNode(250, 300, redrawCallback);
   
   // Configurar el botón para añadir nodos
   const createNodeBtn = document.getElementById('create-node-btn');
@@ -152,7 +153,7 @@ function initDiagram(redrawCallback) {
       const rect = canvas.getBoundingClientRect();
       const x = Math.random() * (rect.width - 80);
       const y = Math.random() * (rect.height - 80);
-      addNode(x, y);
+      addNode(x, y, redrawCallback); // ← PASAR redrawCallback
       if (typeof redrawCallback === 'function') {
         redrawCallback();
       }
@@ -166,20 +167,6 @@ function initDiagram(redrawCallback) {
       sourceNode = null;
     }
   });
-
-  // Asignar redrawCallback a los eventos que lo necesitan
-  // Reasignamos los listeners de los nodos existentes
-  document.querySelectorAll('.node').forEach(node => {
-    // Reemplazar listeners para inyectar redrawCallback
-    node.replaceWith(node.cloneNode(true)); // Truco simple para limpiar listeners anteriores
-    const newNode = document.getElementById(node.id);
-    newNode.addEventListener('dblclick', changeIcon);
-    newNode.addEventListener('mousedown', (e) => startDrag(e, redrawCallback));
-    newNode.addEventListener('click', (e) => handleNodeClick(e, redrawCallback));
-  });
-
-  // También asignar redrawCallback al evento de eliminar conexión
-  // (esto se hace dentro de drawLines, pero como drawLines lo llama redrawCallback, está cubierto)
 }
 
 // Exportar funciones para uso en otros módulos
