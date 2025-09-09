@@ -41,4 +41,25 @@ document.addEventListener('DOMContentLoaded', () => {
     createContainerBtn.className = 'node-btn';
     createContainerBtn.innerHTML = '<span class="plus-icon">P</span>';
     createContainerBtn.title = 'Crear Contenedor con Puertos';
-    create
+    createContainerBtn.style.marginTop = '0.5rem';
+
+    // Insertar después del botón de nodo tradicional
+    const createNodeBtn = document.getElementById('create-node-btn');
+    if (createNodeBtn && createNodeBtn.parentNode) {
+        createNodeBtn.parentNode.insertBefore(createContainerBtn, createNodeBtn.nextSibling);
+    }
+
+    // Evento para crear contenedores con puertos
+    createContainerBtn.addEventListener('click', () => {
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.random() * (rect.width - 150);
+        const y = Math.random() * (rect.height - 150);
+        createContainerWithPorts(x, y, drawLines);
+    }); // ← ¡Llave de cierre del arrow function!
+
+    // Hacer visible el HTML después de cargar
+    document.documentElement.style.visibility = 'visible';
+    document.documentElement.style.opacity = '1';
+
+    console.log('Aplicación inicializada — sistemas de nodos y puertos anclados listos.');
+}); // ← ¡Llave de cierre del DOMContentLoaded!
