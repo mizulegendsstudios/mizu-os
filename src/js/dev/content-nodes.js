@@ -149,7 +149,7 @@ function startDragContainer(e, container, content, redrawCallback) {
 }
 
 /**
- * Maneja clic en un puerto (para crear conexiones) — ✅ AHORA GUARDA CONEXIONES
+ * Maneja clic en un puerto (para crear conexiones) — ✅ AHORA USA ":" COMO SEPARADOR
  */
 function handlePortClick(e, port, redrawCallback) {
   e.stopPropagation();
@@ -168,9 +168,9 @@ function handlePortClick(e, port, redrawCallback) {
     port.style.background = 'rgba(255, 85, 0, 0.5)'; // Feedback visual
     port.style.border = '1px solid #ff5500';
   } else {
-    // Crear conexión entre puertos
-    const from = `${sourcePort.dataset.containerId}-${sourcePort.dataset.port}`;
-    const to = `${port.dataset.containerId}-${port.dataset.port}`;
+    // Crear conexión entre puertos — ✅ USAR ":" COMO SEPARADOR
+    const from = `${sourcePort.dataset.containerId}:${sourcePort.dataset.port}`;
+    const to = `${port.dataset.containerId}:${port.dataset.port}`;
 
     // Guardar conexión si no existe
     if (!connections.some(c => c.from === from && c.to === to)) {
