@@ -1,8 +1,3 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f4f4f4;
-}
 #canvas {
   position: relative;
   width: 100vw;
@@ -53,8 +48,8 @@ line:hover {
 }
 button {
   position: fixed;
-  top: 10px;
-  left: 10px;
+  top: 80px;
+  left: 80px;
   z-index: 1000;
   padding: 10px 16px;
   background: #0077cc;
