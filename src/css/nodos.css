@@ -10,9 +10,56 @@
   padding: 15px;
   backdrop-filter: blur(5px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  overflow: hidden;
+  overflow: visible; /* Cambiado a visible para que las flechas no se recorten */
+  position: relative;
 }
 
+/* Capa exclusiva para dibujar conexiones (líneas + flechas) */
+#connections-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Permite clics pasen a través, a menos que se active en hijos */
+  z-index: 1;
+}
+
+/* Estilo base para las líneas de conexión (hechas con div) */
+.connection-line {
+  position: absolute;
+  height: 2px; /* Grosor de la línea */
+  background-color: #333;
+  transform-origin: left center;
+  pointer-events: auto; /* Habilita interacción solo en la línea */
+  cursor: pointer;
+  z-index: 1;
+}
+
+.connection-line:hover {
+  background-color: #ff0000;
+}
+
+/* Estilo para la punta de flecha (triángulo hecho con CSS) */
+.arrowhead {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 10px solid #333; /* Color de la flecha */
+  transform-origin: center top;
+  pointer-events: none; /* La interacción se maneja en la línea */
+  z-index: 1;
+}
+
+/* Hover en línea también afecta la punta */
+.connection-line:hover + .arrowhead,
+.connection-line:hover ~ .arrowhead {
+  border-bottom-color: #ff0000;
+}
+
+/* Estilos para los nodos (sin cambios, solo recordatorio) */
 .node {
   position: absolute;
   width: 60px;
@@ -23,12 +70,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 14px; /* Ajustado para caber texto + coordenadas */
   cursor: move;
   user-select: none;
   box-shadow: 0 3px 6px rgba(0,0,0,0.1);
   transition: transform 0.2s, box-shadow 0.2s;
-  z-index: 2;
+  z-index: 2; /* Siempre por encima de las conexiones */
+  padding: 0 4px; /* Ajuste para texto más largo */
+  text-align: center;
 }
 
 .node:hover {
@@ -41,23 +90,7 @@
   box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.3);
 }
 
-#svg {
-  pointer-events: none;
-  z-index: 1;
-}
-
-line {
-  stroke: #333;
-  stroke-width: 2;
-  marker-end: url(#arrowhead);
-  pointer-events: stroke;
-  cursor: pointer;
-}
-
-line:hover {
-  stroke: #ff0000;
-}
-
+/* Botón de creación de nodos */
 .node-btn {
   background: #0077cc;
   color: white;
@@ -70,6 +103,7 @@ line:hover {
   justify-content: center;
   cursor: pointer;
   transition: background 0.2s;
+  z-index: 3; /* Por encima de todo */
 }
 
 .node-btn:hover {
@@ -81,6 +115,7 @@ line:hover {
   line-height: 1;
 }
 
+/* Panel de ayuda */
 .help-panel {
   background: rgba(255, 255, 255, 0.9);
   border-radius: 4px;
