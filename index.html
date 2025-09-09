@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mizulegends - Canvas</title>
+  <link rel="stylesheet" href="./src/css/core.css">
+  <link rel="stylesheet" href="./src/css/nodos.css">
+  <script type="module" src="./src/js/core.js"></script>
+<link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <!-- Estilos críticos inline -->
+    <style>
+        html { 
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease-in;
+        }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+    </style>
+</head>
+  
+<body id="body-container">
+  <div id="mouse-monitor">
+    <div id="mouse-position">X: 0, Y: 0</div>
+    <div id="viewport-size">Ancho: 0, Alto: 0</div>
+  </div>
+  <div id="green-div" class="div"></div>
+  <div id="red-bar" class="div"></div>
+  <div id="blue-bar" class="div center-vertically">
+    <div class="square">1</div>
+    <div class="square">2</div>
+    <div class="square">30</div>
+    <button id="create-node-btn" class="node-btn">
+        <span class="plus-icon">+</span>
+    </button>
+    <div class="foot-square">4</div>
+  </div>
+  <div id="yellow-square" class="div">  
+      <div id="cube">
+          <div id="hologram"></div>
+      </div>
+  </div>
+  <div id="black-bar" class="div">
+    <div id="black-content-wrapper" class="w-full h-full">
+        <!-- EL CONTENIDO DINÁMICO SERÁ INYECTADO AQUÍ POR JAVASCRIPT -->
+    </div>
+  </div>
+</body>
+</html>
