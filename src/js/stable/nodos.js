@@ -1,4 +1,4 @@
-// Variables globales para el diagrama de flujo
+// Variables globales para el diagrama de flujod
 let nodeId = 0;
 let selectedNode = null;
 let sourceNode = null;
