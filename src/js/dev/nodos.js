@@ -110,7 +110,7 @@ function drawLines() {
     const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
     // Ajustar longitud: reducir un 10%
-    const adjustedLength = length * 0.7;
+    const adjustedLength = length * 0.8;
     if (adjustedLength <= 0) return;
 
     // Crear línea
@@ -130,7 +130,7 @@ function drawLines() {
     arrow.style.top = '1px'; // Alineado con el borde superior del triángulo
 
     // No rotar: el triángulo ya apunta hacia abajo por diseño
-    arrow.style.transform = 'rotate(0deg)'; // Omitido, porque no es necesario
+    arrow.style.transform = 'rotate(90deg)'; // Omitido, porque no es necesario
 
     // Agrupar línea + punta
     line.appendChild(arrow);
