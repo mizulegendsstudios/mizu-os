@@ -4,7 +4,7 @@ let selectedNode = null;
 let sourceNode = null;
 let connections = []; // [{from: id, to: id}]
 const canvas = document.getElementById('canvas');
-const svg = document.getElementById('svg');
+const connectionsLayer = document.getElementById('connections-layer'); // Nueva capa para DIVs
 const iconos = ["➕", "⚙️", "✅", "📥", "📤", "🔁", "⚠️", "🔍"];
 
 // Función para añadir un nuevo nodo
@@ -14,7 +14,7 @@ function addNode(x = 100, y = 100) {
   node.id = 'node-' + nodeId++;
   node.style.left = x + 'px';
   node.style.top = y + 'px';
-  node.style.zIndex = 2; // Valor inicial de zIndex, coincide con CSS
+  node.style.zIndex = 2;
 
   // Asignar ícono aleatorio
   const icono = iconos[Math.floor(Math.random() * iconos.length)];
@@ -87,40 +87,64 @@ function handleNodeClick(e) {
   }
 }
 
-// Función para dibujar las líneas de conexión (SVG - sin cambios por ahora)
+// Función para dibujar las líneas de conexión (CON DIVS, SIN SVG)
 function drawLines() {
-  // Limpiar SVG pero mantener los defs
-  const defs = svg.querySelector('defs');
-  svg.innerHTML = '';
-  if (defs) svg.appendChild(defs);
-  
+  // Limpiar capa de conexiones
+  connectionsLayer.innerHTML = '';
+
   connections.forEach(conn => {
     const n1 = document.getElementById(conn.from);
     const n2 = document.getElementById(conn.to);
     if (!n1 || !n2) return;
-    
+
+    // Obtener centros de los nodos
     const x1 = n1.offsetLeft + n1.offsetWidth / 2;
     const y1 = n1.offsetTop + n1.offsetHeight / 2;
     const x2 = n2.offsetLeft + n2.offsetWidth / 2;
     const y2 = n2.offsetTop + n2.offsetHeight / 2;
-    
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', x1);
-    line.setAttribute('y1', y1);
-    line.setAttribute('x2', x2);
-    line.setAttribute('y2', y2);
-    
+
+    // Calcular distancia y ángulo
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    // Ajustar longitud para que la punta no se superponga al nodo destino
+    const adjustedLength = length - 30; // 30px = radio aprox del nodo
+    if (adjustedLength <= 0) return; // Evitar líneas negativas
+
+    // Crear línea
+    const line = document.createElement('div');
+    line.className = 'connection-line';
+    line.style.width = adjustedLength + 'px';
+    line.style.left = x1 + 'px';
+    line.style.top = y1 + 'px';
+    line.style.transform = `rotate(${angle}deg)`;
+
+    // Crear punta de flecha (triángulo)
+    const arrow = document.createElement('div');
+    arrow.className = 'arrowhead';
+    // Posicionar la punta al final de la línea (ajustado por transform)
+    arrow.style.left = adjustedLength - 5 + 'px'; // Centrar punta en el extremo
+    arrow.style.top = '-5px'; // Centrar verticalmente (mitad de altura del triángulo)
+    arrow.style.transform = 'rotate(90deg)'; // Apuntar hacia adelante (el triángulo apunta abajo por defecto)
+
+    // Agrupar línea + punta
+    line.appendChild(arrow);
+
+    // Evento para eliminar conexión con clic derecho
     line.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       connections = connections.filter(c => !(c.from === conn.from && c.to === conn.to));
       drawLines();
     });
-    
-    svg.appendChild(line);
+
+    // Añadir al DOM
+    connectionsLayer.appendChild(line);
   });
 }
 
-// Función para iniciar el arrastre de un nodo
+// Función para iniciar el arrastre de un nodo (CORREGIDA: sin saltos)
 function startDrag(e) {
   if (e.target.tagName === 'BUTTON') return;
   e.preventDefault();
