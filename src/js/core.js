@@ -16,7 +16,7 @@ import { initDiagram } from './stable/nodos.js';
  * Versión de la aplicación.
  * @constant {string}
  */
-const VERSION = '2.10.03';
+const VERSION = '2.10.04';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Registra la versión de la aplicación en la consola.
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Carga redundante por compatibilidad (se respeta, aunque no sea necesaria si usas imports)
     const script = document.createElement('script');
-    script.src = './stable/nodos.js'; // O debería ser 'stable/nodos.js'? Ajusta según tu estructura final
+    script.src = './src/stable/nodos.js'; // O debería ser 'stable/nodos.js'? Ajusta según tu estructura final
     document.head.appendChild(script);
 
     // Hacer visible el HTML después de cargar
