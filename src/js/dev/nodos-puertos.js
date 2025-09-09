@@ -3,7 +3,9 @@
 let portId = 0;
 let selectedPort = null;
 let sourcePort = null;
-let connections = []; // Compartido con el sistema actual
+
+// Importamos connections desde nodos.js para compartir el mismo array
+import { connections } from '../stable/nodos.js';
 
 const canvas = document.getElementById('canvas');
 const connectionsLayer = document.getElementById('connections-layer');
@@ -17,10 +19,14 @@ const positions = ['top', 'bottom', 'left', 'right'];
  * @param {function} redrawCallback - Callback para redibujar conexiones
  * @returns {HTMLElement} - El contenedor principal
  */
-function createContainerWithPorts(x = 100, y = 100, redrawCallback) {
-  // Crear contenedor principal (arrastrable)
+export function createContainerWithPorts(x = 100, y = 100, redrawCallback) {
+  // ID único para este contenedor
+  const containerId = 'container-' + portId++;
+
+  // Crear contenedor principal (arrastrable, con contenido visual)
   const container = document.createElement('div');
   container.className = 'content-container';
+  container.id = containerId;
   container.style.position = 'absolute';
   container.style.left = x + 'px';
   container.style.top = y + 'px';
@@ -34,8 +40,10 @@ function createContainerWithPorts(x = 100, y = 100, redrawCallback) {
   container.style.justifyContent = 'center';
   container.style.boxShadow = '0 3px 6px rgba(0,0,0,0.1)';
   container.style.zIndex = 1;
-  container.textContent = 'Contenido';
+  container.textContent = `Contenido ${containerId}`;
   container.style.cursor = 'move';
+  container.style.fontSize = '12px';
+  container.style.fontWeight = 'bold';
 
   // Crear puertos (no arrastrables, anclados a los bordes)
   const ports = [];
@@ -43,82 +51,96 @@ function createContainerWithPorts(x = 100, y = 100, redrawCallback) {
     const port = document.createElement('div');
     port.className = 'port';
     port.dataset.port = pos;
-    port.dataset.containerId = container.id = 'container-' + portId;
+    port.dataset.containerId = containerId;
+    port.id = `${containerId}-${pos}`; // ID único para conexiones
 
-    // Posicionar puerto
+    // Posicionar puerto inicialmente
     positionPort(port, pos, container);
 
-    // Evento de conexión
+    // Evento de conexión (clic para conectar)
     port.addEventListener('click', (e) => handlePortClick(e, port, redrawCallback));
 
-    ports.push(port);
+    // Añadir puerto al canvas
     canvas.appendChild(port);
+    ports.push(port);
   });
 
   // Arrastrar contenedor (mueve todos los puertos con él)
   container.addEventListener('mousedown', (e) => startDragContainer(e, container, ports, redrawCallback));
 
+  // Añadir contenedor al canvas
   canvas.appendChild(container);
 
-  portId++;
+  console.log(`[nodos-puertos.js] Contenedor creado: ${containerId} con ${ports.length} puertos`);
 
   return container;
 }
 
 /**
  * Posiciona un puerto en el borde del contenedor
+ * @param {HTMLElement} port - Elemento del puerto
+ * @param {string} position - 'top', 'bottom', 'left', 'right'
+ * @param {HTMLElement} container - Contenedor al que está anclado
  */
 function positionPort(port, position, container) {
-  const containerRect = container.getBoundingClientRect();
-  const canvasRect = canvas.getBoundingClientRect();
-
   const containerLeft = parseFloat(container.style.left) || 0;
   const containerTop = parseFloat(container.style.top) || 0;
+  const containerWidth = parseFloat(container.style.width) || 120;
+  const containerHeight = parseFloat(container.style.height) || 80;
 
   switch (position) {
     case 'top':
-      port.style.left = containerLeft + container.offsetWidth / 2 - 15 + 'px';
-      port.style.top = containerTop - 15 + 'px';
+      port.style.left = containerLeft + containerWidth / 2 - 15 + 'px'; // Centrado horizontal, -15px (mitad del puerto)
+      port.style.top = containerTop - 15 + 'px'; // Arriba del contenedor
       break;
     case 'bottom':
-      port.style.left = containerLeft + container.offsetWidth / 2 - 15 + 'px';
-      port.style.top = containerTop + container.offsetHeight - 15 + 'px';
+      port.style.left = containerLeft + containerWidth / 2 - 15 + 'px';
+      port.style.top = containerTop + containerHeight - 15 + 'px'; // Abajo del contenedor
       break;
     case 'left':
-      port.style.left = containerLeft - 15 + 'px';
-      port.style.top = containerTop + container.offsetHeight / 2 - 15 + 'px';
+      port.style.left = containerLeft - 15 + 'px'; // Izquierda del contenedor
+      port.style.top = containerTop + containerHeight / 2 - 15 + 'px'; // Centrado vertical
       break;
     case 'right':
-      port.style.left = containerLeft + container.offsetWidth - 15 + 'px';
-      port.style.top = containerTop + container.offsetHeight / 2 - 15 + 'px';
+      port.style.left = containerLeft + containerWidth - 15 + 'px'; // Derecha del contenedor
+      port.style.top = containerTop + containerHeight / 2 - 15 + 'px';
       break;
   }
 }
 
 /**
  * Maneja clic en un puerto (para crear conexiones)
+ * @param {Event} e - Evento de clic
+ * @param {HTMLElement} port - Puerto clicado
+ * @param {Function} redrawCallback - Callback para redibujar conexiones
  */
 function handlePortClick(e, port, redrawCallback) {
   e.stopPropagation();
 
   if (sourcePort === port) {
+    // Cancelar selección
     sourcePort.classList.remove('selected');
     sourcePort = null;
     return;
   }
 
   if (!sourcePort) {
+    // Seleccionar como origen
     sourcePort = port;
     port.classList.add('selected');
   } else {
-    const from = sourcePort.id || sourcePort.dataset.containerId + '-' + sourcePort.dataset.port;
-    const to = port.id || port.dataset.containerId + '-' + port.dataset.port;
+    // Crear conexión
+    const from = sourcePort.id;
+    const to = port.id;
 
     if (!connections.some(c => c.from === from && c.to === to)) {
       connections.push({ from, to });
-      redrawCallback();
+      if (typeof redrawCallback === 'function') {
+        redrawCallback();
+      }
     }
 
+    // Deseleccionar
     sourcePort.classList.remove('selected');
     sourcePort = null;
   }
@@ -126,6 +148,10 @@ function handlePortClick(e, port, redrawCallback) {
 
 /**
  * Inicia el arrastre del contenedor (arrastra TODO el grupo)
+ * @param {Event} e - Evento de mousedown
+ * @param {HTMLElement} container - Contenedor a arrastrar
+ * @param {Array} ports - Array de puertos anclados
+ * @param {Function} redrawCallback - Callback para redibujar conexiones
  */
 function startDragContainer(e, container, ports, redrawCallback) {
   e.preventDefault();
@@ -137,54 +163,4 @@ function startDragContainer(e, container, ports, redrawCallback) {
 
   function drag(e) {
     const newX = e.clientX - offsetX;
-    const newY = e.clientY - offsetY;
-
-    container.style.left = newX + 'px';
-    container.style.top = newY + 'px';
-
-    // Reposicionar puertos
-    ports.forEach(port => {
-      positionPort(port, port.dataset.port, container);
-    });
-
-    redrawCallback();
-  }
-
-  function stopDrag() {
-    document.removeEventListener('mousemove', drag);
-    document.removeEventListener('mouseup', stopDrag);
-
-    const canvasRect = canvas.getBoundingClientRect();
-    const maxX = canvasRect.width - 120; // Ancho del contenedor
-    const maxY = canvasRect.height - 80; // Alto del contenedor
-
-    const currentX = parseFloat(container.style.left) || 0;
-    const currentY = parseFloat(container.style.top) || 0;
-
-    let correctedX = Math.max(0, Math.min(currentX, maxX));
-    let correctedY = Math.max(0, Math.min(currentY, maxY));
-
-    if (currentX !== correctedX || currentY !== correctedY) {
-      container.style.transition = 'left 0.3s ease-out, top 0.3s ease-out';
-      container.style.left = correctedX + 'px';
-      container.style.top = correctedY + 'px';
-
-      // Reposicionar puertos
-      ports.forEach(port => {
-        positionPort(port, port.dataset.port, container);
-      });
-
-      redrawCallback();
-
-      setTimeout(() => {
-        container.style.transition = '';
-      }, 300);
-    }
-  }
-
-  document.addEventListener('mousemove', drag);
-  document.addEventListener('mouseup', stopDrag);
-}
-
-// Exportar función principal
-export { createContainerWithPorts };
+    const newY = e.clientY - offsetY
