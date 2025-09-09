@@ -8,7 +8,7 @@ const connectionsLayer = document.getElementById('connections-layer');
  * Dibuja todas las conexiones entre nodos o puertos usando elementos <div> (sin SVG).
  * Soporta:
  * - Nodos tradicionales: "node-0" → "node-1"
- * - Puertos de contenedores: "container-0-top" → "container-1-right"
+ * - Puertos de contenedores: "container:0:top" → "container:1:right"
  */
 export function drawLines() {
   // Limpiar capa de conexiones
@@ -33,8 +33,15 @@ export function drawLines() {
     let n2 = document.getElementById(to);
 
     // Si no son elementos directos, intentar obtener por selector (para puertos)
-    if (!n1) n1 = document.querySelector(`[data-container-id="${from.split('-')[0]}"][data-port="${from.split('-')[1]}"]`);
-    if (!n2) n2 = document.querySelector(`[data-container-id="${to.split('-')[0]}"][data-port="${to.split('-')[1]}"]`);
+    // ✅ AHORA USA ":" COMO SEPARADOR
+    if (!n1 && from.includes(':')) {
+      const [containerId, port] = from.split(':');
+      n1 = document.querySelector(`[data-container-id="${containerId}"][data-port="${port}"]`);
+    }
+    if (!n2 && to.includes(':')) {
+      const [containerId, port] = to.split(':');
+      n2 = document.querySelector(`[data-container-id="${containerId}"][data-port="${port}"]`);
+    }
 
     if (!n1 || !n2) {
       console.warn(`drawLines: Elemento no encontrado - from: ${from}, to: ${to}`);
