@@ -126,17 +126,25 @@ function startDrag(e) {
   e.preventDefault();
   
   selectedNode = e.currentTarget;
-  const rect = selectedNode.getBoundingClientRect();
-  const offsetX = e.clientX - rect.left;
-  const offsetY = e.clientY - rect.top;
 
-  // Extraer ícono actual antes de empezar a arrastrar
+  // Obtener posición inicial del nodo (como número, sin 'px')
+  const initialLeft = parseFloat(selectedNode.style.left) || 0;
+  const initialTop = parseFloat(selectedNode.style.top) || 0;
+
+  // Calcular el offset del clic DENTRO del nodo (relativo a su borde izquierdo/superior)
+  const offsetX = e.clientX - initialLeft;
+  const offsetY = e.clientY - initialTop;
+
+  // Extraer ícono actual
   const text = selectedNode.textContent;
   const icono = text.charAt(0);
 
   function drag(e) {
+    // Nueva posición = posición del mouse - offset interno
     const newX = e.clientX - offsetX;
     const newY = e.clientY - offsetY;
+
+    // Aplicar nueva posición
     selectedNode.style.left = newX + 'px';
     selectedNode.style.top = newY + 'px';
 
@@ -146,6 +154,7 @@ function startDrag(e) {
     // Actualizar texto con nuevas coordenadas
     updateNodeText(selectedNode, icono, newX, newY, currentZIndex);
 
+    // Redibujar conexiones
     drawLines();
   }
   
