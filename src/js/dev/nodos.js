@@ -130,7 +130,7 @@ function drawLines() {
     arrow.style.top = '1px'; // Alineado con el borde superior del triángulo
 
     // No rotar: el triángulo ya apunta hacia abajo por diseño
-    // arrow.style.transform = 'rotate(0deg)'; // Omitido, porque no es necesario
+    arrow.style.transform = 'rotate(0deg)'; // Omitido, porque no es necesario
 
     // Agrupar línea + punta
     line.appendChild(arrow);
