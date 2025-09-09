@@ -60,9 +60,15 @@ export function createContainerWithPorts(x = 100, y = 100, redrawCallback) {
     // Evento de conexión (clic para conectar)
     port.addEventListener('click', (e) => handlePortClick(e, port, redrawCallback));
 
+    // ✅ AÑADIDO PARA DEPURACIÓN: borde rojo y fondo semitransparente
+    port.style.border = '1px solid red';
+    port.style.background = 'rgba(255, 0, 0, 0.2)';
+
     // Añadir puerto al canvas
     canvas.appendChild(port);
     ports.push(port);
+
+    console.log(`[createContainerWithPorts] Puerto creado: ${port.id} en posición ${pos}`);
   });
 
   // Arrastrar contenedor (mueve todos los puertos con él)
@@ -88,24 +94,36 @@ function positionPort(port, position, container) {
   const containerWidth = parseFloat(container.style.width) || 120;
   const containerHeight = parseFloat(container.style.height) || 80;
 
+  let left, top;
+
   switch (position) {
     case 'top':
-      port.style.left = containerLeft + containerWidth / 2 - 15 + 'px'; // Centrado horizontal, -15px (mitad del puerto)
-      port.style.top = containerTop - 15 + 'px'; // Arriba del contenedor
+      left = containerLeft + containerWidth / 2 - 15;
+      top = containerTop - 15;
       break;
     case 'bottom':
-      port.style.left = containerLeft + containerWidth / 2 - 15 + 'px';
-      port.style.top = containerTop + containerHeight - 15 + 'px'; // Abajo del contenedor
+      left = containerLeft + containerWidth / 2 - 15;
+      top = containerTop + containerHeight - 15;
       break;
     case 'left':
-      port.style.left = containerLeft - 15 + 'px'; // Izquierda del contenedor
-      port.style.top = containerTop + containerHeight / 2 - 15 + 'px'; // Centrado vertical
+      left = containerLeft - 15;
+      top = containerTop + containerHeight / 2 - 15;
       break;
     case 'right':
-      port.style.left = containerLeft + containerWidth - 15 + 'px'; // Derecha del contenedor
-      port.style.top = containerTop + containerHeight / 2 - 15 + 'px';
+      left = containerLeft + containerWidth - 15;
+      top = containerTop + containerHeight / 2 - 15;
       break;
+    default:
+      left = containerLeft;
+      top = containerTop;
   }
+
+  // Aplicar estilos
+  port.style.left = left + 'px';
+  port.style.top = top + 'px';
+
+  // ✅ DEPURACIÓN: loguear posición calculada
+  console.log(`[positionPort] Puerto ${port.id}: left=${left}px, top=${top}px`);
 }
 
 /**
@@ -128,6 +146,7 @@ function handlePortClick(e, port, redrawCallback) {
     // Seleccionar como origen
     sourcePort = port;
     port.classList.add('selected');
+    console.log(`[handlePortClick] Puerto seleccionado: ${port.id}`);
   } else {
     // Crear conexión
     const from = sourcePort.id;
@@ -135,6 +154,7 @@ function handlePortClick(e, port, redrawCallback) {
 
     if (!connections.some(c => c.from === from && c.to === to)) {
       connections.push({ from, to });
+      console.log(`[handlePortClick] Conexión creada: ${from} → ${to}`);
       if (typeof redrawCallback === 'function') {
         redrawCallback();
       }
