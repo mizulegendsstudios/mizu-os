@@ -59,7 +59,7 @@ function changeIcon(e) {
 }
 
 // Función para manejar el clic en un nodo
-function handleNodeClick(e) {
+function handleNodeClick(e, redrawCallback) {
   e.stopPropagation();
   const node = e.currentTarget;
   
@@ -80,74 +80,17 @@ function handleNodeClick(e) {
     const to = node.id;
     if (!connections.some(c => c.from === from && c.to === to)) {
       connections.push({ from, to });
-      drawLines();
+      if (typeof redrawCallback === 'function') {
+        redrawCallback();
+      }
     }
     sourceNode.classList.remove('selected');
     sourceNode = null;
   }
 }
 
-// Función para dibujar las líneas de conexión (CON DIVS, SIN SVG)
-function drawLines() {
-  connectionsLayer.innerHTML = '';
-
-  connections.forEach(conn => {
-    const n1 = document.getElementById(conn.from);
-    const n2 = document.getElementById(conn.to);
-    if (!n1 || !n2) return;
-
-    // Obtener centros de los nodos
-    const x1 = n1.offsetLeft + n1.offsetWidth / 2;
-    const y1 = n1.offsetTop + n1.offsetHeight / 2;
-    const x2 = n2.offsetLeft + n2.offsetWidth / 2;
-    const y2 = n2.offsetTop + n2.offsetHeight / 2;
-
-    // Calcular distancia y ángulo
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const length = Math.sqrt(dx * dx + dy * dy);
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
-    // Ajustar longitud: restar el radio del nodo destino (34px)
-    const adjustedLength = length - 34; // Radio del nodo ~34px
-    if (adjustedLength <= 0) return;
-
-    // Crear línea
-    const line = document.createElement('div');
-    line.className = 'connection-line';
-    line.style.width = adjustedLength + 'px';
-    line.style.left = x1 + 'px';
-    line.style.top = y1 + 'px';
-    line.style.transform = `rotate(${angle}deg)`;
-
-    // Crear punta de flecha (triángulo)
-    const arrow = document.createElement('div');
-    arrow.className = 'arrowhead';
-
-    // Posicionar la punta justo en el borde del nodo destino
-    arrow.style.left = adjustedLength + 'px'; // Justo después de la línea
-    arrow.style.top = '1px'; // Alineado con el borde superior del triángulo
-
-    // rotar 90: el triángulo ya apunta hacia el nodo destino
-    arrow.style.transform = 'rotate(90deg)';
-
-    // Agrupar línea + punta
-    line.appendChild(arrow);
-
-    // Evento para eliminar conexión con clic derecho
-    line.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      connections = connections.filter(c => !(c.from === conn.from && c.to === conn.to));
-      drawLines();
-    });
-
-    // Añadir al DOM
-    connectionsLayer.appendChild(line);
-  });
-}
-
 // Función para iniciar el arrastre de un nodo (CORREGIDA: sin saltos)
-function startDrag(e) {
+function startDrag(e, redrawCallback) {
   if (e.target.tagName === 'BUTTON') return;
   e.preventDefault();
   
@@ -181,7 +124,9 @@ function startDrag(e) {
     updateNodeText(selectedNode, icono, newX, newY, currentZIndex);
 
     // Redibujar conexiones
-    drawLines();
+    if (typeof redrawCallback === 'function') {
+      redrawCallback();
+    }
   }
   
   function stopDrag() {
@@ -193,8 +138,8 @@ function startDrag(e) {
   document.addEventListener('mouseup', stopDrag);
 }
 
-// Inicializar el diagrama
-function initDiagram() {
+// Inicializar el diagrama — ahora acepta redrawCallback
+function initDiagram(redrawCallback) {
   // Añadir algunos nodos iniciales
   addNode(150, 150);
   addNode(350, 150);
@@ -208,6 +153,9 @@ function initDiagram() {
       const x = Math.random() * (rect.width - 80);
       const y = Math.random() * (rect.height - 80);
       addNode(x, y);
+      if (typeof redrawCallback === 'function') {
+        redrawCallback();
+      }
     });
   }
   
@@ -218,7 +166,21 @@ function initDiagram() {
       sourceNode = null;
     }
   });
+
+  // Asignar redrawCallback a los eventos que lo necesitan
+  // Reasignamos los listeners de los nodos existentes
+  document.querySelectorAll('.node').forEach(node => {
+    // Reemplazar listeners para inyectar redrawCallback
+    node.replaceWith(node.cloneNode(true)); // Truco simple para limpiar listeners anteriores
+    const newNode = document.getElementById(node.id);
+    newNode.addEventListener('dblclick', changeIcon);
+    newNode.addEventListener('mousedown', (e) => startDrag(e, redrawCallback));
+    newNode.addEventListener('click', (e) => handleNodeClick(e, redrawCallback));
+  });
+
+  // También asignar redrawCallback al evento de eliminar conexión
+  // (esto se hace dentro de drawLines, pero como drawLines lo llama redrawCallback, está cubierto)
 }
 
-// Exportar funciones para uso en otros módulos si es necesario
-export { addNode, drawLines, initDiagram };
+// Exportar funciones para uso en otros módulos
+export { addNode, initDiagram };
