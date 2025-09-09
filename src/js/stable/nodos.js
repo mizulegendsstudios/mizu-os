@@ -1,14 +1,11 @@
-// Exportar funciones y variable connections — ✅ SOLO AQUÍ, UNA VEZ
-export { addNode, initDiagram, connections };
 // Variables globales para el diagrama de flujo
 let nodeId = 0;
 let selectedNode = null;
 let sourceNode = null;
-let connections = []; // ✅ SIN 'export' aquí — se exporta al final
+let connections = []; // ✅ Sin export aquí — se exporta al final
 const canvas = document.getElementById('canvas');
 const connectionsLayer = document.getElementById('connections-layer'); // Capa para DIVs
 const iconos = ["➕", "⚙️", "✅", "📥", "📤", "🔁", "⚠️", "🔍"];
-
 
 // Función para añadir un nuevo nodo — AHORA ACEPTA redrawCallback
 function addNode(x = 100, y = 100, redrawCallback) {
@@ -93,49 +90,77 @@ function handleNodeClick(e, redrawCallback) {
   }
 }
 
-// Función para iniciar el arrastre de un nodo — AHORA RECIBE redrawCallback
+// Función para iniciar el arrastre de un nodo — AHORA CON LÍMITES Y CORRECCIÓN SUAVE
 function startDrag(e, redrawCallback) {
   if (e.target.tagName === 'BUTTON') return;
   e.preventDefault();
   
   selectedNode = e.currentTarget;
 
-  // Obtener posición inicial del nodo (como número, sin 'px')
   const initialLeft = parseFloat(selectedNode.style.left) || 0;
   const initialTop = parseFloat(selectedNode.style.top) || 0;
 
-  // Calcular el offset del clic DENTRO del nodo
   const offsetX = e.clientX - initialLeft;
   const offsetY = e.clientY - initialTop;
 
-  // Extraer ícono actual
-  const text = selectedNode.textContent;
-  const icono = text.charAt(0);
+  const icono = selectedNode.textContent.charAt(0);
+
+  // Obtener límites del canvas
+  const canvasRect = canvas.getBoundingClientRect();
+  const maxX = canvasRect.width - selectedNode.offsetWidth;
+  const maxY = canvasRect.height - selectedNode.offsetHeight;
 
   function drag(e) {
-    // Nueva posición = posición del mouse - offset interno
     const newX = e.clientX - offsetX;
     const newY = e.clientY - offsetY;
 
-    // Aplicar nueva posición
+    // Aplicar nueva posición (sin límites aún, para fluidez durante arrastre)
     selectedNode.style.left = newX + 'px';
     selectedNode.style.top = newY + 'px';
 
-    // Obtener zIndex actual
-    const currentZIndex = window.getComputedStyle(selectedNode).zIndex || 2;
-
-    // Actualizar texto con nuevas coordenadas
-    updateNodeText(selectedNode, icono, newX, newY, currentZIndex);
+    // Actualizar texto
+    updateNodeText(selectedNode, icono, newX, newY, 2);
 
     // Redibujar conexiones
     if (typeof redrawCallback === 'function') {
       redrawCallback();
     }
   }
-  
+
   function stopDrag() {
     document.removeEventListener('mousemove', drag);
     document.removeEventListener('mouseup', stopDrag);
+
+    // Verificar posición final
+    const currentX = parseFloat(selectedNode.style.left) || 0;
+    const currentY = parseFloat(selectedNode.style.top) || 0;
+
+    // Calcular posición corregida
+    let correctedX = Math.max(0, Math.min(currentX, maxX));
+    let correctedY = Math.max(0, Math.min(currentY, maxY));
+
+    // Si está fuera de límites, corregir suavemente
+    if (currentX !== correctedX || currentY !== correctedY) {
+      // Activar transición suave
+      selectedNode.style.transition = 'left 0.3s ease-out, top 0.3s ease-out';
+      
+      // Aplicar corrección
+      selectedNode.style.left = correctedX + 'px';
+      selectedNode.style.top = correctedY + 'px';
+
+      // Actualizar texto
+      updateNodeText(selectedNode, icono, correctedX, correctedY, 2);
+
+      // Redibujar conexiones
+      if (typeof redrawCallback === 'function') {
+        redrawCallback();
+      }
+
+      // Desactivar transición después de la animación
+      setTimeout(() => {
+        selectedNode.style.transition = '';
+      }, 300);
+    }
   }
   
   document.addEventListener('mousemove', drag);
@@ -171,3 +196,6 @@ function initDiagram(redrawCallback) {
     }
   });
 }
+
+// Exportar funciones y variable connections — ✅ SOLO AQUÍ, UNA VEZ
+export { addNode, initDiagram, connections };
