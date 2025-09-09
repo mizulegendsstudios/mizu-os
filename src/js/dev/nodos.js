@@ -4,7 +4,7 @@ let selectedNode = null;
 let sourceNode = null;
 let connections = []; // [{from: id, to: id}]
 const canvas = document.getElementById('canvas');
-const connectionsLayer = document.getElementById('connections-layer'); // Nueva capa para DIVs
+const connectionsLayer = document.getElementById('connections-layer'); // Capa para DIVs
 const iconos = ["➕", "⚙️", "✅", "📥", "📤", "🔁", "⚠️", "🔍"];
 
 // Función para añadir un nuevo nodo
@@ -109,9 +109,9 @@ function drawLines() {
     const length = Math.sqrt(dx * dx + dy * dy);
     const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
-    // Ajustar longitud para que la punta no se superponga al nodo destino
-    const adjustedLength = length - 30; // 30px = radio aprox del nodo
-    if (adjustedLength <= 0) return; // Evitar líneas negativas
+    // Ajustar longitud para que la punta toque el borde del nodo destino (radio ~30px)
+    const adjustedLength = length - 30;
+    if (adjustedLength <= 0) return;
 
     // Crear línea
     const line = document.createElement('div');
@@ -125,12 +125,11 @@ function drawLines() {
     const arrow = document.createElement('div');
     arrow.className = 'arrowhead';
 
-    // Posicionar la punta AL FINAL DE LA LÍNEA, centrada
-    arrow.style.left = adjustedLength + 'px'; // Justo al final
-    arrow.style.top = '-5px'; // Centrado vertical (mitad de la altura del triángulo: 10px)
+    // Posicionar la punta justo en el borde del nodo destino
+    arrow.style.left = adjustedLength + 'px'; // Al final de la línea
+    arrow.style.top = '-5px'; // Centrado vertical (mitad de 10px de altura)
 
-    // Rotar el triángulo para que apunte en la dirección correcta
-    // El triángulo por defecto apunta hacia abajo → lo rotamos 180° para que apunte hacia adelante
+    // Rotar para que apunte en la dirección correcta
     arrow.style.transform = 'rotate(180deg)';
 
     // Agrupar línea + punta
@@ -159,7 +158,7 @@ function startDrag(e) {
   const initialLeft = parseFloat(selectedNode.style.left) || 0;
   const initialTop = parseFloat(selectedNode.style.top) || 0;
 
-  // Calcular el offset del clic DENTRO del nodo (relativo a su borde izquierdo/superior)
+  // Calcular el offset del clic DENTRO del nodo
   const offsetX = e.clientX - initialLeft;
   const offsetY = e.clientY - initialTop;
 
