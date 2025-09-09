@@ -1,63 +1,98 @@
+/* Estilos para el diagrama de flujo */
 #canvas {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   overflow: hidden;
 }
+
 .node {
   position: absolute;
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   background: #fff;
   border: 3px solid #0077cc;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 24px;
   cursor: move;
   user-select: none;
   box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 2;
 }
+
 .node:hover {
   transform: scale(1.05);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
 }
+
 .node.selected {
   border-color: #ff5500;
   box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.3);
 }
-svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+
+#svg {
   pointer-events: none;
   z-index: 1;
 }
+
 line {
   stroke: #333;
-  stroke-width: 3;
+  stroke-width: 2;
   marker-end: url(#arrowhead);
   pointer-events: stroke;
   cursor: pointer;
 }
+
 line:hover {
   stroke: #ff0000;
 }
-button {
-  position: fixed;
-  top: 80px;
-  left: 80px;
-  z-index: 1000;
-  padding: 10px 16px;
+
+.node-btn {
   background: #0077cc;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  transition: background 0.2s;
 }
-button:hover {
+
+.node-btn:hover {
   background: #005fa3;
+}
+
+.plus-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.help-panel {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.help-panel h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.help-panel ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.help-panel li {
+  margin-bottom: 4px;
 }
