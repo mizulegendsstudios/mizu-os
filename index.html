@@ -1,62 +1,56 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mizulegends - Canvas</title>
-  <link rel="stylesheet" href="./src/css/core.css">
-  <link rel="stylesheet" href="./src/css/nodos.css">
-  <script type="module" src="./src/js/core.js"></script>
-<link rel="icon" type="image/x-icon" href="./favicon.ico">
-    <!-- Estilos críticos inline -->
-    <style>
-        html { 
-            visibility: hidden;
-            opacity: 0;
-            transition: opacity 0.3s ease-in;
-        }
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mizu Board - Canvas</title>
+  <link rel="stylesheet" href="./src/css/core.css">
+  <link rel="stylesheet" href="./src/css/nodos.css">
+  <script type="module" src="./src/js/core.js"></script>
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+  <!-- Estilos críticos inline -->
+  <style>
+    html { 
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease-in;
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+  </style>
 </head>
-  
+
 <body id="body-container">
-  <div id="mouse-monitor">
-    <div id="mouse-position">X: 0, Y: 0</div>
-    <div id="viewport-size">Ancho: 0, Alto: 0</div>
-  </div>
-  <div id="green-div" class="div"></div>
-  <div id="red-bar" class="div"></div>
-  <div id="blue-bar" class="div center-vertically">
-    <div class="square">1</div>
-    <div class="square">2</div>
-    <div class="square">30</div>
-    <button id="create-node-btn" class="node-btn">
-        <span class="plus-icon">+</span>
-    </button>
-    <div class="foot-square">4</div>
-  </div>
-  <div id="yellow-square" class="div">  
-      <div id="cube">
-          <div id="hologram"></div>
-      </div>
+  <div id="mouse-monitor">
+    <div id="mouse-position">X: 0, Y: 0</div>
+    <div id="viewport-size">Ancho: 0, Alto: 0</div>
   </div>
-  <div id="black-bar" class="div">
-    <div id="black-content-wrapper" class="w-full h-full">
-        <!-- EL CONTENIDO DINÁMICO SERÁ INYECTADO AQUÍ POR JAVASCRIPT -->
-<div id="canvas">
-  <svg id="svg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
-    <defs>
-      <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-              refX="10" refY="3.5" orient="auto">
-        <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
-      </marker>
-    </defs>
-  </svg>
-</div>
-    </div>
-  </div>
+  <div id="green-div" class="div"></div>
+  <div id="red-bar" class="div"></div>
+  <div id="blue-bar" class="div center-vertically">
+    <div class="square">1</div>
+    <div class="square">2</div>
+    <div class="square">30</div>
+    <button id="create-node-btn" class="node-btn">
+      <span class="plus-icon">+</span>
+    </button>
+    <div class="foot-square">4</div>
+  </div>
+  <div id="yellow-square" class="div">  
+    <div id="cube">
+      <div id="hologram"></div>
+    </div>
+  </div>
+  <div id="black-bar" class="div">
+    <div id="black-content-wrapper" class="w-full h-full">
+      <!-- EL CONTENIDO DINÁMICO SERÁ INYECTADO AQUÍ POR JAVASCRIPT -->
+      <div id="canvas" style="width: 100%; height: 500px; position: relative;">
+        <!-- Capa para dibujar conexiones con DIV en lugar de SVG -->
+        <div id="connections-layer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
