@@ -16,7 +16,7 @@ import { initDiagram } from './stable/nodos.js';
  * Versión de la aplicación.
  * @constant {string}
  */
-const VERSION = '2.10.02';
+const VERSION = '2.10.03';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Registra la versión de la aplicación en la consola.
