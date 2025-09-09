@@ -138,3 +138,67 @@
 .help-panel li {
   margin-bottom: 4px;
 }
+/* --------------------------------------------------
+    ESTILOS PARA SISTEMA DE CONTENEDORES + PUERTOS
+    (content-nodes.js)
+-------------------------------------------------- */
+
+/* Contenedor principal — posiciona todo el grupo */
+.node-container {
+  position: absolute;
+  z-index: 2;
+}
+
+/* Contenido visible — lo que el usuario ve y arrastra */
+.node-content {
+  width: 60px;
+  height: 60px;
+  background: #fff;
+  border: 3px solid #0077cc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: move;
+  user-select: none;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 2;
+  padding: 0 4px;
+  text-align: center;
+}
+
+.node-content:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+}
+
+.node-content.selected {
+  border-color: #ff5500;
+  box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.3);
+}
+
+/* Puertos — invisibles por defecto, solo para conexiones */
+.node-port {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: transparent;
+  border-radius: 50%;
+  z-index: 3; /* Por encima del contenido para clic preciso */
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Posición de los puertos */
+.node-port-top    { top: -4px;   left: 50%; transform: translateX(-50%); }
+.node-port-bottom { bottom: -4px; left: 50%; transform: translateX(-50%); }
+.node-port-left   { left: -4px;   top: 50%;  transform: translateY(-50%); }
+.node-port-right  { right: -4px;  top: 50%;  transform: translateY(-50%); }
+
+/* Opcional: modo debug — para ver dónde están los puertos */
+.debug .node-port {
+  background: rgba(255, 0, 0, 0.3);
+  border: 1px solid red;
+}
