@@ -28,12 +28,12 @@
 /* Estilo base para las líneas de conexión (hechas con div) */
 .connection-line {
   position: absolute;
-  height: 2px; /* Grosor de la línea */
+  height: 2px;
   background-color: #333;
   transform-origin: left center;
-  pointer-events: auto; /* Habilita interacción solo en la línea */
+  pointer-events: auto;
   cursor: pointer;
-  z-index: 1;
+  z-index: 3; /* ¡Ahora por encima de los nodos! */
 }
 
 .connection-line:hover {
@@ -47,10 +47,10 @@
   height: 0;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
-  border-bottom: 10px solid #333; /* Color de la flecha */
-  transform-origin: center top; /* ¡Clave! Rota desde el centro del borde superior */
-  pointer-events: none; /* La interacción se maneja en la línea */
-  z-index: 1;
+  border-bottom: 10px solid #333;
+  transform-origin: center top;
+  pointer-events: none;
+  z-index: 4; /* Por encima de todo */
 }
 
 /* Hover en línea también afecta la punta */
