@@ -1,4 +1,6 @@
-// content-nodes.js — Sistema de contenedores + puertos (versión funcional)
+// content-nodes.js — Sistema de contenedores + puertos (versión funcional + conexiones)
+
+import { connections } from '../stable/nodos.js'; // ✅ IMPORTADO para guardar conexiones
 
 let containerId = 0;
 let selectedPort = null;
@@ -147,13 +149,15 @@ function startDragContainer(e, container, content, redrawCallback) {
 }
 
 /**
- * Maneja clic en un puerto (para crear conexiones)
+ * Maneja clic en un puerto (para crear conexiones) — ✅ AHORA GUARDA CONEXIONES
  */
 function handlePortClick(e, port, redrawCallback) {
   e.stopPropagation();
 
   if (sourcePort === port) {
-    sourcePort.classList.remove('selected');
+    // Cancelar selección
+    sourcePort.style.background = '';
+    sourcePort.style.border = '';
     sourcePort = null;
     return;
   }
@@ -161,23 +165,24 @@ function handlePortClick(e, port, redrawCallback) {
   if (!sourcePort) {
     // Seleccionar como origen
     sourcePort = port;
-    port.style.background = 'rgba(255, 85, 0, 0.5)'; // Feedback visual temporal
+    port.style.background = 'rgba(255, 85, 0, 0.5)'; // Feedback visual
     port.style.border = '1px solid #ff5500';
   } else {
     // Crear conexión entre puertos
     const from = `${sourcePort.dataset.containerId}-${sourcePort.dataset.port}`;
     const to = `${port.dataset.containerId}-${port.dataset.port}`;
 
-    // Aquí integrarías con tu sistema de conexiones actual
-    // Por ahora, solo logueamos (en el siguiente paso lo conectaremos)
-    console.log(`[content-nodes.js] Conexión propuesta: ${from} → ${to}`);
+    // Guardar conexión si no existe
+    if (!connections.some(c => c.from === from && c.to === to)) {
+      connections.push({ from, to });
+    }
 
     // Deseleccionar
     sourcePort.style.background = '';
     sourcePort.style.border = '';
     sourcePort = null;
 
-    // Redibujar (aunque aún no dibuja conexiones entre puertos)
+    // Redibujar
     if (typeof redrawCallback === 'function') {
       redrawCallback();
     }
