@@ -1,5 +1,7 @@
-/* Archivo principal que orquesta la lógica de la aplicación. */
-
+/**
+ * @fileoverview Archivo principal que orquesta la lógica de la aplicación.
+ * @author Gemini
+ */
 // STABLE
 import { initializeLoadingScreen } from "./stable/loading.js";
 import { initializeBarHiding } from "./stable/monitor_bars.js";
@@ -9,7 +11,7 @@ import { initializeMonitor } from "./stable/monitor_axis.js";
 // DEV — Importamos drawLines desde su módulo independiente
 import { drawLines } from './dev/drawlines.js';
 
-// Importamos initDiagram desde stable/nodos.js (asumiendo que lo moverás allí)
+// Importamos initDiagram desde stable/nodos.js
 import { initDiagram } from './stable/nodos.js';
 
 /**
@@ -31,9 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializa el diagrama, pasando drawLines como callback para redibujar conexiones
     initDiagram(drawLines);
 
-    // Carga redundante por compatibilidad (se respeta, aunque no sea necesaria si usas imports)
+    // Carga redundante por compatibilidad — RUTA CORREGIDA
     const script = document.createElement('script');
-    script.src = './src/stable/nodos.js'; // O debería ser 'stable/nodos.js'? Ajusta según tu estructura final
+    script.src = './src/js/stable/nodos.js'; // ✅ Ruta correcta para GitHub Pages
     document.head.appendChild(script);
 
     // Hacer visible el HTML después de cargar
