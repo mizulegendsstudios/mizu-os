@@ -48,9 +48,9 @@
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
   border-bottom: 10px solid #333;
-  transform-origin: center top;
+  transform-origin: center top; /* Importante para futuras rotaciones */
   pointer-events: none;
-  z-index: 4; /* Por encima de todo */
+  z-index: 4;
 }
 
 /* Hover en línea también afecta la punta */
