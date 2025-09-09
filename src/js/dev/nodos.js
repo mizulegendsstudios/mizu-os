@@ -124,10 +124,14 @@ function drawLines() {
     // Crear punta de flecha (triángulo)
     const arrow = document.createElement('div');
     arrow.className = 'arrowhead';
-    // Posicionar la punta al final de la línea (ajustado por transform)
-    arrow.style.left = adjustedLength - 5 + 'px'; // Centrar punta en el extremo
-    arrow.style.top = '-5px'; // Centrar verticalmente (mitad de altura del triángulo)
-    arrow.style.transform = 'rotate(90deg)'; // Apuntar hacia adelante (el triángulo apunta abajo por defecto)
+
+    // Posicionar la punta AL FINAL DE LA LÍNEA, centrada
+    arrow.style.left = adjustedLength + 'px'; // Justo al final
+    arrow.style.top = '-5px'; // Centrado vertical (mitad de la altura del triángulo: 10px)
+
+    // Rotar el triángulo para que apunte en la dirección correcta
+    // El triángulo por defecto apunta hacia abajo → lo rotamos 180° para que apunte hacia adelante
+    arrow.style.transform = 'rotate(180deg)';
 
     // Agrupar línea + punta
     line.appendChild(arrow);
