@@ -14,11 +14,14 @@ function addNode(x = 100, y = 100) {
   node.id = 'node-' + nodeId++;
   node.style.left = x + 'px';
   node.style.top = y + 'px';
-  
+  node.style.zIndex = 2; // Valor inicial de zIndex, coincide con CSS
+
   // Asignar ícono aleatorio
   const icono = iconos[Math.floor(Math.random() * iconos.length)];
-  node.textContent = icono;
   
+  // Establecer contenido inicial con coordenadas
+  updateNodeText(node, icono, x, y, 2);
+
   // Eventos del nodo
   node.addEventListener('dblclick', changeIcon);
   node.addEventListener('mousedown', startDrag);
@@ -28,12 +31,31 @@ function addNode(x = 100, y = 100) {
   return node;
 }
 
+// Función para actualizar el texto del nodo (ícono + coordenadas)
+function updateNodeText(node, icono, x, y, z) {
+  node.textContent = `${icono} (X:${Math.round(x)}, Y:${Math.round(y)}, Z:${z})`;
+}
+
 // Función para cambiar el ícono de un nodo
 function changeIcon(e) {
   const node = e.currentTarget;
-  const currentIndex = iconos.indexOf(node.textContent);
+  // Extraer coordenadas actuales del texto
+  const text = node.textContent;
+  const coordsMatch = text.match(/\(X:(\d+),\s*Y:(\d+),\s*Z:(\d+)\)$/);
+  let x = 0, y = 0, z = 2;
+  if (coordsMatch) {
+    x = parseInt(coordsMatch[1], 10);
+    y = parseInt(coordsMatch[2], 10);
+    z = parseInt(coordsMatch[3], 10);
+  }
+
+  // Cambiar ícono
+  const currentIndex = iconos.indexOf(text.charAt(0));
   const nextIndex = (currentIndex + 1) % iconos.length;
-  node.textContent = iconos[nextIndex];
+  const nuevoIcono = iconos[nextIndex];
+
+  // Actualizar texto con nuevo ícono y mismas coordenadas
+  updateNodeText(node, nuevoIcono, x, y, z);
 }
 
 // Función para manejar el clic en un nodo
@@ -65,7 +87,7 @@ function handleNodeClick(e) {
   }
 }
 
-// Función para dibujar las líneas de conexión
+// Función para dibujar las líneas de conexión (SVG - sin cambios por ahora)
 function drawLines() {
   // Limpiar SVG pero mantener los defs
   const defs = svg.querySelector('defs');
@@ -107,10 +129,23 @@ function startDrag(e) {
   const rect = selectedNode.getBoundingClientRect();
   const offsetX = e.clientX - rect.left;
   const offsetY = e.clientY - rect.top;
-  
+
+  // Extraer ícono actual antes de empezar a arrastrar
+  const text = selectedNode.textContent;
+  const icono = text.charAt(0);
+
   function drag(e) {
-    selectedNode.style.left = (e.clientX - offsetX) + 'px';
-    selectedNode.style.top = (e.clientY - offsetY) + 'px';
+    const newX = e.clientX - offsetX;
+    const newY = e.clientY - offsetY;
+    selectedNode.style.left = newX + 'px';
+    selectedNode.style.top = newY + 'px';
+
+    // Obtener zIndex actual
+    const currentZIndex = window.getComputedStyle(selectedNode).zIndex || 2;
+
+    // Actualizar texto con nuevas coordenadas
+    updateNodeText(selectedNode, icono, newX, newY, currentZIndex);
+
     drawLines();
   }
   
