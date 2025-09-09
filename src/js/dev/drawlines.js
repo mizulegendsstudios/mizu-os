@@ -1,6 +1,8 @@
+// Importamos connections desde nodos.js — ¡ahora es un import explícito!
+import { connections } from '../stable/nodos.js';
+
 // Referencias necesarias (asume que el DOM ya está cargado)
 const connectionsLayer = document.getElementById('connections-layer');
-const iconos = ["➕", "⚙️", "✅", "📥", "📤", "🔁", "⚠️", "🔍"]; // Solo si se usa en futuro, por ahora no se usa aquí
 
 /**
  * Dibuja todas las conexiones entre nodos usando elementos <div> (sin SVG).
@@ -8,15 +10,14 @@ const iconos = ["➕", "⚙️", "✅", "📥", "📤", "🔁", "⚠️", "🔍"
  */
 export function drawLines() {
   // Limpiar capa de conexiones
-  connectionsLayer.innerHTML = '';
-
-  // Asumimos que `connections` es una variable global definida en nodos.js
-  // [{ from: 'node-0', to: 'node-1' }, ...]
-  if (typeof connections === 'undefined') {
-    console.warn('drawLines: variable "connections" no está definida.');
+  if (!connectionsLayer) {
+    console.warn('drawLines: #connections-layer no encontrado.');
     return;
   }
 
+  connectionsLayer.innerHTML = '';
+
+  // No necesitamos verificar si connections está definida — ahora es un import
   connections.forEach(conn => {
     const n1 = document.getElementById(conn.from);
     const n2 = document.getElementById(conn.to);
@@ -63,8 +64,9 @@ export function drawLines() {
     // Evento para eliminar conexión con clic derecho
     line.addEventListener('contextmenu', (e) => {
       e.preventDefault();
-      // Asumimos que `connections` es global (manejado en nodos.js)
-      connections = connections.filter(c => !(c.from === conn.from && c.to === conn.to));
+      // Filtrar conexiones
+      connections.splice(0, connections.length, ...connections.filter(c => !(c.from === conn.from && c.to === conn.to)));
+      // Redibujar
       drawLines();
     });
 
