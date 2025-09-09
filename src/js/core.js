@@ -9,7 +9,7 @@ import { initializeMonitor } from "./stable/monitor_axis.js";
 import { initializeZoomAndPan } from "./stable/zoom.js";
 //DEV
 //import { initializeNodeManager } from "./dev/node_manager.js"; // Importa el nuevo módulo
-
+import { initDiagram } from './nodos.js';
 /**
  * Versión de la aplicación.
  * @constant {string}
@@ -26,9 +26,14 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeBarHiding();
     initializeLoadingScreen();
     initializeZoomAndPan();
+//DEV
+initDiagram();
     const script = document.createElement('script');
     script.src = 'dev/nodos.js';
     document.head.appendChild(script);
-    // Inicializa todos los módulos.
-    //initializeNodeManager(); // Se inicializa el módulo de gestión de nodos.
+  // Hacer visible el HTML después de cargar
+  document.documentElement.style.visibility = 'visible';
+  document.documentElement.style.opacity = '1';
+  // Aquí puedes añadir otras inicializaciones de tu aplicación
+  console.log('Aplicación inicializada');
 });
