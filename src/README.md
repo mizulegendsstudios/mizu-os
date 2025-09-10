@@ -1,4 +1,4 @@
-# 🌐 Mizu Board
+# 🌐 Mizu Diagram
 
 > Diagrama de flujo interactivo en navegador, sin frameworks, sin dependencias, 100% en la nube.
 
