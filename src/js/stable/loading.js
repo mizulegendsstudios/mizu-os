@@ -1,5 +1,5 @@
 export function initializeLoadingScreen() {
-  // Estilo inicial más robusto
+  // Estilo inicial más robusto-
   document.documentElement.style.visibility = 'hidden';
   document.documentElement.style.opacity = '0';
   document.documentElement.style.transition = 'opacity 0.3s ease-in';
