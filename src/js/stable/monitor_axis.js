@@ -1,6 +1,5 @@
-/**
- * @fileoverview Módulo para actualizar los elementos del DOM con la posición del mouse y el tamaño del viewport.
- * @author Gemini
+/*
+Módulo para actualizar los elementos del DOM con la posición del mouse y el tamaño del viewport.
  */
 
 /**
