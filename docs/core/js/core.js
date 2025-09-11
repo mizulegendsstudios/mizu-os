@@ -1,29 +1,29 @@
-/*
-Archivo principal que orquesta la lógica de la aplicación..
- */
+    /*
+    Archivo principal que orquesta la lógica de la aplicación..
+     */
 
-// Versión de la aplicación.
+    // Versión de la aplicación.
 const VERSION = '2.10.10';
-// Versión de la aplicación impreso en log.
+    // Versión de la aplicación impreso en log.
 console.log(`Aplicación Mizu OS iniciada. Versión: ${VERSION}`);
 
-// STABLE
+    // STABLE
 console.log(`Cargando sistema estable...`);
 import { initializeLoadingScreen } from "./loading.js";
 import { initializeBarHiding } from "./monitor_bars.js";
 import { initializeMonitor } from "./monitor_axis.js";
 
-// DEV 
+    // DEV 
 console.log(`Cargando sistema mejoras en desarrollo...`);
-// import { initializeZoomAndPan } from "./stable/zoom.js"; // Dejado comentado por compatibilidad con diagram
+    // import { initializeZoomAndPan } from "./stable/zoom.js"; // Dejado comentado por compatibilidad con diagram
 //import { drawLines } from './apps/diagram/js/drawlines.js';
-Importamos initDiagram desde nodos.js (sistema de nodos tradicionales)
-//import { initDiagram } from './apps/diagram/js/nodos.js';
+    //Importamos initDiagram desde nodos.js (sistema de nodos tradicionales)
+import { initDiagram } from './apps/diagram/js/nodos.js';
 
-// Importamos createContainerWithPorts desde dev/nodos-puertos.js (nuevo sistema de puertos anclados)
+    // Importamos createContainerWithPorts desde dev/nodos-puertos.js (nuevo sistema de puertos anclados)
 //import { createContainerWithPorts } from './apps/diagram/js/nodos-puertos.js';
 
-//  DOM
+    //  DOM
 console.log(`Iniciando sistema...`);
 document.addEventListener('DOMContentLoaded', () => {
     // Registra la versión de la aplicación en la consola.
@@ -33,10 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeMonitor();
     initializeBarHiding();
     initializeLoadingScreen();
-    // initializeZoomAndPan(); // Mantenido comentado por conflicto con nodos
+// initializeZoomAndPan(); // Mantenido comentado por conflicto con nodos
 
     // Inicializa el diagrama de nodos tradicionales
-    //initDiagram(drawLines);
+//initDiagram(drawLines);
     console.log(`Modulos iniciados...`);
    
     // Configurar botón para crear contenedores con puertos anclados
