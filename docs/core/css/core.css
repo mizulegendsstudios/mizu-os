@@ -182,7 +182,7 @@ z-index: 1026;
     right: 0;
     bottom: 0;
     background-size: contain;
-    background-image: url('https://cdn.jsdelivr.net/gh//mizulegendsstudios/mizu-board@main/docs/apps/diagram/assets/wood-texture.jpg');
+    /*background-image: url('https://cdn.jsdelivr.net/gh//mizulegendsstudios/mizu-board@main/docs/apps/diagram/assets/wood-texture.jpg');*/
     background-color: rgba(0, 0, 0, 0.5);
     border-radius: 0.5rem;
     padding: 1rem;
