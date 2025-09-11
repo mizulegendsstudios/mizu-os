@@ -1,3 +1,6 @@
+/*
+https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/apps/diagram/js/nodos.js
+*/
 
 // Exportar funciones y variable connections — ✅ SOLO AQUÍ, UNA VEZ
 export { addNode, initDiagram, connections };
