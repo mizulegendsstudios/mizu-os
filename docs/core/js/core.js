@@ -3,7 +3,7 @@ Archivo principal que orquesta la lógica de la aplicación..
  */
 
 // Versión de la aplicación.
-const VERSION = '2.10.08';
+const VERSION = '2.10.09';
 // Versión de la aplicación impreso en log.
 console.log(`Aplicación Mizu OS iniciada. Versión: ${VERSION}`);
 
