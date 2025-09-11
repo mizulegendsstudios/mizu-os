@@ -1,6 +1,6 @@
-/**
- * @fileoverview Módulo para controlar la visibilidad de las barras roja y azul.
- * @author Gemini
+/*
+https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/core/js/monitor_bars.js
+ Módulo para controlar la visibilidad de las barras roja y azul.
  */
 
 let hideTimer;
@@ -12,9 +12,7 @@ const EDGE_THRESHOLD = 50; // píxeles
     FUNCIONES AUXILIARES
 -------------------------------------------------- */
 
-/**
- * Oculta las barras roja y azul y expande la capa negra.
- */
+//Oculta las barras roja y azul y expande la capa negra.
 function hideBars() {
     const redBar = document.getElementById('red-bar');
     const blueBar = document.getElementById('blue-bar');
