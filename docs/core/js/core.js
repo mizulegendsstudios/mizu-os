@@ -3,7 +3,7 @@
      */
 
     // Versión de la aplicación.
-const VERSION = '2.10.10';
+const VERSION = '2.10.11';
     // Versión de la aplicación impreso en log.
 console.log(`Aplicación Mizu OS iniciada. Versión: ${VERSION}`);
 
@@ -26,8 +26,6 @@ import { initDiagram } from './apps/diagram/js/nodos.js';
     //  DOM
 console.log(`Iniciando sistema...`);
 document.addEventListener('DOMContentLoaded', () => {
-    // Registra la versión de la aplicación en la consola.
-    console.log(`DOM iniciado`);
 
     // Inicializa módulos estables
     initializeMonitor();
@@ -37,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicializa el diagrama de nodos tradicionales
 //initDiagram(drawLines);
-    console.log(`Modulos iniciados...`);
+    console.log(`Iniciando modulos...`);
    
     // Configurar botón para crear contenedores con puertos anclados
     const createContainerBtn = document.createElement('button');
