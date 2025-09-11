@@ -16,12 +16,12 @@ import { initializeMonitor } from "./monitor_axis.js";
 // DEV 
 console.log(`Cargando sistema mejoras en desarrollo...`);
 // import { initializeZoomAndPan } from "./stable/zoom.js"; // Dejado comentado por compatibilidad con diagram
-import { drawLines } from './apps/diagram/js/drawlines.js';
+//import { drawLines } from './apps/diagram/js/drawlines.js';
 // Importamos initDiagram desde nodos.js (sistema de nodos tradicionales)
-import { initDiagram } from './apps/diagram/js/nodos.js';
+//import { initDiagram } from './apps/diagram/js/nodos.js';
 
 // Importamos createContainerWithPorts desde dev/nodos-puertos.js (nuevo sistema de puertos anclados)
-import { createContainerWithPorts } from './apps/diagram/js/nodos-puertos.js';
+//import { createContainerWithPorts } from './apps/diagram/js/nodos-puertos.js';
 
 //  DOM
 console.log(`Iniciando sistema...`);
@@ -36,8 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // initializeZoomAndPan(); // Mantenido comentado por conflicto con nodos
 
     // Inicializa el diagrama de nodos tradicionales
-    initDiagram(drawLines);
-console.log(`Modulos iniciados...`);
+    //initDiagram(drawLines);
+    console.log(`Modulos iniciados...`);
+   
     // Configurar botón para crear contenedores con puertos anclados
     const createContainerBtn = document.createElement('button');
     createContainerBtn.className = 'node-btn';
