@@ -1,3 +1,7 @@
+/*
+https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/core/js/loading.js
+*/
+
 export function initializeLoadingScreen() {
   // Estilo inicial más robusto-
   document.documentElement.style.visibility = 'hidden';
