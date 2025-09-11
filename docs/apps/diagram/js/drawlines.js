@@ -1,5 +1,5 @@
 // Importamos connections desde nodos.js
-import { connections } from '../stable/nodos.js';
+import { connections } from './nodos.js';
 
 // Referencias
 const connectionsLayer = document.getElementById('connections-layer');
