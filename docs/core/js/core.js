@@ -2,14 +2,7 @@
     Archivo principal que orquesta la lógica de la aplicación.
 */
 
-// Versión de la aplicación.
-const VERSION = '2.10.15';
-
-// Versión de la aplicación impresa en log.
-console.log(`Aplicación Mizu OS iniciada. Versión: ${VERSION}`);
-
-try {
-    console.log(`Cargando sistema estable...`);
+console.log(`Cargando sistema estable...`);
 
     // Importaciones y lógica que podrían fallar
     import { initializeLoadingScreen } from "./loading.js";
@@ -75,7 +68,3 @@ try {
             console.error('Error al inicializar la aplicación:', error);
         }
     }); // Llave de cierre del DOMContentLoaded
-
-} catch (error) {
-    console.error('Error al cargar módulos:', error);
-}
