@@ -1,4 +1,5 @@
 /*
+https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/core/js/monitor_axis.js
 Módulo para actualizar los elementos del DOM con la posición del mouse y el tamaño del viewport.
  */
 
@@ -35,5 +36,5 @@ export function initializeMonitor() {
     updateMonitor({ clientX: 0, clientY: 0 });
     
     // Configura el listener para actualizar el monitor al mover el mouse.
-    document.addEventListener('mousemove', updateMonitor);
+    document.addEventListener('mousemove', updateMonitor);//se dispara cientos de veces por segundo. ¿Podría afectar el rendimiento si hay muchos elementos en pantalla?
 }
