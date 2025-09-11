@@ -9,10 +9,10 @@ import { initializeMonitor } from "/monitor_axis.js";
 // import { initializeZoomAndPan } from "./stable/zoom.js"; // Dejado comentado por compatibilidad
 
 // DEV — Importamos drawLines desde su módulo independiente
-import { drawLines } from 'apps/diagram/js/drawlines.js';
+import { drawLines } from '/apps/diagram/js/drawlines.js';
 
 // Importamos initDiagram desde stable/nodos.js (sistema de nodos tradicionales)
-import { initDiagram } from 'apps/diagram/js/nodos.js';
+import { initDiagram } from '/apps/diagram/js/nodos.js';
 
 // Importamos createContainerWithPorts desde dev/nodos-puertos.js (nuevo sistema de puertos anclados)
 import { createContainerWithPorts } from 'apps/diagram/js/nodos-puertos.js';
