@@ -37,7 +37,7 @@ body {
 /* --------------------------------------------------
     MONITOR DE INFORMACIÓN
 -------------------------------------------------- */
-#monitor-info {
+#mouse-monitor {
     position: absolute;
     top: 1rem;
     right: 1rem;
