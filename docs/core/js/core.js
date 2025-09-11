@@ -2,7 +2,7 @@
     Archivo principal que orquesta la lógica de la aplicación.//
 */
 
-console.log(`Cargando sistema estable...`);
+console.log(`Cargando sistema...`);
 
     // Importaciones y lógica que podrían fallar
     import { initializeLoadingScreen } from "./loading.js";
@@ -10,16 +10,13 @@ console.log(`Cargando sistema estable...`);
     import { initializeMonitor } from "./monitor_axis.js";
 
     // DEV
-    console.log(`Cargando sistema mejoras en desarrollo...`);
-
-    // import { initializeZoomAndPan } from "./docs/core/js/zoom.js"; // Dejado comentado por compatibilidad con diagram
-    // import { drawLines } from './docs/apps/diagram/js/drawlines.js';
-
+    console.log(`Cargando mejoras...`);
+        // import { initializeZoomAndPan } from "./zoom.js"; // Dejado comentado por compatibilidad con diagram
+    import { drawLines } from '../../apps/diagram/js/drawlines.js';
     // Importamos initDiagram desde nodos.js (sistema de nodos tradicionales)
     import { initDiagram } from '../../apps/diagram/js/nodos.js';
-
     // Importamos createContainerWithPorts desde dev/nodos-puertos.js (nuevo sistema de puertos anclados)
-    // import { createContainerWithPorts } from './docs/apps/diagram/js/nodos-puertos.js';
+        // import { createContainerWithPorts } from '../../apps/diagram/js/nodos-puertos.js';
 
     // DOM
     console.log(`Iniciando sistema...`);
@@ -35,7 +32,7 @@ console.log(`Cargando sistema estable...`);
             // Inicializa el diagrama de nodos tradicionales
             // initDiagram(drawLines);
 
-            console.log(`Iniciando módulos...`);
+            console.log(`Activando las mejoras...`);
 
             // Configurar botón para crear contenedores con puertos anclados
             const createContainerBtn = document.createElement('button');
