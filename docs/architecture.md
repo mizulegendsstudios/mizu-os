@@ -1,3 +1,4 @@
+´´´
 mizu-board/
 ├── docs/
 │   ├── index.html                 # ✅ HTML principal
@@ -24,3 +25,4 @@ mizu-board/
 ├── .gitignore                    # ⚙️ Configuración Git
 ├── .nojekyll                     # ⚙️ Indicador GitHub Pages
 └── favicon.ico                   # 🖼️ Ícono del sitio
+´´´
