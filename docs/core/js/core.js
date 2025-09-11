@@ -1,5 +1,5 @@
 /*
-Archivo principal que orquesta la lógica de la aplicación.
+Archivo principal que orquesta la lógica de la aplicación..
  */
 
 // STABLE
