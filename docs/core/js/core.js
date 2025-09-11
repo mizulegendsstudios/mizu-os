@@ -3,9 +3,9 @@ Archivo principal que orquesta la lógica de la aplicación..
  */
 
 // STABLE
-import { initializeLoadingScreen } from "/loading.js";
-import { initializeBarHiding } from "/monitor_bars.js";
-import { initializeMonitor } from "/monitor_axis.js";
+import { initializeLoadingScreen } from "./loading.js";
+import { initializeBarHiding } from "./monitor_bars.js";
+import { initializeMonitor } from "./monitor_axis.js";
 // import { initializeZoomAndPan } from "./stable/zoom.js"; // Dejado comentado por compatibilidad
 
 // DEV — Importamos drawLines desde su módulo independiente
