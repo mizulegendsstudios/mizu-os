@@ -3,7 +3,7 @@ Archivo principal que orquesta la lógica de la aplicación..
  */
 
 // Versión de la aplicación.
-const VERSION = '2.10.09';
+const VERSION = '2.10.10';
 // Versión de la aplicación impreso en log.
 console.log(`Aplicación Mizu OS iniciada. Versión: ${VERSION}`);
 
@@ -17,7 +17,7 @@ import { initializeMonitor } from "./monitor_axis.js";
 console.log(`Cargando sistema mejoras en desarrollo...`);
 // import { initializeZoomAndPan } from "./stable/zoom.js"; // Dejado comentado por compatibilidad con diagram
 //import { drawLines } from './apps/diagram/js/drawlines.js';
-// Importamos initDiagram desde nodos.js (sistema de nodos tradicionales)
+Importamos initDiagram desde nodos.js (sistema de nodos tradicionales)
 //import { initDiagram } from './apps/diagram/js/nodos.js';
 
 // Importamos createContainerWithPorts desde dev/nodos-puertos.js (nuevo sistema de puertos anclados)
