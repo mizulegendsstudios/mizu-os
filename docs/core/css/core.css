@@ -9,6 +9,7 @@
 
 html, body {
     height: 100%;
+transition: opacity 2s ease-in;
 }
 
 body {
