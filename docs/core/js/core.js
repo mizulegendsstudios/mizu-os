@@ -9,7 +9,7 @@ import { initializeMonitor } from "/monitor_axis.js";
 // import { initializeZoomAndPan } from "./stable/zoom.js"; // Dejado comentado por compatibilidad
 
 // DEV — Importamos drawLines desde su módulo independiente
-import { drawLines } from '/apps/diagram/js/drawlines.js';
+import { drawLines } from './apps/diagram/js/drawlines.js';
 
 // Importamos initDiagram desde stable/nodos.js (sistema de nodos tradicionales)
 import { initDiagram } from '/apps/diagram/js/nodos.js';
@@ -21,11 +21,11 @@ import { createContainerWithPorts } from 'apps/diagram/js/nodos-puertos.js';
  * Versión de la aplicación.
  * @constant {string}
  */
-const VERSION = '2.10.07';
+const VERSION = '2.10.08';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Registra la versión de la aplicación en la consola.
-    console.log(`Aplicación Mizu Board iniciada. Versión: ${VERSION}`);
+    console.log(`Aplicación Mizu OS iniciada. Versión: ${VERSION}`);
 
     // Inicializa módulos estables
     initializeMonitor();
