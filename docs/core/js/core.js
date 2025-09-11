@@ -31,7 +31,7 @@ console.log(`Cargando sistema...`);
             // initializeZoomAndPan(); // Mantenido comentado por conflicto con nodos
 
             // Inicializa el diagrama de nodos tradicionales
-            // initDiagram(drawLines);
+            initDiagram(drawLines);
 
             console.log(`Activando las mejoras...`);
 
@@ -54,7 +54,7 @@ console.log(`Cargando sistema...`);
                 const rect = canvas.getBoundingClientRect();
                 const x = Math.random() * (rect.width - 150);
                 const y = Math.random() * (rect.height - 150);
-                // createContainerWithPorts(x, y, drawLines); // Descomenta esta línea cuando esté listo para usar
+                createContainerWithPorts(x, y, drawLines); // Descomenta esta línea cuando esté listo para usar
             }); // Llave de cierre del arrow function
 
             // Hacer visible el HTML después de cargar
