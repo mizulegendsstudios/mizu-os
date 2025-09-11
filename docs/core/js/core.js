@@ -1,27 +1,27 @@
-/**
- * @fileoverview Archivo principal que orquesta la lógica de la aplicación.
- * @author Gemini
+/*
+Archivo principal que orquesta la lógica de la aplicación.
  */
+
 // STABLE
-import { initializeLoadingScreen } from "./stable/loading.js";
-import { initializeBarHiding } from "./stable/monitor_bars.js";
-import { initializeMonitor } from "./stable/monitor_axis.js";
+import { initializeLoadingScreen } from "/loading.js";
+import { initializeBarHiding } from "/monitor_bars.js";
+import { initializeMonitor } from "/monitor_axis.js";
 // import { initializeZoomAndPan } from "./stable/zoom.js"; // Dejado comentado por compatibilidad
 
 // DEV — Importamos drawLines desde su módulo independiente
-import { drawLines } from './dev/drawlines.js';
+import { drawLines } from 'apps/diagram/js/drawlines.js';
 
 // Importamos initDiagram desde stable/nodos.js (sistema de nodos tradicionales)
-import { initDiagram } from './stable/nodos.js';
+import { initDiagram } from 'apps/diagram/js/nodos.js';
 
 // Importamos createContainerWithPorts desde dev/nodos-puertos.js (nuevo sistema de puertos anclados)
-import { createContainerWithPorts } from './dev/nodos-puertos.js';
+import { createContainerWithPorts } from 'apps/diagram/js/nodos-puertos.js';
 
 /**
  * Versión de la aplicación.
  * @constant {string}
  */
-const VERSION = '2.10.06';
+const VERSION = '2.10.07';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Registra la versión de la aplicación en la consola.
