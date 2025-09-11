@@ -1,3 +1,7 @@
+/*
+https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/apps/diagram/js/drawlines.js
+*/
+
 // Importamos connections desde nodos.js
 import { connections } from './nodos.js';
 
