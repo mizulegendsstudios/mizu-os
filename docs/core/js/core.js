@@ -1,7 +1,7 @@
 /*
 Archivo principal que orquesta la lógica de la aplicación..
  */
-
+console.log(`Aplicación Mizu OS iniciada. Versión: ${VERSION}`);
 // STABLE
 import { initializeLoadingScreen } from "./loading.js";
 import { initializeBarHiding } from "./monitor_bars.js";
@@ -25,7 +25,7 @@ const VERSION = '2.10.08';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Registra la versión de la aplicación en la consola.
-    console.log(`Aplicación Mizu OS iniciada. Versión: ${VERSION}`);
+    console.log(`DOM iniciado`);
 
     // Inicializa módulos estables
     initializeMonitor();
