@@ -1,6 +1,6 @@
 /**
- * @fileoverview Módulo que maneja la funcionalidad de zoom y pan dentro de un contenedor.
- * @author Gemini
+https://github.com/mizulegendsstudios/mizu-board/edit/main/docs/core/js/zoom.js
+Módulo que maneja la funcionalidad de zoom y pan dentro de un contenedor.
  */
 
 /** @constant {number} La velocidad de zoom. */
