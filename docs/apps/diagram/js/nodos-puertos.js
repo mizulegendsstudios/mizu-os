@@ -5,7 +5,7 @@ let selectedPort = null;
 let sourcePort = null;
 
 // Importamos connections desde nodos.js para compartir el mismo array
-import { connections } from '../stable/nodos.js';
+import { connections } from './nodos.js';
 
 const canvas = document.getElementById('canvas');
 const connectionsLayer = document.getElementById('connections-layer');
