@@ -1,28 +1,30 @@
 /*
 Archivo principal que orquesta la lógica de la aplicación..
  */
+
+// Versión de la aplicación.
+const VERSION = '2.10.08';
+// Versión de la aplicación impreso en log.
 console.log(`Aplicación Mizu OS iniciada. Versión: ${VERSION}`);
+
 // STABLE
+console.log(`Cargando sistema estable...`);
 import { initializeLoadingScreen } from "./loading.js";
 import { initializeBarHiding } from "./monitor_bars.js";
 import { initializeMonitor } from "./monitor_axis.js";
-// import { initializeZoomAndPan } from "./stable/zoom.js"; // Dejado comentado por compatibilidad
 
-// DEV — Importamos drawLines desde su módulo independiente
+// DEV 
+console.log(`Cargando sistema mejoras en desarrollo...`);
+// import { initializeZoomAndPan } from "./stable/zoom.js"; // Dejado comentado por compatibilidad con diagram
 import { drawLines } from './apps/diagram/js/drawlines.js';
-
-// Importamos initDiagram desde stable/nodos.js (sistema de nodos tradicionales)
+// Importamos initDiagram desde nodos.js (sistema de nodos tradicionales)
 import { initDiagram } from './apps/diagram/js/nodos.js';
 
 // Importamos createContainerWithPorts desde dev/nodos-puertos.js (nuevo sistema de puertos anclados)
 import { createContainerWithPorts } from './apps/diagram/js/nodos-puertos.js';
 
-/**
- * Versión de la aplicación.
- * @constant {string}
- */
-const VERSION = '2.10.08';
-
+//  DOM
+console.log(`Iniciando sistema...`);
 document.addEventListener('DOMContentLoaded', () => {
     // Registra la versión de la aplicación en la consola.
     console.log(`DOM iniciado`);
@@ -35,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicializa el diagrama de nodos tradicionales
     initDiagram(drawLines);
-
+console.log(`Modulos iniciados...`);
     // Configurar botón para crear contenedores con puertos anclados
     const createContainerBtn = document.createElement('button');
     createContainerBtn.className = 'node-btn';
