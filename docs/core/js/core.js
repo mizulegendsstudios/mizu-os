@@ -16,7 +16,7 @@ console.log(`Cargando sistema estable...`);
     // import { drawLines } from './docs/apps/diagram/js/drawlines.js';
 
     // Importamos initDiagram desde nodos.js (sistema de nodos tradicionales)
-    import { initDiagram } from '../../docs/apps/diagram/js/nodos.js';
+    //import { initDiagram } from '../../docs/apps/diagram/js/nodos.js';
 
     // Importamos createContainerWithPorts desde dev/nodos-puertos.js (nuevo sistema de puertos anclados)
     // import { createContainerWithPorts } from './docs/apps/diagram/js/nodos-puertos.js';
