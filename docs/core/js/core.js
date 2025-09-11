@@ -12,10 +12,10 @@ import { initializeMonitor } from "/monitor_axis.js";
 import { drawLines } from './apps/diagram/js/drawlines.js';
 
 // Importamos initDiagram desde stable/nodos.js (sistema de nodos tradicionales)
-import { initDiagram } from '/apps/diagram/js/nodos.js';
+import { initDiagram } from './apps/diagram/js/nodos.js';
 
 // Importamos createContainerWithPorts desde dev/nodos-puertos.js (nuevo sistema de puertos anclados)
-import { createContainerWithPorts } from 'apps/diagram/js/nodos-puertos.js';
+import { createContainerWithPorts } from './apps/diagram/js/nodos-puertos.js';
 
 /**
  * Versión de la aplicación.
