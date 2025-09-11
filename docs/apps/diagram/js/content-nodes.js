@@ -1,6 +1,6 @@
 // content-nodes.js — Sistema de contenedores + puertos (versión funcional + conexiones)
 
-import { connections } from '../stable/nodos.js'; // ✅ IMPORTADO para guardar conexiones
+import { connections } from '../nodos.js'; // ✅ IMPORTADO para guardar conexiones
 
 let containerId = 0;
 let selectedPort = null;
