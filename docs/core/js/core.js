@@ -1,4 +1,5 @@
 /*
+https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/core/js/core.js
     Archivo principal que orquesta la lógica de la aplicación.//
 */
 
