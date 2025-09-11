@@ -137,8 +137,8 @@ body::before {
     width: 5rem;
     height: 5rem;
     background-color: rgba(0, 0, 0, 0.01); 
-                           backdrop-filter: blur(5px);
-    border-radius: 4rem;
+    backdrop-filter: blur(5px);
+    border-radius: 5rem;
     z-index: 1024;
     perspective: 100vh;
     }
