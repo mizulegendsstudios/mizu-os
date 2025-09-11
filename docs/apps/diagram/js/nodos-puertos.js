@@ -1,3 +1,6 @@
+/*
+https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/apps/diagram/js/nodos-puertos.js
+*/
 // nodos-puertos.js — Sistema de puertos anclados a contenedores
 
 let portId = 0;
