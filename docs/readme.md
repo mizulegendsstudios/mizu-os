@@ -108,7 +108,7 @@ main/
     - ➕ Sistema de nodos interactivos:
       - Arrastrables.
       - Íconos cambiables con doble clic.
-      - Conexiones con flechas (SVG).
+      - Conexiones con flechas (sin SVG, solo <div> y CSS).
       - Eliminación de conexiones con clic derecho.
     - 🔄 Conexiones dibujadas con `div` + CSS (sin SVG, compatible con zoom/pan futuro).
 
@@ -151,7 +151,7 @@ Copyright / COPYING
 
 ## 📜 Licencia 
 
-Este proyecto está bajo GNU Affero General Public License v3.0 — Usa, modifica y redistribuye libremente. Al redistribuir o ejecutar como servicio en red, mantén créditos, ofrece el código fuente y usa la misma licencia. ver [LICENSE](https://github.com/mizulegendsstudios/mizu-board/blob/main/LICENSE) para detalles completos.
+Este proyecto está bajo GNU Affero General Public License v3.0 — Usa, modifica y redistribuye libremente. Al redistribuir o ejecutar como servicio en red, mantén créditos, ofrece el código fuente y usa la misma licencia. ver [LICENSE](./LICENSE) para detalles completos.
 
     "Si usas este software en un servidor público, debes ofrecer el código fuente modificado a los usuarios."
 
@@ -170,7 +170,7 @@ Este proyecto está bajo GNU Affero General Public License v3.0 — Usa, modific
 ---
 
 ## 👥 Contribución - Instalación para uso o desarrollo local
-¡Contribuciones son bienvenidas! Este proyecto sigue el [Código de Conducta](https://mizulegendsstudios.github.io/mizu-board/) y está bajo [AGPL-3.0](https://github.com/mizulegendsstudios/mizu-board/blob/main/LICENSE).
+¡Contribuciones son bienvenidas! Este proyecto sigue el [Código de Conducta](./CODE_OF_CONDUCT.md) y está bajo [AGPL-3.0](./LICENSE).
 
 ### Prerrequisitos
     # Navegadores compatibles
@@ -226,9 +226,9 @@ Este proyecto está bajo GNU Affero General Public License v3.0 — Usa, modific
 
 ## 🌐 Soporte y Comunidad
 
-📋 Issues: [Reportar bugs](https://github.com/mizulegendsstudios/mizu-board/issues)
+📋 Reportar Issues: [Github Issues](https://github.com/mizulegendsstudios/mizu-board/issues)
 
-📚 Docs: [Documentación técnica](https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/architecture.md)
+📚 Docs: [Architecture.md](https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/architecture.md)
 
 📧 Email: mizulegendsgg@gmail.com
 
@@ -236,6 +236,6 @@ Este proyecto está bajo GNU Affero General Public License v3.0 — Usa, modific
 
 Mizu OS - Redefiniendo la productividad en la nube, un módulo a la vez. 🚀
 
-¡Dale una ⭐ en GitHub si crees en el futuro del software vanilla en la nube!
+    © 2025 Mizu Legends Studios — Construido con disciplina, técnica y simplicidad elegante. 
 
-© Mizu Legends Studios — Construido con disciplina, técnica y simplicidad elegante. 
+¡Dale una ⭐ en GitHub si crees en el futuro del software vanilla en la nube!
