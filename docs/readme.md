@@ -11,7 +11,7 @@
 
 ## 🌐 Demo en vivo
 
-👉 [https://mizulegendsstudios.github.io/mizu-board/](https://mizulegendsstudios.github.io/mizu-board/)
+👉 [https://mizulegendsstudios.github.io/mizu-os/](https://mizulegendsstudios.github.io/mizu-os/)
 
 ---
 
@@ -181,7 +181,7 @@ Este proyecto está bajo GNU Affero General Public License v3.0 — Usa, modific
 ### Instalación Local
 
     # Clonar y servir localmente
-    git clone https://github.com/mizulegendsstudios/mizu-board.git
+    git clone https://github.com/mizulegendsstudios/mizu-os.git
     cd mizu-board/docs
 
     # Con Python
@@ -226,9 +226,9 @@ Este proyecto está bajo GNU Affero General Public License v3.0 — Usa, modific
 
 ## 🌐 Soporte y Comunidad
 
-📋 Reportar Issues: [Github Issues](https://github.com/mizulegendsstudios/mizu-board/issues)
+📋 Reportar Issues: [Github Issues](https://github.com/mizulegendsstudios/mizu-os/issues)
 
-📚 Docs: [Architecture.md](https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/architecture.md)
+📚 Docs: [Architecture.md](./docs/architecture.md)
 
 📧 Email: mizulegendsgg@gmail.com
 
