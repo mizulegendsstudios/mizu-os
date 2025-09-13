@@ -119,6 +119,9 @@ function changeIcon(e) {
 
 // Función para habilitar la edición de texto
 function enableTextEdit(textElement) {
+  // Guardar el texto original para poder revertir con Escape
+  const originalText = textElement.textContent;
+  
   textElement.contentEditable = true;
   textElement.focus();
   
@@ -142,18 +145,35 @@ function enableTextEdit(textElement) {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      finishEdit();
+      // Insertar un salto de línea en lugar de crear un nuevo párrafo
+      insertLineBreak(textElement);
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      // Cancelar edición (revertir cambios)
-      textElement.contentEditable = false;
-      textElement.removeEventListener('blur', finishEdit);
-      textElement.removeEventListener('keydown', handleKeyDown);
+      // Revertir al texto original
+      textElement.textContent = originalText;
+      finishEdit();
     }
   };
   
   textElement.addEventListener('blur', finishEdit);
   textElement.addEventListener('keydown', handleKeyDown);
+}
+
+// Función para insertar un salto de línea
+function insertLineBreak(textElement) {
+  const selection = window.getSelection();
+  if (selection.rangeCount > 0) {
+    const range = selection.getRangeAt(0);
+    const br = document.createElement('br');
+    range.deleteContents();
+    range.insertNode(br);
+    
+    // Mover el cursor después del salto de línea
+    range.setStartAfter(br);
+    range.setEndAfter(br);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
 }
 
 // Función para manejar el clic en un nodo
