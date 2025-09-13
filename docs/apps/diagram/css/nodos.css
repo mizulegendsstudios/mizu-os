@@ -1,4 +1,39 @@
-/* Estilos para la nueva estructura del nodo */
+/* --------------------------------------------------
+    ESTILOS PARA EL DIAGRAMA DE FLUJO
+-------------------------------------------------- */
+
+/* Contenedor principal del diagrama */
+#canvas {
+  width: 100%;
+  height: 100%;
+  flex: 1 1 0%;
+  background-color: rgba(0, 0, 0, 0.8);
+  border-radius: 0.5rem;
+  z-index: 642;
+  color: black;
+  padding: 15px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: visible; /* Cambiado a visible para que las flechas no se recorten */
+  position: relative;
+}
+
+/* Capa exclusiva para dibujar conexiones (líneas + flechas) */
+#connections-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Permite clics pasen a través, a menos que se active en hijos */
+  z-index: 1;
+}
+
+/* --------------------------------------------------
+    ESTILOS PARA NODOS TRADICIONALES
+-------------------------------------------------- */
+
+/* Nodo básico */
 .node {
   position: absolute;
   min-width: 60px;
@@ -21,13 +56,16 @@
   overflow: hidden;
 }
 
+/* Ícono dentro del nodo */
 .node-icon {
   font-size: 18px;
   line-height: 1;
   margin-bottom: 2px;
   pointer-events: none; /* Evita interferir con eventos del nodo */
+  flex-shrink: 0;
 }
 
+/* Texto dentro del nodo */
 .node-text {
   font-size: 12px;
   text-align: center;
@@ -35,13 +73,23 @@
   word-wrap: break-word;
   outline: none; /* Quitar borde al editar */
   pointer-events: none; /* Evita interferir con eventos del nodo */
+  white-space: pre-wrap; /* Permite saltos de línea */
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* Texto en modo edición */
 .node-text[contenteditable="true"] {
   pointer-events: auto; /* Habilitar eventos al editar */
   cursor: text;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 3px;
+  padding: 2px;
 }
 
+/* Estados del nodo */
 .node:hover {
   transform: scale(1.05);
   box-shadow: 0 5px 10px rgba(0,0,0,0.2);
@@ -51,3 +99,441 @@
   border-color: #ff5500;
   box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.3);
 }
+
+/* --------------------------------------------------
+    ESTILOS PARA CONEXIONES
+-------------------------------------------------- */
+
+/* Líneas de conexión (hechas con div) */
+.connection-line {
+  position: absolute;
+  height: 2px;
+  background-color: #333;
+  transform-origin: left center;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 3; /* ¡Ahora por encima de los nodos! */
+  transition: background-color 0.2s ease;
+}
+
+.connection-line:hover {
+  background-color: #ff0000;
+}
+
+/* Punta de flecha (triángulo hecho con CSS) — ¡CENTRADA! */
+.arrowhead {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 10px solid #333;
+  transform-origin: center top; /* Importante para futuras rotaciones */
+  pointer-events: none;
+  z-index: 4;
+  transition: border-bottom-color 0.2s ease;
+}
+
+/* Hover en línea también afecta la punta */
+.connection-line:hover + .arrowhead,
+.connection-line:hover ~ .arrowhead {
+  border-bottom-color: #ff0000;
+}
+
+/* --------------------------------------------------
+    ESTILOS PARA SISTEMA DE CONTENEDORES + PUERTOS
+-------------------------------------------------- */
+
+/* Contenedor principal — posiciona todo el grupo */
+.node-container {
+  position: absolute;
+  z-index: 2;
+}
+
+/* Contenido visible — lo que el usuario ve y arrastra */
+.node-content {
+  width: 60px;
+  height: 60px;
+  background: #fff;
+  border: 3px solid #0077cc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: move;
+  user-select: none;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 2;
+  padding: 0 4px;
+  text-align: center;
+  position: relative;
+}
+
+.node-content:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+}
+
+.node-content.selected {
+  border-color: #ff5500;
+  box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.3);
+}
+
+/* Puertos — invisibles por defecto, solo para conexiones */
+.node-port {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: transparent;
+  border-radius: 50%;
+  z-index: 3; /* Por encima del contenido para clic preciso */
+  pointer-events: auto;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Posición de los puertos */
+.node-port-top    { 
+  top: -4px;   
+  left: 50%; 
+  transform: translateX(-50%); 
+}
+
+.node-port-bottom { 
+  bottom: -4px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+}
+
+.node-port-left   { 
+  left: -4px;   
+  top: 50%;  
+  transform: translateY(-50%); 
+}
+
+.node-port-right  { 
+  right: -4px;  
+  top: 50%;  
+  transform: translateY(-50%); 
+}
+
+/* Estados de los puertos */
+.node-port:hover {
+  background: rgba(0, 119, 204, 0.5);
+  transform: translateX(-50%) scale(1.5); /* Para puertos horizontales */
+}
+
+.node-port:hover.node-port-top,
+.node-port:hover.node-port-bottom {
+  transform: translateX(-50%) scale(1.5); /* Para puertos verticales */
+}
+
+.node-port:hover.node-port-left,
+.node-port:hover.node-port-right {
+  transform: translateY(-50%) scale(1.5); /* Para puertos horizontales */
+}
+
+.node-port.selected {
+  background: #ff5500;
+  transform: translateX(-50%) scale(2); /* Para puertos verticales */
+}
+
+.node-port.selected.node-port-top,
+.node-port.selected.node-port-bottom {
+  transform: translateX(-50%) scale(2);
+}
+
+.node-port.selected.node-port-left,
+.node-port.selected.node-port-right {
+  transform: translateY(-50%) scale(2);
+}
+
+/* --------------------------------------------------
+    ESTILOS PARA BOTONES Y CONTROLES
+-------------------------------------------------- */
+
+/* Botón de creación de nodos */
+.node-btn {
+  background: #0077cc;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  z-index: 3; /* Por encima de todo */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.node-btn:hover {
+  background: #005fa3;
+  transform: scale(1.1);
+}
+
+.node-btn:active {
+  transform: scale(0.95);
+}
+
+.plus-icon {
+  font-size: 24px;
+  line-height: 1;
+  pointer-events: none; /* Evita interferir con eventos del botón */
+}
+
+/* --------------------------------------------------
+    ESTILOS PARA PANEL DE AYUDA
+-------------------------------------------------- */
+
+.help-panel {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0.375rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 300px;
+}
+
+.help-panel h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: #1f2937;
+}
+
+.help-panel ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style-type: disc;
+}
+
+.help-panel li {
+  margin-bottom: 0.375rem;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+.help-panel li:last-child {
+  margin-bottom: 0;
+}
+
+/* --------------------------------------------------
+    ESTILOS PARA MODO DEBUG
+-------------------------------------------------- */
+
+/* Opcional: modo debug — para ver dónde están los puertos */
+.debug .node-port {
+  background: rgba(255, 0, 0, 0.3);
+  border: 1px solid red;
+  box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.5);
+}
+
+.debug .node-port::after {
+  content: attr(data-port);
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 10px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.debug .node-port:hover::after {
+  background: rgba(255, 85, 0, 0.9);
+}
+
+.debug .connection-line {
+  background: rgba(255, 0, 0, 0.5) !important;
+}
+
+.debug .connection-line::after {
+  content: attr(data-from) " → " attr(data-to);
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 10px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+/* --------------------------------------------------
+    ANIMACIONES Y TRANSICIONES
+-------------------------------------------------- */
+
+/* Transición suave para cambios de tamaño en nodos */
+.node {
+  transition: transform 0.2s ease, 
+              box-shadow 0.2s ease, 
+              width 0.3s ease, 
+              height 0.3s ease,
+              border-color 0.2s ease;
+}
+
+/* Transición para conexiones */
+.connection-line {
+  transition: background-color 0.2s ease, 
+              width 0.1s ease,
+              transform 0.1s ease;
+}
+
+.arrowhead {
+  transition: border-bottom-color 0.2s ease;
+}
+
+/* --------------------------------------------------
+    RESPONSIVE Y ADAPTATIVO
+-------------------------------------------------- */
+
+/* Para pantallas más pequeñas */
+@media (max-width: 768px) {
+  .node {
+    min-width: 50px;
+    min-height: 50px;
+    font-size: 12px;
+  }
+  
+  .node-icon {
+    font-size: 16px;
+  }
+  
+  .node-text {
+    font-size: 10px;
+  }
+  
+  .node-btn {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .plus-icon {
+    font-size: 20px;
+  }
+}
+
+/* Para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .node {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 4px;
+  }
+  
+  .node-icon {
+    font-size: 14px;
+    margin-bottom: 1px;
+  }
+  
+  .node-text {
+    font-size: 9px;
+  }
+  
+  .connection-line {
+    height: 1.5px;
+  }
+  
+  .arrowhead {
+    border-left-width: 5px;
+    border-right-width: 5px;
+    border-bottom-width: 8px;
+  }
+}
+
+/* --------------------------------------------------
+    UTILIDADES Y HELPER CLASSES
+-------------------------------------------------- */
+
+/* Para asegurar que el texto no se desborde */
+.node-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Máximo 3 líneas antes de ellipsis */
+  -webkit-box-orient: vertical;
+}
+
+.node-text[contenteditable="true"] {
+  overflow: visible;
+  text-overflow: unset;
+  display: block;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: unset;
+}
+
+/* Para mejorar la accesibilidad */
+.node:focus,
+.node-port:focus,
+.node-btn:focus {
+  outline: 2px solid #ff5500;
+  outline-offset: 2px;
+}
+
+/* Para mejorar el rendimiento en animaciones */
+.node, .connection-line, .arrowhead {
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* --------------------------------------------------
+    ESTILOS PARA ESTADOS ESPECIALES
+-------------------------------------------------- */
+
+/* Nodo en proceso de conexión */
+.node.connecting-source {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+}
+
+.node.connecting-target {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+}
+
+/* Conexión temporal durante la creación */
+.connection-line.temp {
+  background-color: #10b981 !important;
+  opacity: 0.7;
+}
+
+/* Nodo deshabilitado */
+.node.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------
+    Z-INDEX MANAGEMENT
+-------------------------------------------------- */
+
+/* Asegurar orden correcto de apilamiento */
+#canvas { z-index: 642; }
+#connections-layer { z-index: 1; }
+.connection-line { z-index: 3; }
+.arrowhead { z-index: 4; }
+.node { z-index: 2; }
+.node-port { z-index: 3; }
+.node-content { z-index: 2; }
+.node-btn { z-index: 3; }
+.help-panel { z-index: 1000; } /* Siempre arriba */
+
+/* --------------------------------------------------
+    FIN DEL ARCHIVO
+-------------------------------------------------- */
