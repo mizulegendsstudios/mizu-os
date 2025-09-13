@@ -74,6 +74,7 @@ body::before {
     left: 0;
     background-color: rgba(30, 0, 0, 0.6); /* red-500 / 50% */
     z-index: 160;
+flex-direction: column;
     align-items: center;
     justify-content: center;
     transition: transform 0.5s ease, opacity 0.5s ease;
