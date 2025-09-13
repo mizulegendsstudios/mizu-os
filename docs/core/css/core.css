@@ -236,3 +236,94 @@ z-index: 1026;
                            backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* Estilos para el widget de sistema — CSS puro */
+
+#system-widget {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1rem;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  color: white;
+  font-size: 0.875rem;
+}
+
+#system-widget .text-lg {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+#system-widget .text-xs {
+  font-size: 0.75rem;
+}
+
+#system-widget .opacity-80 {
+  opacity: 0.8;
+}
+
+/* Íconos de Font Awesome */
+#system-widget .fa-solid {
+  font-size: 1rem;
+}
+
+/* Batería */
+.battery-icon {
+  width: 24px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  position: relative;
+  display: inline-block;
+}
+
+.battery-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -3px;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 6px;
+  background-color: currentColor;
+  border-radius: 1px;
+}
+
+.battery-level {
+  height: 100%;
+  background-color: #10b981;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Glassmorphism para el widget */
+#system-widget {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Temas (opcional) */
+.theme-light #system-widget {
+  color: #374151;
+}
+
+.theme-light .battery-icon,
+.theme-light #widget-wifi-icon,
+.theme-light #widget-volume-icon {
+  color: #6b7280;
+}
+
+.theme-dark #system-widget {
+  color: #e5e7eb;
+}
+
+.theme-neon #system-widget {
+  color: #f0abfc;
+}
+
+.theme-neon .battery-icon,
+.theme-neon #widget-wifi-icon,
+.theme-neon #widget-volume-icon {
+  color: #a855f7;
+}
