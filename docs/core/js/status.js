@@ -8,16 +8,13 @@ export function initializeStatusWidget() {
         return;
     }
 
-    // Función para actualizar hora y fecha
-    function updateDateTime() {
-        const now = new Date();
-        const optionsTime = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
-        const optionsDate = { day: '2-digit', month: 'short', year: '2-digit' };
-
-        const time = now.toLocaleTimeString('es-ES', optionsTime);
-        let date = now.toLocaleDateString('es-ES', optionsDate)
-            .replace(/ de /g, ' ')
-            .replace(/\./g, '');
+// Prueba de la función de fecha
+const now = new Date();
+const optionsDate = { day: '2-digit', month: 'short', year: '2-digit' };
+let date = now.toLocaleDateString('es-ES', optionsDate)
+    .replace(/ de /g, ' ')
+    .replace(/\./g, '');
+console.log(date); // Debería mostrar la fecha sin " de " ni puntos
 
         document.getElementById('widget-hora')?.textContent = time;
         document.getElementById('widget-fecha')?.textContent = date;
