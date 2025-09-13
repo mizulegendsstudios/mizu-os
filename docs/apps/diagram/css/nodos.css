@@ -36,11 +36,11 @@
 /* Nodo básico */
 .node {
   position: absolute;
-  min-width: 60px;
-  min-height: 60px;
-  background: #fff;
+  min-width: 80px;
+  min-height: 80px;
+  background: rgba(255,255,255,0.1);
   border: 3px solid #0077cc;
-  border-radius: 50%;
+  border-radius: 5%;
   display: flex;
   flex-direction: column;
   align-items: center;
