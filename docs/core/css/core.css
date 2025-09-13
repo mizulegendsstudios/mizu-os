@@ -105,7 +105,7 @@ flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 1rem;                         /* espacio entre cuadrados */
-    z-index: 1320;
+    z-index: 320;
     transition: transform 0.5s ease, opacity 0.5s ease;
 }
 
