@@ -1,234 +1,68 @@
-/*
-https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/apps/diagram/js/nodos.js
-*/
-// Exportar funciones y variable connections — ✅ SOLO AQUÍ, UNA VEZ
-export { addNode, initDiagram, connections };
-
-// Variables globales para el diagrama de flujo
-let nodeId = 0;
-let selectedNode = null;
-let sourceNode = null;
-let connections = []; // ✅ Sin export aquí — se exporta al final
-const canvas = document.getElementById('canvas');
-const connectionsLayer = document.getElementById('connections-layer'); // Capa para DIVs
-const iconos = ["➕", "⚙️", "✅", "📥", "📤", "🔁", "⚠️", "🔍"];
-
-// Función para añadir un nuevo nodo — AHORA ACEPTA redrawCallback
-function addNode(x = 100, y = 100, redrawCallback) {
-  const node = document.createElement('div');
-  node.className = 'node';
-  node.id = 'node-' + nodeId++;
-  node.style.left = x + 'px';
-  node.style.top = y + 'px';
-  node.style.zIndex = 2;
-
-  // Asignar ícono aleatorio
-  const icono = iconos[Math.floor(Math.random() * iconos.length)];
-  
-  // Establecer contenido inicial con coordenadas
-  updateNodeText(node, icono, x, y, 2);
-
-  // Eventos del nodo — PASAR redrawCallback
-  node.addEventListener('dblclick', changeIcon);
-  node.addEventListener('mousedown', (e) => startDrag(e, redrawCallback));
-  node.addEventListener('click', (e) => handleNodeClick(e, redrawCallback));
-  
-  // Hacer el nodo editable
-  makeNodeEditable(node, icono, redrawCallback);
-  
-  canvas.appendChild(node);
-  return node;
+/* Estilos para nodos con texto expandible */
+.node {
+  position: absolute;
+  min-width: 60px;
+  min-height: 60px;
+  background: #fff;
+  border: 3px solid #0077cc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: move;
+  user-select: none;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s, width 0.3s ease, height 0.3s ease;
+  z-index: 2;
+  padding: 0;
+  text-align: center;
+  overflow: hidden;
 }
 
-// Función para actualizar el texto del nodo (ícono + coordenadas)
-function updateNodeText(node, icono, x, y, z) {
-  node.textContent = `${icono} (X:${Math.round(x)}, Y:${Math.round(y)}, Z:${z})`;
+.node-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 5px;
 }
 
-// Función para hacer el nodo editable
-function makeNodeEditable(node, icono, redrawCallback) {
-  // Crear un span editable dentro del nodo
-  const span = document.createElement('span');
-  span.contentEditable = true;
-  span.style.outline = 'none';
-  span.style.minWidth = '20px';
-  span.style.display = 'inline-block';
-  span.textContent = icono; // texto inicial
-
-  // Reemplazar contenido del nodo
-  node.innerHTML = '';
-  node.appendChild(span);
-
-  // Actualizar coordenadas al escribir
-  const update = () => {
-    const x = parseFloat(node.style.left) || 0;
-    const y = parseFloat(node.style.top) || 0;
-    updateNodeText(node, span.textContent, x, y, 2);
-    if (typeof redrawCallback === 'function') redrawCallback();
-  };
-
-  span.addEventListener('input', update);
-  span.addEventListener('blur', update);
-  span.focus();
+.node-text {
+  font-size: 14px;
+  line-height: 1.2;
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  cursor: text;
+  outline: none;
 }
 
-// Función para cambiar el ícono de un nodo
-function changeIcon(e) {
-  const node = e.currentTarget;
-  // Extraer coordenadas actuales del texto
-  const text = node.textContent;
-  const coordsMatch = text.match(/\(X:(\d+),\s*Y:(\d+),\s*Z:(\d+)\)$/);
-  let x = 0, y = 0, z = 2;
-  if (coordsMatch) {
-    x = parseInt(coordsMatch[1], 10);
-    y = parseInt(coordsMatch[2], 10);
-    z = parseInt(coordsMatch[3], 10);
-  }
-
-  // Cambiar ícono
-  const currentIndex = iconos.indexOf(text.charAt(0));
-  const nextIndex = (currentIndex + 1) % iconos.length;
-  const nuevoIcono = iconos[nextIndex];
-
-  // Actualizar texto con nuevo ícono y mismas coordenadas
-  updateNodeText(node, nuevoIcono, x, y, z);
+.node-text:focus {
+  background: rgba(0, 119, 204, 0.1);
+  border-radius: 3px;
 }
 
-// Función para manejar el clic en un nodo — AHORA RECIBE redrawCallback
-function handleNodeClick(e, redrawCallback) {
-  e.stopPropagation();
-  const node = e.currentTarget;
-  
-  if (sourceNode === node) {
-    // Cancelar selección
-    sourceNode.classList.remove('selected');
-    sourceNode = null;
-    return;
-  }
-  
-  if (!sourceNode) {
-    // Seleccionar como origen
-    sourceNode = node;
-    node.classList.add('selected');
-  } else {
-    // Crear conexión
-    const from = sourceNode.id;
-    const to = node.id;
-    if (!connections.some(c => c.from === from && c.to === to)) {
-      connections.push({ from, to });
-      // Redibujar conexiones
-      if (typeof redrawCallback === 'function') {
-        redrawCallback();
-      }
-    }
-    sourceNode.classList.remove('selected');
-    sourceNode = null;
-  }
+.node-coordinates {
+  font-size: 9px;
+  color: #666;
+  margin-top: 2px;
+  display: none; /* Oculto por defecto */
 }
 
-// Función para iniciar el arrastre de un nodo — AHORA CON LÍMITES Y CORRECCIÓN SUAVE
-function startDrag(e, redrawCallback) {
-  if (e.target.tagName === 'BUTTON') return;
-  e.preventDefault();
-  
-  selectedNode = e.currentTarget;
-
-  const initialLeft = parseFloat(selectedNode.style.left) || 0;
-  const initialTop = parseFloat(selectedNode.style.top) || 0;
-
-  const offsetX = e.clientX - initialLeft;
-  const offsetY = e.clientY - initialTop;
-
-  const icono = selectedNode.textContent.charAt(0);
-
-  // Obtener límites del canvas
-  const canvasRect = canvas.getBoundingClientRect();
-  const maxX = canvasRect.width - selectedNode.offsetWidth;
-  const maxY = canvasRect.height - selectedNode.offsetHeight;
-
-  function drag(e) {
-    const newX = e.clientX - offsetX;
-    const newY = e.clientY - offsetY;
-
-    // Aplicar nueva posición (sin límites aún, para fluidez durante arrastre)
-    selectedNode.style.left = newX + 'px';
-    selectedNode.style.top = newY + 'px';
-
-    // Actualizar texto
-    updateNodeText(selectedNode, icono, newX, newY, 2);
-
-    // Redibujar conexiones
-    if (typeof redrawCallback === 'function') {
-      redrawCallback();
-    }
-  }
-
-  function stopDrag() {
-    document.removeEventListener('mousemove', drag);
-    document.removeEventListener('mouseup', stopDrag);
-
-    // Verificar posición final
-    const currentX = parseFloat(selectedNode.style.left) || 0;
-    const currentY = parseFloat(selectedNode.style.top) || 0;
-
-    // Calcular posición corregida
-    let correctedX = Math.max(0, Math.min(currentX, maxX));
-    let correctedY = Math.max(0, Math.min(currentY, maxY));
-
-    // Si está fuera de límites, corregir suavemente
-    if (currentX !== correctedX || currentY !== correctedY) {
-      // Activar transición suave
-      selectedNode.style.transition = 'left 0.3s ease-out, top 0.3s ease-out';
-      
-      // Aplicar corrección
-      selectedNode.style.left = correctedX + 'px';
-      selectedNode.style.top = correctedY + 'px';
-
-      // Actualizar texto
-      updateNodeText(selectedNode, icono, correctedX, correctedY, 2);
-
-      // Redibujar conexiones
-      if (typeof redrawCallback === 'function') {
-        redrawCallback();
-      }
-
-      // Desactivar transición después de la animación
-      setTimeout(() => {
-        selectedNode.style.transition = '';
-      }, 300);
-    }
-  }
-  
-  document.addEventListener('mousemove', drag);
-  document.addEventListener('mouseup', stopDrag);
+.node:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
 }
 
-// Inicializar el diagrama — AHORA PASA redrawCallback a todos los nodos
-function initDiagram(redrawCallback) {
-  // Añadir algunos nodos iniciales — PASAR redrawCallback
-  addNode(150, 150, redrawCallback);
-  addNode(350, 150, redrawCallback);
-  addNode(250, 300, redrawCallback);
-  
-  // Configurar el botón para añadir nodos
-  const createNodeBtn = document.getElementById('create-node-btn');
-  if (createNodeBtn) {
-    createNodeBtn.addEventListener('click', () => {
-      const rect = canvas.getBoundingClientRect();
-      const x = Math.random() * (rect.width - 80);
-      const y = Math.random() * (rect.height - 80);
-      addNode(x, y, redrawCallback); // ← PASAR redrawCallback
-      if (typeof redrawCallback === 'function') {
-        redrawCallback();
-      }
-    });
-  }
-  
-  // Desseleccionar si se hace clic en el canvas
-  canvas.addEventListener('click', (e) => {
-    if (e.target === canvas && sourceNode) {
-      sourceNode.classList.remove('selected');
-      sourceNode = null;
-    }
-  });
+.node.selected {
+  border-color: #ff5500;
+  box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.3);
+}
+
+/* Para modo debug: mostrar coordenadas */
+.debug .node-coordinates {
+  display: block;
 }
