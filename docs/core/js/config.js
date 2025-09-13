@@ -1,37 +1,43 @@
-// core/js/config.js - Sistema de configuración visual del sistema
+// core/js/config.js - Sistema de configuración visual del sistema corregido
 export class SystemConfig {
     constructor() {
-        this.config = this.getDefaultConfig(); // Primero carga la configuración por defecto
-        this.config = this.loadConfig();       // Luego intenta cargar la guardada
+        // Guardamos la configuración por defecto original
+        this.defaultConfig = this.getDefaultConfig();
+        // Cargamos la configuración guardada o la por defecto
+        this.config = this.loadConfig();
         this.configPanel = null;
         this.isVisible = false;
     }
     
-    // Configuración por defecto
+    // Configuración por defecto basada en los valores originales de core.css
     getDefaultConfig() {
         return {
             bars: {
                 width: {
-                    red: 80,    // ancho barra roja en px
-                    blue: 80   // ancho barra azul en px
+                    red: 100,    // ancho barra roja en % (100% en CSS original)
+                    blue: 20     // ancho barra azul en % (5rem de 24rem base ≈ 20%)
+                },
+                height: {
+                    red: 12.5,   // alto barra roja en % (3rem de 24rem base ≈ 12.5%)
+                    blue: 100    // alto barra azul en % (100% en CSS original)
                 },
                 color: {
-                    red: 'rgba(30, 0, 0, 0.6)',      // color barra roja
-                    blue: 'rgba(0, 0, 30, 0.6)'     // color barra azul
+                    red: 'linear-gradient(90deg, hsla(0, 100%, 6%, 0.6), hsla(0, 95%, 30%, 0.6))',
+                    blue: 'linear-gradient(270deg, hsla(240, 100%, 6%, 0.6), hsla(250, 95%, 30%, 0.6))'
                 },
                 transparency: {
                     red: 0.6,   // transparencia barra roja (0-1)
                     blue: 0.6   // transparencia barra azul (0-1)
                 },
                 blur: {
-                    red: 5,      // blur barra roja en px
-                    blue: 5      // blur barra azul en px
+                    red: 10,     // blur barra roja en px
+                    blue: 10     // blur barra azul en px
                 },
                 borderRadius: 0.5, // redondeo de bordes (rem)
                 margin: 15         // margen en px
             },
             typography: {
-                fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+                fontFamily: "'Inter', sans-serif",
                 fontSize: 14        // tamaño base en px
             },
             hologram: {
@@ -47,13 +53,13 @@ export class SystemConfig {
             const saved = localStorage.getItem('mizu-config');
             if (saved) {
                 const parsedConfig = JSON.parse(saved);
-                // Combinar configuración guardada con la por defecto para asegurar todas las propiedades
-                return this.mergeDeep(this.getDefaultConfig(), parsedConfig);
+                // Combinamos con la configuración por defecto para asegurar todas las propiedades
+                return this.mergeDeep(this.defaultConfig, parsedConfig);
             }
-            return this.getDefaultConfig();
+            return this.defaultConfig;
         } catch (error) {
             console.error('Error al cargar configuración:', error);
-            return this.getDefaultConfig();
+            return this.defaultConfig;
         }
     }
     
@@ -111,21 +117,39 @@ export class SystemConfig {
                     <div class="config-options">
                         <div class="config-option">
                             <label>Ancho Barra Roja</label>
-                            <input type="range" id="red-bar-width" min="40" max="200" value="${this.config.bars.width.red}">
-                            <span class="value-display">${this.config.bars.width.red}px</span>
+                            <input type="range" id="red-bar-width" min="10" max="100" value="${this.config.bars.width.red}">
+                            <span class="value-display">${this.config.bars.width.red}%</span>
+                        </div>
+                        <div class="config-option">
+                            <label>Alto Barra Roja</label>
+                            <input type="range" id="red-bar-height" min="5" max="30" value="${this.config.bars.height.red}">
+                            <span class="value-display">${this.config.bars.height.red}%</span>
                         </div>
                         <div class="config-option">
                             <label>Ancho Barra Azul</label>
-                            <input type="range" id="blue-bar-width" min="40" max="200" value="${this.config.bars.width.blue}">
-                            <span class="value-display">${this.config.bars.width.blue}px</span>
+                            <input type="range" id="blue-bar-width" min="10" max="100" value="${this.config.bars.width.blue}">
+                            <span class="value-display">${this.config.bars.width.blue}%</span>
+                        </div>
+                        <div class="config-option">
+                            <label>Alto Barra Azul</label>
+                            <input type="range" id="blue-bar-height" min="10" max="100" value="${this.config.bars.height.blue}">
+                            <span class="value-display">${this.config.bars.height.blue}%</span>
                         </div>
                         <div class="config-option">
                             <label>Color Barra Roja</label>
-                            <input type="color" id="red-bar-color" value="${this.rgbaToHex(this.config.bars.color.red)}">
+                            <div class="color-gradient-picker">
+                                <input type="color" id="red-bar-color-start" value="#1e0000" title="Color inicial">
+                                <span>→</span>
+                                <input type="color" id="red-bar-color-end" value="#4d0000" title="Color final">
+                            </div>
                         </div>
                         <div class="config-option">
                             <label>Color Barra Azul</label>
-                            <input type="color" id="blue-bar-color" value="${this.rgbaToHex(this.config.bars.color.blue)}">
+                            <div class="color-gradient-picker">
+                                <input type="color" id="blue-bar-color-start" value="#000033" title="Color inicial">
+                                <span>→</span>
+                                <input type="color" id="blue-bar-color-end" value="#000066" title="Color final">
+                            </div>
                         </div>
                         <div class="config-option">
                             <label>Transparencia Roja</label>
@@ -171,6 +195,7 @@ export class SystemConfig {
                         <div class="config-option">
                             <label>Fuente</label>
                             <select id="font-family">
+                                <option value="'Inter', sans-serif">Inter</option>
                                 <option value="-apple-system, BlinkMacSystemFont, sans-serif">System</option>
                                 <option value="Arial, sans-serif">Arial</option>
                                 <option value="Georgia, serif">Georgia</option>
@@ -233,6 +258,8 @@ export class SystemConfig {
                     value = value + 'px';
                 } else if (input.id.includes('hologram-speed')) {
                     value = value + 's';
+                } else if (input.id.includes('width') || input.id.includes('height')) {
+                    value = value + '%';
                 } else {
                     value = value + 'px';
                 }
@@ -245,9 +272,20 @@ export class SystemConfig {
     applyConfig() {
         // Obtener valores del panel
         this.config.bars.width.red = parseInt(document.getElementById('red-bar-width').value);
+        this.config.bars.height.red = parseInt(document.getElementById('red-bar-height').value);
         this.config.bars.width.blue = parseInt(document.getElementById('blue-bar-width').value);
-        this.config.bars.color.red = this.hexToRgba(document.getElementById('red-bar-color').value, this.config.bars.transparency.red);
-        this.config.bars.color.blue = this.hexToRgba(document.getElementById('blue-bar-color').value, this.config.bars.transparency.blue);
+        this.config.bars.height.blue = parseInt(document.getElementById('blue-bar-height').value);
+        
+        // Para los colores de gradiente, necesitamos obtener ambos colores
+        const redBarColorStart = document.getElementById('red-bar-color-start').value;
+        const redBarColorEnd = document.getElementById('red-bar-color-end').value;
+        const blueBarColorStart = document.getElementById('blue-bar-color-start').value;
+        const blueBarColorEnd = document.getElementById('blue-bar-color-end').value;
+        
+        // Convertir hex a HSLA para los gradientes
+        this.config.bars.color.red = this.createGradient(redBarColorStart, redBarColorEnd, this.config.bars.transparency.red, 90);
+        this.config.bars.color.blue = this.createGradient(blueBarColorStart, blueBarColorEnd, this.config.bars.transparency.blue, 270);
+        
         this.config.bars.transparency.red = parseFloat(document.getElementById('red-bar-transparency').value);
         this.config.bars.transparency.blue = parseFloat(document.getElementById('blue-bar-transparency').value);
         this.config.bars.blur.red = parseInt(document.getElementById('red-bar-blur').value);
@@ -269,6 +307,53 @@ export class SystemConfig {
         this.showNotification('Configuración aplicada correctamente');
     }
     
+    // Crear gradiente HSLA a partir de colores hex
+    createGradient(hexColor1, hexColor2, alpha, direction) {
+        const hsla1 = this.hexToHsla(hexColor1, alpha);
+        const hsla2 = this.hexToHsla(hexColor2, alpha);
+        return `linear-gradient(${direction}deg, ${hsla1}, ${hsla2})`;
+    }
+    
+    // Convertir hex a HSLA
+    hexToHsla(hex, alpha) {
+        // Eliminar # si está presente
+        hex = hex.replace('#', '');
+        
+        // Manejar formatos cortos (#RGB)
+        if (hex.length === 3) {
+            hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+        }
+        
+        // Validar que es un valor hexadecimal válido
+        if (!/^[0-9A-F]{6}$/i.test(hex)) {
+            console.warn('Valor hexadecimal no válido:', hex);
+            return `hsla(0, 0%, 0%, ${alpha})`;
+        }
+        
+        const r = parseInt(hex.substring(0, 2), 16) / 255;
+        const g = parseInt(hex.substring(2, 4), 16) / 255;
+        const b = parseInt(hex.substring(4, 6), 16) / 255;
+        
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+        
+        if (max === min) {
+            h = s = 0; // acromático
+        } else {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            
+            switch (max) {
+                case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                case g: h = ((b - r) / d + 2) / 6; break;
+                case b: h = ((r - g) / d + 4) / 6; break;
+            }
+        }
+        
+        return `hsla(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%, ${alpha})`;
+    }
+    
     // Aplicar estilos al DOM
     applyStyles() {
         const redBar = document.getElementById('red-bar');
@@ -277,16 +362,18 @@ export class SystemConfig {
         const body = document.body;
         
         if (redBar) {
-            redBar.style.width = this.config.bars.width.red + 'px';
-            redBar.style.backgroundColor = this.config.bars.color.red;
+            redBar.style.width = this.config.bars.width.red + '%';
+            redBar.style.height = this.config.bars.height.red + '%';
+            redBar.style.background = this.config.bars.color.red;
             redBar.style.backdropFilter = `blur(${this.config.bars.blur.red}px)`;
             redBar.style.borderRadius = this.config.bars.borderRadius + 'rem';
             redBar.style.margin = this.config.bars.margin + 'px';
         }
         
         if (blueBar) {
-            blueBar.style.width = this.config.bars.width.blue + 'px';
-            blueBar.style.backgroundColor = this.config.bars.color.blue;
+            blueBar.style.width = this.config.bars.width.blue + '%';
+            blueBar.style.height = this.config.bars.height.blue + '%';
+            blueBar.style.background = this.config.bars.color.blue;
             blueBar.style.backdropFilter = `blur(${this.config.bars.blur.blue}px)`;
             blueBar.style.borderRadius = this.config.bars.borderRadius + 'rem';
             blueBar.style.margin = this.config.bars.margin + 'px';
@@ -302,20 +389,21 @@ export class SystemConfig {
             hologram.style.height = this.config.hologram.size + 'px';
             
             // Actualizar animación de rotación
-            const hologramInner = hologram.querySelector('.hologram-inner') || hologram;
+            const hologramInner = hologram.querySelector('#cube') || hologram;
             if (hologramInner) {
                 hologramInner.style.animation = `rotateCube ${this.config.hologram.rotationSpeed}s infinite linear`;
             }
         }
     }
     
-    // Restablecer configuración
+    // Restablecer configuración - CORREGIDO
     resetConfig() {
-        this.config = this.getDefaultConfig();
+        // Restaurar la configuración por defecto original
+        this.config = JSON.parse(JSON.stringify(this.defaultConfig));
         this.updatePanelValues();
         this.applyStyles();
         this.saveConfig();
-        this.showNotification('Configuración restablecida');
+        this.showNotification('Configuración restablecida a valores originales');
     }
     
     // Actualizar valores del panel
@@ -323,9 +411,24 @@ export class SystemConfig {
         if (!this.configPanel) return;
         
         document.getElementById('red-bar-width').value = this.config.bars.width.red;
+        document.getElementById('red-bar-height').value = this.config.bars.height.red;
         document.getElementById('blue-bar-width').value = this.config.bars.width.blue;
-        document.getElementById('red-bar-color').value = this.rgbaToHex(this.config.bars.color.red);
-        document.getElementById('blue-bar-color').value = this.rgbaToHex(this.config.bars.color.blue);
+        document.getElementById('blue-bar-height').value = this.config.bars.height.blue;
+        
+        // Para los colores de gradiente, necesitamos extraer los colores del gradiente
+        const redGradient = this.extractGradientColors(this.config.bars.color.red);
+        const blueGradient = this.extractGradientColors(this.config.bars.color.blue);
+        
+        if (redGradient) {
+            document.getElementById('red-bar-color-start').value = redGradient.start;
+            document.getElementById('red-bar-color-end').value = redGradient.end;
+        }
+        
+        if (blueGradient) {
+            document.getElementById('blue-bar-color-start').value = blueGradient.start;
+            document.getElementById('blue-bar-color-end').value = blueGradient.end;
+        }
+        
         document.getElementById('red-bar-transparency').value = this.config.bars.transparency.red;
         document.getElementById('blue-bar-transparency').value = this.config.bars.transparency.blue;
         document.getElementById('red-bar-blur').value = this.config.bars.blur.red;
@@ -344,6 +447,60 @@ export class SystemConfig {
                 this.updateValueDisplay(input);
             }
         });
+    }
+    
+    // Extraer colores de un gradiente
+    extractGradientColors(gradient) {
+        const match = gradient.match(/linear-gradient\(\d+deg,\s*hsla?\(([^)]+)\),\s*hsla?\(([^)]+)\)\)/);
+        if (!match) return null;
+        
+        // Extraer valores HSLA
+        const hsla1 = match[1].split(',').map(val => val.trim());
+        const hsla2 = match[2].split(',').map(val => val.trim());
+        
+        // Convertir HSL a hex
+        const hex1 = this.hslaToHex(hsla1[0], hsla1[1], hsla1[2]);
+        const hex2 = this.hslaToHex(hsla2[0], hsla2[1], hsla2[2]);
+        
+        return {
+            start: hex1,
+            end: hex2
+        };
+    }
+    
+    // Convertir HSL a Hex
+    hslaToHex(h, s, l) {
+        h = parseInt(h) / 360;
+        s = parseInt(s) / 100;
+        l = parseInt(l) / 100;
+        
+        let r, g, b;
+        
+        if (s === 0) {
+            r = g = b = l; // acromático
+        } else {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+            
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1/3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1/3);
+        }
+        
+        const toHex = x => {
+            const hex = Math.round(x * 255).toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+        };
+        
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
     }
     
     // Toggle panel de configuración
@@ -380,40 +537,6 @@ export class SystemConfig {
             notification.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => notification.remove(), 300);
         }, 2000);
-    }
-    
-    // Utilidades de conversión de color
-    hexToRgba(hex, alpha = 1) {
-        // Eliminar # si está presente
-        hex = hex.replace('#', '');
-        
-        // Manejar formatos cortos (#RGB)
-        if (hex.length === 3) {
-            hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
-        }
-        
-        // Validar que es un valor hexadecimal válido
-        if (!/^[0-9A-F]{6}$/i.test(hex)) {
-            console.warn('Valor hexadecimal no válido:', hex);
-            return `rgba(0, 0, 0, ${alpha})`;
-        }
-        
-        const r = parseInt(hex.substring(0, 2), 16);
-        const g = parseInt(hex.substring(2, 4), 16);
-        const b = parseInt(hex.substring(4, 6), 16);
-        
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-    
-    rgbaToHex(rgba) {
-        const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-        if (!match) return '#000000';
-        
-        const r = parseInt(match[1]).toString(16).padStart(2, '0');
-        const g = parseInt(match[2]).toString(16).padStart(2, '0');
-        const b = parseInt(match[3]).toString(16).padStart(2, '0');
-        
-        return `#${r}${g}${b}`;
     }
 }
 
