@@ -15,7 +15,7 @@ export class SystemConfig {
             bars: {
                 width: {
                     red: 100,    // ancho barra roja en % (100% en CSS original)
-                    blue: 20     // ancho barra azul en % (5rem de 24rem base ≈ 20%)
+                    blue: 12.5     // ancho barra azul en % (5rem de 24rem base ≈ 20%)
                 },
                 height: {
                     red: 12.5,   // alto barra roja en % (3rem de 24rem base ≈ 12.5%)
@@ -26,14 +26,14 @@ export class SystemConfig {
                     blue: 'linear-gradient(270deg, hsla(240, 100%, 6%, 0.6), hsla(250, 95%, 30%, 0.6))'
                 },
                 transparency: {
-                    red: 0.6,   // transparencia barra roja (0-1)
-                    blue: 0.6   // transparencia barra azul (0-1)
+                    red: 0.3,   // transparencia barra roja (0-1)
+                    blue: 0.3   // transparencia barra azul (0-1)
                 },
                 blur: {
                     red: 10,     // blur barra roja en px
                     blue: 10     // blur barra azul en px
                 },
-                borderRadius: 0.5, // redondeo de bordes (rem)
+                borderRadius: 1, // redondeo de bordes (rem)
                 margin: 15         // margen en px
             },
             typography: {
