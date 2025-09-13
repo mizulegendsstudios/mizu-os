@@ -90,11 +90,11 @@ body::before {
     height: 100%;
     top: 0;
     left: 0;
-    background-color: rgba(0, 0, 30, 0.6); /* blue-500 / 50% */
-                        color: white;
-            padding: 15px;
-                           backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(270deg,hsla(240, 100%, 6%, 0.6),hsl(250, 95%, 30%)); /* blue-500 / 50% */
+    color: white;
+    padding: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 0.5rem;
     padding: 0.5rem;
     display: flex;
