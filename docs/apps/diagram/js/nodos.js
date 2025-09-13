@@ -1,9 +1,9 @@
 /*
 https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/apps/diagram/js/nodos.js
 */
-
 // Exportar funciones y variable connections — ✅ SOLO AQUÍ, UNA VEZ
 export { addNode, initDiagram, connections };
+
 // Variables globales para el diagrama de flujo
 let nodeId = 0;
 let selectedNode = null;
@@ -33,6 +33,9 @@ function addNode(x = 100, y = 100, redrawCallback) {
   node.addEventListener('mousedown', (e) => startDrag(e, redrawCallback));
   node.addEventListener('click', (e) => handleNodeClick(e, redrawCallback));
   
+  // Hacer el nodo editable
+  makeNodeEditable(node, icono, redrawCallback);
+  
   canvas.appendChild(node);
   return node;
 }
@@ -40,6 +43,33 @@ function addNode(x = 100, y = 100, redrawCallback) {
 // Función para actualizar el texto del nodo (ícono + coordenadas)
 function updateNodeText(node, icono, x, y, z) {
   node.textContent = `${icono} (X:${Math.round(x)}, Y:${Math.round(y)}, Z:${z})`;
+}
+
+// Función para hacer el nodo editable
+function makeNodeEditable(node, icono, redrawCallback) {
+  // Crear un span editable dentro del nodo
+  const span = document.createElement('span');
+  span.contentEditable = true;
+  span.style.outline = 'none';
+  span.style.minWidth = '20px';
+  span.style.display = 'inline-block';
+  span.textContent = icono; // texto inicial
+
+  // Reemplazar contenido del nodo
+  node.innerHTML = '';
+  node.appendChild(span);
+
+  // Actualizar coordenadas al escribir
+  const update = () => {
+    const x = parseFloat(node.style.left) || 0;
+    const y = parseFloat(node.style.top) || 0;
+    updateNodeText(node, span.textContent, x, y, 2);
+    if (typeof redrawCallback === 'function') redrawCallback();
+  };
+
+  span.addEventListener('input', update);
+  span.addEventListener('blur', update);
+  span.focus();
 }
 
 // Función para cambiar el ícono de un nodo
@@ -202,4 +232,3 @@ function initDiagram(redrawCallback) {
     }
   });
 }
-
