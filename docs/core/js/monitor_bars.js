@@ -59,8 +59,8 @@ function showBars() {
 
     // Restaurar posición original de la capa negra
     if (blackBar) {
-        blackBar.style.top = '5rem';
-        blackBar.style.left = '5rem';
+        blackBar.style.top = '2rem';
+        blackBar.style.left = '4rem';
         blackBar.style.right = '0';
         blackBar.style.bottom = '0';
     }
