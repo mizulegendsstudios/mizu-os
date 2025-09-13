@@ -73,7 +73,7 @@ body::before {
     top: 0;
     left: 0;
     background-color: rgba(30, 0, 0, 0.6); /* red-500 / 50% */
-    z-index: 160;
+    z-index: 1160;
 flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -105,7 +105,7 @@ flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 1rem;                         /* espacio entre cuadrados */
-    z-index: 320;
+    z-index: 1320;
     transition: transform 0.5s ease, opacity 0.5s ease;
 }
 
