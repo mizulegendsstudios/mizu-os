@@ -44,32 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initDiagram(drawLines);
         console.log(`Activando las mejoras...`);
         
-        // Configurar botón para crear contenedores con puertos anclados
-        const createContainerBtn = document.createElement('button');
-        createContainerBtn.className = 'node-btn';
-        createContainerBtn.innerHTML = '<span class="plus-icon">P</span>';
-        createContainerBtn.title = 'Crear Contenedor con Puertos';
-        createContainerBtn.style.marginTop = '0.5rem';
-        
-        // Insertar después del botón de nodo tradicional
-        const createNodeBtn = document.getElementById('create-node-btn');
-        if (createNodeBtn && createNodeBtn.parentNode) {
-            createNodeBtn.parentNode.insertBefore(createContainerBtn, createNodeBtn.nextSibling);
-        }
-        
-        // Evento para crear contenedores con puertos
-        createContainerBtn.addEventListener('click', () => {
-            const canvas = document.getElementById('canvas');
-            if (!canvas) {
-                console.warn('Canvas no encontrado. No se puede crear contenedor.');
-                return;
-            }
-            const rect = canvas.getBoundingClientRect();
-            const x = Math.random() * (rect.width - 150);
-            const y = Math.random() * (rect.height - 150);
-            createContainerWithPorts(x, y, drawLines);
-        });
-        
         // Hacer visible el HTML después de cargar
         document.documentElement.style.visibility = 'visible';
         document.documentElement.style.opacity = '1';
@@ -92,21 +66,19 @@ function createDiagramButton() {
     diagramButton.className = 'node-btn diagram-btn';
     diagramButton.innerHTML = '📊';
     diagramButton.title = 'Visualizar Diagrama';
-    diagramButton.style.cssText = `
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        z-index: 1000;
-    `;
     
     // Evento para mostrar/ocultar diagrama
     diagramButton.addEventListener('click', () => {
         toggleDiagram();
     });
     
-    blueBar.appendChild(diagramButton);
+    // Agregar a la barra lateral (después del botón +)
+    const createNodeBtn = document.getElementById('create-node-btn');
+    if (createNodeBtn) {
+        blueBar.insertBefore(diagramButton, createNodeBtn.nextSibling);
+    } else {
+        blueBar.appendChild(diagramButton);
+    }
 }
 
 // Crear botón de configuración en la barra lateral
@@ -122,14 +94,6 @@ function createConfigButton() {
     configButton.className = 'node-btn config-btn';
     configButton.innerHTML = '⚙️';
     configButton.title = 'Configuración Visual';
-    configButton.style.cssText = `
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        z-index: 1000;
-    `;
     
     // Evento para abrir/cerrar panel de configuración
     configButton.addEventListener('click', () => {
@@ -140,7 +104,13 @@ function createConfigButton() {
         }
     });
     
-    blueBar.appendChild(configButton);
+    // Agregar a la barra lateral (antes del botón +)
+    const createNodeBtn = document.getElementById('create-node-btn');
+    if (createNodeBtn) {
+        blueBar.insertBefore(configButton, createNodeBtn);
+    } else {
+        blueBar.appendChild(configButton);
+    }
 }
 
 // Función para mostrar/ocultar el diagrama
