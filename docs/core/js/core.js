@@ -1,371 +1,488 @@
-// core/js/config.js - Sistema de configuración visual del sistema
-export class SystemConfig {
-    constructor() {
-        this.config = this.loadConfig();
-        this.configPanel = null;
-        this.isVisible = false;
-    }
+/*
+https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/core/js/core.js  
+    Archivo principal que orquesta la lógica de la aplicación.//
+*/
+console.log(`Cargando sistema...`);
 
-    // Configuración por defecto
-    getDefaultConfig() {
-        return {
-            bars: {
-                width: {
-                    red: 80,    // ancho barra roja en px
-                    blue: 80   // ancho barra azul en px
-                },
-                color: {
-                    red: 'rgba(30, 0, 0, 0.6)',      // color barra roja
-                    blue: 'rgba(0, 0, 30, 0.6)'     // color barra azul
-                },
-                transparency: {
-                    red: 0.6,   // transparencia barra roja (0-1)
-                    blue: 0.6   // transparencia barra azul (0-1)
-                },
-                blur: {
-                    red: 5,      // blur barra roja en px
-                    blue: 5      // blur barra azul en px
-                },
-                borderRadius: 0.5, // redondeo de bordes (rem)
-                margin: 15         // margen en px
-            },
-            typography: {
-                fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-                fontSize: 14        // tamaño base en px
-            },
-            hologram: {
-                size: 80,          // tamaño del holograma en px
-                rotationSpeed: 20   // velocidad de rotación en segundos
-            }
-        };
-    }
+// Importaciones y lógica que podrían fallar
+import { initializeLoadingScreen } from "./loading.js";
+import { initializeMonitor } from "./monitor_axis.js";
+import { initializeBarHiding } from "./monitor_bars.js";
+import { initializeStatusWidget } from "./status.js";
+import { systemConfig } from "./config.js";
+// DEV
+console.log(`Cargando mejoras...`);
+// import { initializeZoomAndPan } from "./zoom.js"; // Dejado comentado por compatibilidad con diagram
+import { drawLines } from '../../apps/diagram/js/drawlines.js';
+// Importamos initDiagram desde nodos.js (sistema de nodos tradicionales)
+import { initDiagram } from '../../apps/diagram/js/nodos.js';
+// Importamos createContainerWithPorts desde dev/nodos-puertos.js (nuevo sistema de puertos anclados)
+import { createContainerWithPorts } from '../../apps/diagram/js/nodos-puertos.js';
+// Importamos connections desde nodos.js para compatibilidad
+import { connections } from '../../apps/diagram/js/nodos.js';
 
-    // Cargar configuración desde localStorage
-    loadConfig() {
-        try {
-            const saved = localStorage.getItem('mizu-config');
-            return saved ? { ...this.getDefaultConfig(), ...JSON.parse(saved) } : this.getDefaultConfig();
-        } catch {
-            return this.getDefaultConfig();
-        }
-    }
-
-    // Guardar configuración en localStorage
-    saveConfig() {
-        localStorage.setItem('mizu-config', JSON.stringify(this.config));
-    }
-
-    // Crear panel de configuración
-    createConfigPanel() {
-        if (this.configPanel) {
-            this.toggleConfigPanel();
-            return;
-        }
-
-        const panel = document.createElement('div');
-        panel.id = 'config-panel';
-        panel.className = 'config-panel';
-        panel.innerHTML = `
-            <div class="config-header">
-                <h3>Configuración Visual</h3>
-                <button class="config-close" onclick="systemConfig.toggleConfigPanel()">✕</button>
-            </div>
-            <div class="config-content">
-                <div class="config-section">
-                    <h4>Barras</h4>
-                    <div class="config-options">
-                        <div class="config-option">
-                            <label>Ancho Barra Roja</label>
-                            <input type="range" id="red-bar-width" min="40" max="200" value="${this.config.bars.width.red}">
-                            <span class="value-display">${this.config.bars.width.red}px</span>
-                        </div>
-                        <div class="config-option">
-                            <label>Ancho Barra Azul</label>
-                            <input type="range" id="blue-bar-width" min="40" max="200" value="${this.config.bars.width.blue}">
-                            <span class="value-display">${this.config.bars.width.blue}px</span>
-                        </div>
-                        <div class="config-option">
-                            <label>Color Barra Roja</label>
-                            <input type="color" id="red-bar-color" value="${this.rgbaToHex(this.config.bars.color.red)}">
-                        </div>
-                        <div class="config-option">
-                            <label>Color Barra Azul</label>
-                            <input type="color" id="blue-bar-color" value="${this.rgbaToHex(this.config.bars.color.blue)}">
-                        </div>
-                        <div class="config-option">
-                            <label>Transparencia Roja</label>
-                            <input type="range" id="red-bar-transparency" min="0" max="1" step="0.1" value="${this.config.bars.transparency.red}">
-                            <span class="value-display">${Math.round(this.config.bars.transparency.red * 100)}%</span>
-                        </div>
-                        <div class="config-option">
-                            <label>Transparencia Azul</label>
-                            <input type="range" id="blue-bar-transparency" min="0" max="1" step="0.1" value="${this.config.bars.transparency.blue}">
-                            <span class="value-display">${Math.round(this.config.bars.transparency.blue * 100)}%</span>
-                        </div>
-                        <div class="config-option">
-                            <label>Blur Rojo</label>
-                            <input type="range" id="red-bar-blur" min="0" max="20" value="${this.config.bars.blur.red}">
-                            <span class="value-display">${this.config.bars.blur.red}px</span>
-                        </div>
-                        <div class="config-option">
-                            <label>Blur Azul</label>
-                            <input type="range" id="blue-bar-blur" min="0" max="20" value="${this.config.bars.blur.blue}">
-                            <span class="value-display">${this.config.bars.blur.blue}px</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="config-section">
-                    <h4>Apariencia</h4>
-                    <div class="config-options">
-                        <div class="config-option">
-                            <label>Redondeo de Bordes</label>
-                            <input type="range" id="border-radius" min="0" max="2" step="0.1" value="${this.config.bars.borderRadius}">
-                            <span class="value-display">${this.config.bars.borderRadius}rem</span>
-                        </div>
-                        <div class="config-option">
-                            <label>Margen</label>
-                            <input type="range" id="bar-margin" min="0" max="50" value="${this.config.bars.margin}">
-                            <span class="value-display">${this.config.bars.margin}px</span>
-                        </div>
-                        <div class="config-option">
-                            <label>Tamaño de Fuente</label>
-                            <input type="range" id="font-size" min="10" max="24" value="${this.config.typography.fontSize}">
-                            <span class="value-display">${this.config.typography.fontSize}px</span>
-                        </div>
-                        <div class="config-option">
-                            <label>Fuente</label>
-                            <select id="font-family">
-                                <option value="-apple-system, BlinkMacSystemFont, sans-serif">System</option>
-                                <option value="Arial, sans-serif">Arial</option>
-                                <option value="Georgia, serif">Georgia</option>
-                                <option value="'Courier New', monospace">Courier New</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="config-section">
-                    <h4>Holograma</h4>
-                    <div class="config-options">
-                        <div class="config-option">
-                            <label>Tamaño</label>
-                            <input type="range" id="hologram-size" min="40" max="150" value="${this.config.hologram.size}">
-                            <span class="value-display">${this.config.hologram.size}px</span>
-                        </div>
-                        <div class="config-option">
-                            <label>Velocidad de Rotación</label>
-                            <input type="range" id="hologram-speed" min="5" max="60" value="${this.config.hologram.rotationSpeed}">
-                            <span class="value-display">${this.config.hologram.rotationSpeed}s</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="config-actions">
-                    <button class="config-btn" onclick="systemConfig.resetConfig()">Restablecer Valores</button>
-                    <button class="config-btn primary" onclick="systemConfig.applyConfig()">Aplicar Cambios</button>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(panel);
-        this.configPanel = panel;
-        this.isVisible = true;
-        this.attachEventListeners();
-    }
-
-    // Adjuntar event listeners
-    attachEventListeners() {
-        const inputs = this.configPanel.querySelectorAll('input, select');
-        inputs.forEach(input => {
-            input.addEventListener('input', (e) => {
-                this.updateValueDisplay(e.target);
-            });
-        });
-    }
-
-    // Actualizar display de valores
-    updateValueDisplay(input) {
-        const valueDisplay = input.parentNode.querySelector('.value-display');
-        if (valueDisplay) {
-            let value = input.value;
-            if (input.type === 'range') {
-                if (input.id.includes('transparency')) {
-                    value = Math.round(value * 100) + '%';
-                } else if (input.id.includes('border-radius')) {
-                    value = value + 'rem';
-                } else if (input.id.includes('font-size') || input.id.includes('hologram-size')) {
-                    value = value + 'px';
-                } else if (input.id.includes('hologram-speed')) {
-                    value = value + 's';
-                } else {
-                    value = value + 'px';
-                }
-            }
-            valueDisplay.textContent = value;
-        }
-    }
-
-    // Aplicar configuración
-    applyConfig() {
-        // Obtener valores del panel
-        this.config.bars.width.red = parseInt(document.getElementById('red-bar-width').value);
-        this.config.bars.width.blue = parseInt(document.getElementById('blue-bar-width').value);
-        this.config.bars.color.red = this.hexToRgba(document.getElementById('red-bar-color').value, this.config.bars.transparency.red);
-        this.config.bars.color.blue = this.hexToRgba(document.getElementById('blue-bar-color').value, this.config.bars.transparency.blue);
-        this.config.bars.transparency.red = parseFloat(document.getElementById('red-bar-transparency').value);
-        this.config.bars.transparency.blue = parseFloat(document.getElementById('blue-bar-transparency').value);
-        this.config.bars.blur.red = parseInt(document.getElementById('red-bar-blur').value);
-        this.config.bars.blur.blue = parseInt(document.getElementById('blue-bar-blur').value);
-        this.config.bars.borderRadius = parseFloat(document.getElementById('border-radius').value);
-        this.config.bars.margin = parseInt(document.getElementById('bar-margin').value);
-        this.config.typography.fontSize = parseInt(document.getElementById('font-size').value);
-        this.config.typography.fontFamily = document.getElementById('font-family').value;
-        this.config.hologram.size = parseInt(document.getElementById('hologram-size').value);
-        this.config.hologram.rotationSpeed = parseInt(document.getElementById('hologram-speed').value);
-
-        // Aplicar estilos
-        this.applyStyles();
+// DOM
+console.log(`Iniciando sistema...`);
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        // Inicializa módulos estables
+        initializeLoadingScreen();
+        initializeMonitor();
+        initializeBarHiding();
+        initializeStatusWidget();
+        // initializeZoomAndPan(); // Mantenido comentado por conflicto con nodos
         
-        // Guardar configuración
-        this.saveConfig();
+        // Crear botón de configuración en la barra lateral
+        createConfigButton();
         
-        // Mostrar notificación
-        this.showNotification('Configuración aplicada correctamente');
+        // Configurar evento del holograma para abrir configuración
+        setupHologramConfig();
+        
+        // Crear botón para crear contenedores con puertos anclados
+        createContainerWithPortsButton();
+        
+        // Inicializar el diagrama de nodos (desactivado por ahora)
+        // initDiagram(drawLines);
+        
+        // Hacer visible el HTML después de cargar
+        document.documentElement.style.visibility = 'visible';
+        document.documentElement.style.opacity = '1';
+        console.log('Aplicación inicializada — sistemas de nodos y puertos anclados listos.');
+    } catch (error) {
+        console.error('Error al inicializar la aplicación:', error);
+    }
+});
+
+// Crear botón de configuración en la barra lateral
+function createConfigButton() {
+    const blueBar = document.getElementById('blue-bar');
+    if (!blueBar) {
+        console.warn('Blue bar not found. Cannot create config button.');
+        return;
     }
 
-    // Aplicar estilos al DOM
-    applyStyles() {
-        const redBar = document.getElementById('red-bar');
-        const blueBar = document.getElementById('blue-bar');
-        const hologram = document.getElementById('hologram');
-        const body = document.body;
+    // Crear botón de configuración (icono de engranaje)
+    const configButton = document.createElement('button');
+    configButton.className = 'node-btn config-btn';
+    configButton.innerHTML = '⚙️';
+    configButton.title = 'Configuración Visual del Sistema';
+    configButton.style.cssText = `
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        z-index: 1000;
+        transition: all 0.2s ease;
+    `;
 
-        if (redBar) {
-            redBar.style.width = this.config.bars.width.red + 'px';
-            redBar.style.backgroundColor = this.config.bars.color.red;
-            redBar.style.backdropFilter = `blur(${this.config.bars.blur.red}px)`;
-            redBar.style.borderRadius = this.config.bars.borderRadius + 'rem';
-            redBar.style.margin = this.config.bars.margin + 'px';
-        }
+    // Evento para abrir/cerrar panel de configuración
+    configButton.addEventListener('click', () => {
+        systemConfig.toggleConfigPanel();
+    });
 
-        if (blueBar) {
-            blueBar.style.width = this.config.bars.width.blue + 'px';
-            blueBar.style.backgroundColor = this.config.bars.color.blue;
-            blueBar.style.backdropFilter = `blur(${this.config.bars.blur.blue}px)`;
-            blueBar.style.borderRadius = this.config.bars.borderRadius + 'rem';
-            blueBar.style.margin = this.config.bars.margin + 'px';
-        }
+    // Efecto hover
+    configButton.addEventListener('mouseenter', () => {
+        configButton.style.transform = 'translateX(-50%) scale(1.1)';
+        configButton.style.background = 'rgba(255, 255, 255, 0.2)';
+    });
 
-        if (body) {
-            body.style.fontFamily = this.config.typography.fontFamily;
-            body.style.fontSize = this.config.typography.fontSize + 'px';
-        }
+    configButton.addEventListener('mouseleave', () => {
+        configButton.style.transform = 'translateX(-50%) scale(1)';
+        configButton.style.background = 'rgba(255, 255, 255, 0.1)';
+    });
 
-        if (hologram) {
-            hologram.style.width = this.config.hologram.size + 'px';
-            hologram.style.height = this.config.hologram.size + 'px';
-            
-            // Actualizar animación de rotación
-            const hologramInner = hologram.querySelector('#hologram');
-            if (hologramInner) {
-                hologramInner.style.animation = `rotateCube ${this.config.hologram.rotationSpeed}s infinite linear`;
-            }
-        }
-    }
+    blueBar.appendChild(configButton);
+}
 
-    // Restableecer configuración
-    resetConfig() {
-        this.config = this.getDefaultConfig();
-        this.updatePanelValues();
-        this.applyStyles();
-        this.saveConfig();
-        this.showNotification('Configuración restablecida');
-    }
-
-    // Actualizar valores del panel
-    updatePanelValues() {
-        if (!this.configPanel) return;
-
-        document.getElementById('red-bar-width').value = this.config.bars.width.red;
-        document.getElementById('blue-bar-width').value = this.config.bars.width.blue;
-        document.getElementById('red-bar-color').value = this.rgbaToHex(this.config.bars.color.red);
-        document.getElementById('blue-bar-color').value = this.rgbaToHex(this.config.bars.color.blue);
-        document.getElementById('red-bar-transparency').value = this.config.bars.transparency.red;
-        document.getElementById('blue-bar-transparency').value = this.config.bars.transparency.blue;
-        document.getElementById('red-bar-blur').value = this.config.bars.blur.red;
-        document.getElementById('blue-bar-blur').value = this.config.bars.blur.blue;
-        document.getElementById('border-radius').value = this.config.bars.borderRadius;
-        document.getElementById('bar-margin').value = this.config.bars.margin;
-        document.getElementById('font-size').value = this.config.typography.fontSize;
-        document.getElementById('font-family').value = this.config.typography.fontFamily;
-        document.getElementById('hologram-size').value = this.config.hologram.size;
-        document.getElementById('hologram-speed').value = this.config.hologram.rotationSpeed;
-
-        // Actualizar displays
-        this.configPanel.querySelectorAll('.value-display').forEach(display => {
-            const input = display.parentNode.querySelector('input, select');
-            if (input) {
-                this.updateValueDisplay(input);
+// Configurar evento del holograma para abrir configuración
+function setupHologramConfig() {
+    const yellowSquare = document.getElementById('yellow-square');
+    const hologram = document.getElementById('hologram');
+    
+    if (yellowSquare && hologram) {
+        yellowSquare.addEventListener('click', (e) => {
+            // Verificar si se hizo clic directamente en el holograma
+            if (e.target === hologram || hologram.contains(e.target)) {
+                systemConfig.toggleConfigPanel();
             }
         });
-    }
-
-    // Toggle panel de configuración
-    toggleConfigPanel() {
-        if (!this.configPanel) {
-            this.createConfigPanel();
-        } else {
-            this.configPanel.style.display = this.isVisible ? 'none' : 'flex';
-            this.isVisible = !this.isVisible;
-        }
-    }
-
-    // Mostrar notificación
-    showNotification(message) {
-        const notification = document.createElement('div');
-        notification.className = 'config-notification';
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
-        `;
         
-        document.body.appendChild(notification);
+        // Añadir cursor pointer para indicar que es clickable
+        hologram.style.cursor = 'pointer';
+        yellowSquare.style.cursor = 'pointer';
         
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }, 2000);
-    }
-
-    // Utilidades de conversión de color
-    hexToRgba(hex, alpha = 1) {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-
-    rgbaToHex(rgba) {
-        const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-        if (!match) return '#000000';
+        // Efecto hover en el holograma
+        hologram.addEventListener('mouseenter', () => {
+            hologram.style.transform = 'scale(1.05)';
+        });
         
-        const r = parseInt(match[1]).toString(16).padStart(2, '0');
-        const g = parseInt(match[2]).toString(16).padStart(2, '0');
-        const b = parseInt(match[3]).toString(16).padStart(2, '0');
-        
-        return `#${r}${g}${b}`;
+        hologram.addEventListener('mouseleave', () => {
+            hologram.style.transform = 'scale(1)';
+        });
     }
 }
 
-// Instancia global del sistema de configuración
-export const systemConfig = new SystemConfig();
+// Crear botón para crear contenedores con puertos anclados
+function createContainerWithPortsButton() {
+    const blueBar = document.getElementById('blue-bar');
+    if (!blueBar) {
+        console.warn('Blue bar not found. Cannot create container button.');
+        return;
+    }
+
+    // Crear botón para crear contenedores (icono "P" de puertos)
+    const containerButton = document.createElement('button');
+    containerButton.className = 'node-btn';
+    containerButton.innerHTML = '<span class="plus-icon">P</span>';
+    containerButton.title = 'Crear Contenedor con Puertos Anclados';
+    containerButton.style.marginTop = '0.5rem';
+    containerButton.style.cssText = `
+        position: absolute;
+        bottom: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+    `;
+
+    // Insertar después del botón de nodo tradicional
+    const createNodeBtn = document.getElementById('create-node-btn');
+    if (createNodeBtn && createNodeBtn.parentNode) {
+        createNodeBtn.parentNode.insertBefore(containerButton, createNodeBtn.nextSibling);
+    } else {
+        blueBar.appendChild(containerButton);
+    }
+
+    // Evento para crear contenedores con puertos
+    containerButton.addEventListener('click', () => {
+        const canvas = document.getElementById('canvas'); // Asegúrate de que 'canvas' exista en tu HTML
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.random() * (rect.width - 150);
+        const y = Math.random() * (rect.height - 150);
+        
+        // createContainerWithPorts(x, y, drawLines); // Descomenta esta línea cuando esté listo para usar
+        console.log('Creando contenedor con puertos en posición:', x, y);
+        
+        // Mostrar notificación
+        systemConfig.showNotification('Función de contenedores con puertos en desarrollo');
+    });
+
+    // Efecto hover
+    containerButton.addEventListener('mouseenter', () => {
+        containerButton.style.transform = 'translateX(-50%) scale(1.1)';
+    });
+
+    containerButton.addEventListener('mouseleave', () => {
+        containerButton.style.transform = 'translateX(-50%) scale(1)';
+    });
+}
+
+// Función para inicializar el diagrama de nodos tradicionales (mantenida para compatibilidad)
+function initDiagramIfEnabled() {
+    const createNodeBtn = document.getElementById('create-node-btn');
+    if (createNodeBtn) {
+        createNodeBtn.addEventListener('click', () => {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.random() * (rect.width - 80);
+            const y = Math.random() * (rect.height - 80);
+            addNode(x, y, "Nuevo nodo", drawLines);
+            
+            if (typeof drawLines === 'function') {
+                drawLines();
+            }
+        });
+    }
+    
+    // Deseleccionar si se hace clic en el canvas
+    const canvas = document.getElementById('canvas');
+    if (canvas) {
+        canvas.addEventListener('click', (e) => {
+            if (e.target === canvas && sourceNode) {
+                sourceNode.classList.remove('selected');
+                sourceNode = null;
+            }
+        });
+    }
+}
+
+// Función auxiliar para crear nodos (importada de nodos.js)
+function addNode(x = 100, y = 100, text = "Nuevo nodo", redrawCallback) {
+    const node = document.createElement('div');
+    node.className = 'node';
+    node.id = 'node-' + nodeId++;
+    
+    // Almacenar coordenadas en dataset (ocultas para uso futuro)
+    node.dataset.x = x;
+    node.dataset.y = y;
+    node.dataset.z = 2;
+    
+    // Crear ícono
+    const iconElement = document.createElement('div');
+    iconElement.className = 'node-icon';
+    const iconoChar = iconos[Math.floor(Math.random() * iconos.length)];
+    iconElement.textContent = iconoChar;
+    
+    // Crear área de texto editable
+    const textElement = document.createElement('div');
+    textElement.className = 'node-text';
+    textElement.textContent = text;
+    textElement.contentEditable = false; // Inicialmente no editable
+    
+    // Estructura del nodo
+    node.appendChild(iconElement);
+    node.appendChild(textElement);
+    
+    // Posicionar el nodo
+    node.style.left = x + 'px';
+    node.style.top = y + 'px';
+    node.style.zIndex = 2;
+    
+    // Eventos del nodo
+    node.addEventListener('dblclick', changeIcon);
+    node.addEventListener('mousedown', (e) => startDrag(e, redrawCallback));
+    node.addEventListener('click', (e) => handleNodeClick(e, redrawCallback));
+    
+    const canvas = document.getElementById('canvas');
+    if (canvas) {
+        canvas.appendChild(node);
+    }
+    
+    // Ajustar tamaño inicial según el texto
+    adjustNodeSize(node);
+    
+    return node;
+}
+
+// Variables y funciones auxiliares para nodos (mantenidas para compatibilidad)
+let nodeId = 0;
+let selectedNode = null;
+let sourceNode = null;
+const iconos = ["➕", "⚙️", "✅", "📥", "📤", "🔁", "⚠️", "🔍"];
+
+function adjustNodeSize(node) {
+    const textElement = node.querySelector('.node-text');
+    const iconElement = node.querySelector('.node-icon');
+    
+    if (!textElement) return;
+    
+    // Medir el contenido del texto
+    const textWidth = textElement.scrollWidth;
+    const textHeight = textElement.scrollHeight;
+    
+    // Calcular tamaño mínimo y tamaño según contenido
+    const minSize = 60; // Tamaño mínimo del nodo
+    const padding = 20; // Padding interno
+    
+    const contentWidth = Math.max(textWidth, iconElement ? iconElement.offsetWidth : 0);
+    const contentHeight = (iconElement ? iconElement.offsetHeight : 0) + textHeight;
+    
+    // Calcular tamaño final (mínimo o según contenido)
+    const finalWidth = Math.max(minSize, contentWidth + padding);
+    const finalHeight = Math.max(minSize, contentHeight + padding);
+    
+    // Aplicar tamaño al nodo
+    node.style.width = finalWidth + 'px';
+    node.style.height = finalHeight + 'px';
+    
+    // Centrar el contenido dentro del nodo
+    textElement.style.width = '100%';
+    textElement.style.height = 'auto';
+    textElement.style.display = 'flex';
+    textElement.style.alignItems = 'center';
+    textElement.style.justifyContent = 'center';
+    
+    if (iconElement) {
+        iconElement.style.position = 'absolute';
+        iconElement.style.top = '5px';
+        iconElement.style.left = '50%';
+        iconElement.style.transform = 'translateX(-50%)';
+    }
+}
+
+function changeIcon(e) {
+    e.stopPropagation();
+    const node = e.currentTarget;
+    const iconElement = node.querySelector('.node-icon');
+    const textElement = node.querySelector('.node-text');
+    
+    if (!iconElement || !textElement) return;
+    
+    // Cambiar ícono
+    const currentIndex = iconos.indexOf(iconElement.textContent);
+    const nextIndex = (currentIndex + 1) % iconos.length;
+    iconElement.textContent = iconos[nextIndex];
+    
+    // Habilitar edición de texto
+    enableTextEdit(textElement);
+}
+
+function enableTextEdit(textElement) {
+    // Guardar el texto original para poder revertir con Escape
+    const originalText = textElement.textContent;
+    
+    textElement.contentEditable = true;
+    textElement.focus();
+    
+    // Seleccionar todo el texto
+    const range = document.createRange();
+    range.selectNodeContents(textElement);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    
+    // Eventos para finalizar la edición
+    const finishEdit = () => {
+        textElement.contentEditable = false;
+        // Actualizar el tamaño del nodo
+        adjustNodeSize(textElement.parentElement);
+        // Remover eventos
+        textElement.removeEventListener('blur', finishEdit);
+        textElement.removeEventListener('keydown', handleKeyDown);
+    };
+    
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            // Insertar un salto de línea en lugar de crear un nuevo párrafo
+            insertLineBreak(textElement);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            // Revertir al texto original
+            textElement.textContent = originalText;
+            finishEdit();
+        }
+    };
+    
+    textElement.addEventListener('blur', finishEdit);
+    textElement.addEventListener('keydown', handleKeyDown);
+}
+
+function insertLineBreak(textElement) {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const br = document.createElement('br');
+        range.deleteContents();
+        range.insertNode(br);
+        
+        // Mover el cursor después del salto de línea
+        range.setStartAfter(br);
+        range.setEndAfter(br);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+}
+
+function handleNodeClick(e, redrawCallback) {
+    e.stopPropagation();
+    const node = e.currentTarget;
+    
+    if (sourceNode === node) {
+        // Cancelar selección
+        sourceNode.classList.remove('selected');
+        sourceNode = null;
+        return;
+    }
+    
+    if (!sourceNode) {
+        // Seleccionar como origen
+        sourceNode = node;
+        node.classList.add('selected');
+    } else {
+        // Crear conexión
+        const from = sourceNode.id;
+        const to = node.id;
+        if (!connections.some(c => c.from === from && c.to === to)) {
+            connections.push({ from, to });
+            if (typeof redrawCallback === 'function') {
+                redrawCallback();
+            }
+        }
+        sourceNode.classList.remove('selected');
+        sourceNode = null;
+    }
+}
+
+function startDrag(e, redrawCallback) {
+    // Si está editando texto, no arrastrar
+    if (e.target.classList.contains('node-text') && e.target.contentEditable === 'true') {
+        return;
+    }
+    
+    if (e.target.tagName === 'BUTTON') return;
+    e.preventDefault();
+    
+    selectedNode = e.currentTarget;
+    const initialLeft = parseFloat(selectedNode.style.left) || 0;
+    const initialTop = parseFloat(selectedNode.style.top) || 0;
+    const offsetX = e.clientX - initialLeft;
+    const offsetY = e.clientY - initialTop;
+    
+    function drag(e) {
+        const newX = e.clientX - offsetX;
+        const newY = e.clientY - offsetY;
+        
+        // Aplicar nueva posición
+        selectedNode.style.left = newX + 'px';
+        selectedNode.style.top = newY + 'px';
+        
+        // Actualizar coordenadas en dataset (ocultas)
+        selectedNode.dataset.x = newX;
+        selectedNode.dataset.y = newY;
+        
+        // Redibujar conexiones
+        if (typeof redrawCallback === 'function') {
+            redrawCallback();
+        }
+    }
+    
+    function stopDrag() {
+        document.removeEventListener('mousemove', drag);
+        document.removeEventListener('mouseup', stopDrag);
+        
+        // Verificar posición final
+        const canvas = document.getElementById('canvas');
+        if (!canvas) return;
+        
+        const canvasRect = canvas.getBoundingClientRect();
+        const maxX = canvasRect.width - selectedNode.offsetWidth;
+        const maxY = canvasRect.height - selectedNode.offsetHeight;
+        
+        let correctedX = parseFloat(selectedNode.style.left) || 0;
+        let correctedY = parseFloat(selectedNode.style.top) || 0;
+        
+        // Calcular posición corregida
+        correctedX = Math.max(0, Math.min(correctedX, maxX));
+        correctedY = Math.max(0, Math.min(correctedY, maxY));
+        
+        // Si está fuera de límites, corregir suavemente
+        if (correctedX !== parseFloat(selectedNode.style.left) || correctedY !== parseFloat(selectedNode.style.top)) {
+            selectedNode.style.transition = 'left 0.3s ease-out, top 0.3s ease-out';
+            
+            selectedNode.style.left = correctedX + 'px';
+            selectedNode.style.top = correctedY + 'px';
+            selectedNode.dataset.x = correctedX;
+            selectedNode.dataset.y = correctedY;
+            
+            if (typeof redrawCallback === 'function') {
+                redrawCallback();
+            }
+            
+            setTimeout(() => {
+                selectedNode.style.transition = '';
+            }, 300);
+        }
+    }
+    
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', stopDrag);
+}
+
+// Variable global para el canvas
+const canvas = document.getElementById('canvas');
+
+// Inicializar diagrama si está habilitado (función desactivada por ahora)
+// initDiagramIfEnabled();
+
+console.log(`Mizu OS. Versión: ${window.MIZU_VERSION}`);
