@@ -38,6 +38,32 @@
   <div id="green-div" class="div"></div>
   <div id="red-bar" class="div">
 <!-- Barra Superior -->
+<!-- Widget de estado del sistema -->
+<div id="system-widget" class="flex items-center gap-4 px-4 h-full">
+  <!-- Fecha y hora -->
+  <div class="text-center">
+    <div id="widget-hora" class="text-lg font-bold"></div>
+    <div id="widget-fecha" class="text-xs opacity-80"></div>
+  </div>
+
+  <!-- Batería -->
+  <div class="flex items-center gap-2">
+    <div class="battery-icon"></div>
+    <span id="widget-battery-pct" class="text-xs"></span>
+  </div>
+
+  <!-- Conexión -->
+  <div class="flex items-center gap-1">
+    <i id="widget-wifi-icon" class="fa-solid fa-wifi text-sm"></i>
+    <span id="widget-wifi-status" class="text-xs"></span>
+  </div>
+
+  <!-- Volumen -->
+  <div class="flex items-center gap-1">
+    <i id="widget-volume-icon" class="fa-solid fa-volume-high text-sm"></i>
+    <span id="widget-volume-pct" class="text-xs"></span>
+  </div>
+</div>
 </div>
   <div id="blue-bar" class="div center-vertically">
 <!-- Barra Lateral-->
