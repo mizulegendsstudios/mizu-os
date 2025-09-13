@@ -316,3 +316,18 @@
         margin-bottom: 8px;
     }
 }
+/* core/css/core.css - Añadir estilos para el selector de gradiente */
+
+/* Selector de gradiente */
+.color-gradient-picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.color-gradient-picker span {
+    color: #d1d5db;
+    font-size: 14px;
+}
+
+/* Resto de estilos del panel de configuración se mantiene igual */
