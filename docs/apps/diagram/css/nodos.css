@@ -1,208 +1,271 @@
 /*
-https://github.com/mizulegendsstudios/mizu-board/blob/main/docs/apps/diagram/css/nodos.css
+    Sistema de nodos tradicionales — editable, arrastrable, conectable.
+    Coordenadas se guardan en dataset, no en texto visible.
 */
 
-/* Estilos para el diagrama de flujo */
-#canvas {
-  width: 100%;
-  height: 100%;
-  flex: 1 1 0%;
-  background-color: hsla(0, 0%, 100%,30%);
-  border-radius: 0.5rem;
-  z-index: 642;
-  color: black;
-  padding: 15px;
-  backdrop-filter: blur(5px);
-  border: 1px solid hsla(0, 0%, 100%,50%);
-  overflow: visible; /* Cambiado a visible para que las flechas no se recorten */
-  position: relative;
+// Exportar funciones y variable connections
+export { addNode, initDiagram, connections };
+
+// Variables globales
+let nodeId = 0;
+let selectedNode = null;
+let sourceNode = null;
+let connections = []; // Array compartido de conexiones
+
+// Referencias al DOM
+const canvas = document.getElementById('canvas');
+const connectionsLayer = document.getElementById('connections-layer');
+
+// Lista de íconos para nodos
+const iconos = ["➕", "⚙️", "✅", "📥", "📤", "🔁", "⚠️", "🔍"];
+
+/**
+ * Añade un nuevo nodo al canvas.
+ * @param {number} x - Posición inicial X
+ * @param {number} y - Posición inicial Y
+ * @param {function} redrawCallback - Callback para redibujar conexiones
+ * @returns {HTMLElement} - Nodo creado
+ */
+function addNode(x = 100, y = 100, redrawCallback) {
+  const node = document.createElement('div');
+  node.className = 'node';
+  node.id = 'node-' + nodeId++;
+  node.style.left = x + 'px';
+  node.style.top = y + 'px';
+  node.style.zIndex = 2;
+
+  // Guardar coordenadas en atributos data-*, no en texto
+  node.dataset.x = x;
+  node.dataset.y = y;
+  node.dataset.z = 2;
+
+  // Asignar ícono aleatorio
+  const icono = iconos[Math.floor(Math.random() * iconos.length)];
+  node.dataset.icon = icono;
+
+  // Texto inicial editable
+  const initialText = "Nodo " + (nodeId - 1);
+  updateNodeText(node, initialText);
+
+  // Eventos
+  node.addEventListener('dblclick', (e) => startEdit(e, node));
+  node.addEventListener('mousedown', (e) => startDrag(e, redrawCallback));
+  node.addEventListener('click', (e) => handleNodeClick(e, redrawCallback));
+
+  canvas.appendChild(node);
+  return node;
 }
 
-/* Capa exclusiva para dibujar conexiones (líneas + flechas) */
-#connections-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none; /* Permite clics pasen a través, a menos que se active en hijos */
-  z-index: 1;
+/**
+ * Actualiza el texto visible del nodo (sin coordenadas).
+ * @param {HTMLElement} node - Nodo a actualizar
+ * @param {string} text - Texto a mostrar
+ */
+function updateNodeText(node, text) {
+  const body = document.body;
+  // Solo mostrar coordenadas si body tiene clase 'debug'
+  if (body.classList.contains('debug')) {
+    const x = node.dataset.x || 0;
+    const y = node.dataset.y || 0;
+    const z = node.dataset.z || 2;
+    node.textContent = `${text} (X:${Math.round(x)}, Y:${Math.round(y)}, Z:${z})`;
+  } else {
+    node.textContent = text;
+  }
 }
 
-/* Estilo base para las líneas de conexión (hechas con div) */
-.connection-line {
-  position: absolute;
-  height: 2px;
-  background-color: #333;
-  transform-origin: left center;
-  pointer-events: auto;
-  cursor: pointer;
-  z-index: 3; /* ¡Ahora por encima de los nodos! */
+/**
+ * Inicia modo edición en el nodo (doble clic).
+ * @param {Event} e - Evento de doble clic
+ * @param {HTMLElement} node - Nodo a editar
+ */
+function startEdit(e, node) {
+  e.stopPropagation(); // Evita arrastre o conexión
+
+  // Crear input de edición
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = node.textContent.replace(/\s*\(X:\d+,\s*Y:\d+,\s*Z:\d+\)$/, '').trim(); // Quitar coordenadas si están
+  input.style.width = '100%';
+  input.style.height = '100%';
+  input.style.border = 'none';
+  input.style.background = 'transparent';
+  input.style.textAlign = 'center';
+  input.style.fontSize = '14px';
+  input.style.outline = 'none';
+  input.style.color = 'inherit';
+  input.style.padding = '0 4px';
+
+  // Reemplazar contenido por input
+  node.textContent = '';
+  node.appendChild(input);
+  input.focus();
+
+  // Guardar al salir
+  const saveEdit = () => {
+    const newText = input.value.trim() || "Sin título";
+    node.textContent = newText;
+    // Coordenadas siguen en dataset, no en texto
+  };
+
+  input.addEventListener('blur', saveEdit);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      saveEdit();
+      input.blur();
+    }
+  });
 }
 
-.connection-line:hover {
-  background-color: #ff0000;
+/**
+ * Cambia el ícono del nodo (manteniendo texto y coordenadas).
+ * @param {Event} e - Evento de doble clic
+ */
+function changeIcon(e) {
+  const node = e.currentTarget;
+  const currentText = node.textContent.replace(/\s*\(X:\d+,\s*Y:\d+,\s*Z:\d+\)$/, '').trim();
+  
+  // Cambiar ícono
+  const currentIndex = iconos.indexOf(node.dataset.icon || iconos[0]);
+  const nextIndex = (currentIndex + 1) % iconos.length;
+  const nuevoIcono = iconos[nextIndex];
+  node.dataset.icon = nuevoIcono;
+
+  // Actualizar texto (solo ícono + texto, sin coordenadas visibles)
+  updateNodeText(node, nuevoIcono + " " + currentText);
 }
 
-/* Estilo para la punta de flecha (triángulo hecho con CSS) — ¡CENTRADA! */
-.arrowhead {
-  position: absolute;
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 10px solid #333;
-  transform-origin: center top; /* Importante para futuras rotaciones */
-  pointer-events: none;
-  z-index: 4;
+/**
+ * Maneja clic en nodo (selección/creación de conexión).
+ * @param {Event} e - Evento de clic
+ * @param {Function} redrawCallback - Callback para redibujar
+ */
+function handleNodeClick(e, redrawCallback) {
+  e.stopPropagation();
+  const node = e.currentTarget;
+
+  if (e.target.tagName === 'INPUT') return; // No hacer nada si estamos editando
+
+  if (sourceNode === node) {
+    sourceNode.classList.remove('selected');
+    sourceNode = null;
+    return;
+  }
+
+  if (!sourceNode) {
+    sourceNode = node;
+    node.classList.add('selected');
+  } else {
+    const from = sourceNode.id;
+    const to = node.id;
+    if (!connections.some(c => c.from === from && c.to === to)) {
+      connections.push({ from, to });
+      if (typeof redrawCallback === 'function') redrawCallback();
+    }
+    sourceNode.classList.remove('selected');
+    sourceNode = null;
+  }
 }
 
-/* Hover en línea también afecta la punta */
-.connection-line:hover + .arrowhead,
-.connection-line:hover ~ .arrowhead {
-  border-bottom-color: #ff0000;
+/**
+ * Inicia arrastre de nodo.
+ * @param {Event} e - Evento de mousedown
+ * @param {Function} redrawCallback - Callback para redibujar
+ */
+function startDrag(e, redrawCallback) {
+  if (e.target.tagName === 'INPUT') return; // No arrastrar si estamos editando
+  if (e.target.tagName === 'BUTTON') return;
+  e.preventDefault();
+
+  selectedNode = e.currentTarget;
+
+  const initialLeft = parseFloat(selectedNode.style.left) || 0;
+  const initialTop = parseFloat(selectedNode.style.top) || 0;
+  const offsetX = e.clientX - initialLeft;
+  const offsetY = e.clientY - initialTop;
+
+  const currentText = selectedNode.textContent.replace(/\s*\(X:\d+,\s*Y:\d+,\s*Z:\d+\)$/, '').trim();
+  const icono = selectedNode.dataset.icon || iconos[0];
+
+  // Obtener límites del canvas
+  const canvasRect = canvas.getBoundingClientRect();
+  const maxX = canvasRect.width - selectedNode.offsetWidth;
+  const maxY = canvasRect.height - selectedNode.offsetHeight;
+
+  function drag(e) {
+    const newX = e.clientX - offsetX;
+    const newY = e.clientY - offsetY;
+
+    // Aplicar nueva posición
+    selectedNode.style.left = newX + 'px';
+    selectedNode.style.top = newY + 'px';
+
+    // Actualizar atributos (no texto visible)
+    selectedNode.dataset.x = newX;
+    selectedNode.dataset.y = newY;
+
+    // Redibujar conexiones
+    if (typeof redrawCallback === 'function') redrawCallback();
+  }
+
+  function stopDrag() {
+    document.removeEventListener('mousemove', drag);
+    document.removeEventListener('mouseup', stopDrag);
+
+    const currentX = parseFloat(selectedNode.style.left) || 0;
+    const currentY = parseFloat(selectedNode.style.top) || 0;
+
+    let correctedX = Math.max(0, Math.min(currentX, maxX));
+    let correctedY = Math.max(0, Math.min(currentY, maxY));
+
+    if (currentX !== correctedX || currentY !== correctedY) {
+      selectedNode.style.transition = 'left 0.3s ease-out, top 0.3s ease-out';
+      selectedNode.style.left = correctedX + 'px';
+      selectedNode.style.top = correctedY + 'px';
+
+      // Actualizar atributos
+      selectedNode.dataset.x = correctedX;
+      selectedNode.dataset.y = correctedY;
+
+      if (typeof redrawCallback === 'function') redrawCallback();
+
+      setTimeout(() => {
+        selectedNode.style.transition = '';
+      }, 300);
+    }
+  }
+
+  document.addEventListener('mousemove', drag);
+  document.addEventListener('mouseup', stopDrag);
 }
 
-/* Estilos para los nodos (sin cambios, solo recordatorio) */
-.node {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  background: #fff;
-  border: 3px solid #0077cc;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px; /* Ajustado para caber texto + coordenadas */
-  cursor: move;
-  user-select: none;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-  z-index: 2; /* Siempre por encima de las conexiones */
-  padding: 0 4px; /* Ajuste para texto más largo */
-  text-align: center;
-}
+/**
+ * Inicializa el diagrama con nodos iniciales.
+ * @param {Function} redrawCallback - Callback para redibujar conexiones
+ */
+function initDiagram(redrawCallback) {
+  // Añadir nodos iniciales
+  addNode(150, 150, redrawCallback);
+  addNode(350, 150, redrawCallback);
+  addNode(250, 300, redrawCallback);
 
-.node:hover {
-  transform: scale(1.05);
-  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-}
+  // Configurar botón de creación
+  const createNodeBtn = document.getElementById('create-node-btn');
+  if (createNodeBtn) {
+    createNodeBtn.addEventListener('click', () => {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.random() * (rect.width - 80);
+      const y = Math.random() * (rect.height - 80);
+      addNode(x, y, redrawCallback);
+      if (typeof redrawCallback === 'function') redrawCallback();
+    });
+  }
 
-.node.selected {
-  border-color: #ff5500;
-  box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.3);
-}
-
-/* Botón de creación de nodos */
-.node-btn {
-  background: #0077cc;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.2s;
-  z-index: 3; /* Por encima de todo */
-}
-
-.node-btn:hover {
-  background: #005fa3;
-}
-
-.plus-icon {
-  font-size: 24px;
-  line-height: 1;
-}
-
-/* Panel de ayuda */
-.help-panel {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 4px;
-  padding: 10px;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-
-.help-panel h3 {
-  margin-top: 0;
-  margin-bottom: 8px;
-  font-size: 16px;
-}
-
-.help-panel ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.help-panel li {
-  margin-bottom: 4px;
-}
-/* --------------------------------------------------
-    ESTILOS PARA SISTEMA DE CONTENEDORES + PUERTOS
-    (content-nodes.js)
--------------------------------------------------- */
-
-/* Contenedor principal — posiciona todo el grupo */
-.node-container {
-  position: absolute;
-  z-index: 2;
-}
-
-/* Contenido visible — lo que el usuario ve y arrastra */
-.node-content {
-  width: 60px;
-  height: 60px;
-  background: #fff;
-  border: 3px solid #0077cc;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  cursor: move;
-  user-select: none;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-  z-index: 2;
-  padding: 0 4px;
-  text-align: center;
-}
-
-.node-content:hover {
-  transform: scale(1.05);
-  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-}
-
-.node-content.selected {
-  border-color: #ff5500;
-  box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.3);
-}
-
-/* Puertos — invisibles por defecto, solo para conexiones */
-.node-port {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: transparent;
-  border-radius: 50%;
-  z-index: 3; /* Por encima del contenido para clic preciso */
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-/* Posición de los puertos */
-.node-port-top    { top: -4px;   left: 50%; transform: translateX(-50%); }
-.node-port-bottom { bottom: -4px; left: 50%; transform: translateX(-50%); }
-.node-port-left   { left: -4px;   top: 50%;  transform: translateY(-50%); }
-.node-port-right  { right: -4px;  top: 50%;  transform: translateY(-50%); }
-
-/* Opcional: modo debug — para ver dónde están los puertos */
-.debug .node-port {
-  background: rgba(255, 0, 0, 0.3);
-  border: 1px solid red;
+  // Desseleccionar al hacer clic en el canvas
+  canvas.addEventListener('click', (e) => {
+    if (e.target === canvas && sourceNode) {
+      sourceNode.classList.remove('selected');
+      sourceNode = null;
+    }
+  });
 }
