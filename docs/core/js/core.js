@@ -5,7 +5,7 @@ import { initializeBarHiding } from "./monitor_bars.js";
 import { drawLines } from '../../apps/diagram/js/drawlines.js';
 import { initDiagram } from '../../apps/diagram/js/nodos.js';
 import { createContainerWithPorts } from '../../apps/diagram/js/nodos-puertos.js';
-import { systemConfig } from './config.js'; // Importar el sistema de configuración
+import { SystemConfig } from './config.js'; // Importar la clase, no la instancia
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
@@ -85,7 +85,12 @@ function createConfigButton() {
     
     // Evento para abrir/cerrar panel de configuración
     configButton.addEventListener('click', () => {
-        systemConfig.toggleConfigPanel();
+        // Verificar si systemConfig está disponible
+        if (window.systemConfig) {
+            window.systemConfig.toggleConfigPanel();
+        } else {
+            console.error('El sistema de configuración no está disponible');
+        }
     });
     
     blueBar.appendChild(configButton);
@@ -150,7 +155,12 @@ function toggleDiagram() {
         // Inicializar el diagrama
         try {
             initDiagram(drawLines);
-            diagramContent.appendChild(document.getElementById('diagram'));
+            const diagram = document.getElementById('diagram');
+            if (diagram) {
+                diagramContent.appendChild(diagram);
+            } else {
+                diagramContent.innerHTML = '<div style="color: white; padding: 20px;">Diagrama no encontrado</div>';
+            }
         } catch (error) {
             console.error('Error al inicializar el diagrama:', error);
             diagramContent.innerHTML = '<div style="color: white; padding: 20px;">Error al cargar el diagrama</div>';
@@ -174,7 +184,12 @@ function setupHologramConfig() {
         yellowSquare.addEventListener('click', (e) => {
             // Verificar si se hizo clic directamente en el holograma
             if (e.target === hologram || hologram.contains(e.target)) {
-                systemConfig.toggleConfigPanel();
+                // Verificar si systemConfig está disponible
+                if (window.systemConfig) {
+                    window.systemConfig.toggleConfigPanel();
+                } else {
+                    console.error('El sistema de configuración no está disponible');
+                }
             }
         });
         
