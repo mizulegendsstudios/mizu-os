@@ -89,6 +89,34 @@ export function createMusicPlayerButton() {
     }
 }
 
+// Crear botón para el editor en la barra lateral
+export function createEditorButton() {
+    const blueBar = document.getElementById('blue-bar');
+    if (!blueBar) {
+        console.warn('Blue bar not found. Cannot create editor button.');
+        return;
+    }
+    
+    // Crear botón de editor (icono de código)
+    const editorButton = document.createElement('button');
+    editorButton.className = 'node-btn editor-btn';
+    editorButton.innerHTML = '📝';
+    editorButton.title = 'Editor de Código y Texto';
+    
+    // Evento para mostrar/ocultar editor
+    editorButton.addEventListener('click', () => {
+        showEditor();
+    });
+    
+    // Agregar a la barra lateral (después del botón de reproductor)
+    const musicPlayerButton = document.querySelector('.music-player-btn');
+    if (musicPlayerButton) {
+        blueBar.insertBefore(editorButton, musicPlayerButton.nextSibling);
+    } else {
+        blueBar.appendChild(editorButton);
+    }
+}
+
 // Configurar evento del holograma para abrir configuración
 export function setupHologramConfig() {
     const yellowSquare = document.getElementById('yellow-square');
@@ -117,8 +145,9 @@ export function showDiagram() {
     const blackContentWrapper = document.getElementById('black-content-wrapper');
     const configPanel = document.getElementById('config-panel');
     const musicPlayerPanel = document.getElementById('music-player-panel');
+    const editorPanel = document.getElementById('editor-panel');
     
-    // Ocultar panel de configuración y reproductor si están visibles
+    // Ocultar otros paneles si están visibles
     if (configPanel && configPanel.style.display !== 'none') {
         configPanel.style.display = 'none';
         if (window.systemConfig) {
@@ -130,6 +159,13 @@ export function showDiagram() {
         musicPlayerPanel.style.display = 'none';
         if (window.musicPlayer) {
             window.musicPlayer.isVisible = false;
+        }
+    }
+    
+    if (editorPanel && editorPanel.style.display !== 'none') {
+        editorPanel.style.display = 'none';
+        if (window.editorApp) {
+            window.editorApp.isVisible = false;
         }
     }
     
@@ -160,8 +196,9 @@ export function showMusicPlayer() {
     const blackContentWrapper = document.getElementById('black-content-wrapper');
     const configPanel = document.getElementById('config-panel');
     const canvas = document.getElementById('canvas');
+    const editorPanel = document.getElementById('editor-panel');
     
-    // Ocultar panel de configuración y diagrama si están visibles
+    // Ocultar otros paneles si están visibles
     if (configPanel && configPanel.style.display !== 'none') {
         configPanel.style.display = 'none';
         if (window.systemConfig) {
@@ -171,6 +208,13 @@ export function showMusicPlayer() {
     
     if (canvas) {
         canvas.style.display = 'none';
+    }
+    
+    if (editorPanel && editorPanel.style.display !== 'none') {
+        editorPanel.style.display = 'none';
+        if (window.editorApp) {
+            window.editorApp.isVisible = false;
+        }
     }
     
     // Mostrar el reproductor de música
@@ -186,6 +230,47 @@ export function showMusicPlayer() {
             musicPlayerPanel.style.display = 'flex';
             if (window.musicPlayer) {
                 window.musicPlayer.isVisible = true;
+            }
+        }
+    }
+}
+
+// Función para mostrar el editor dentro de black-bar
+export function showEditor() {
+    const blackContentWrapper = document.getElementById('black-content-wrapper');
+    const configPanel = document.getElementById('config-panel');
+    const canvas = document.getElementById('canvas');
+    const musicPlayerPanel = document.getElementById('music-player-panel');
+    
+    // Ocultar otros paneles si están visibles
+    if (configPanel && configPanel.style.display !== 'none') {
+        configPanel.style.display = 'none';
+        if (window.systemConfig) {
+            window.systemConfig.isVisible = false;
+        }
+    }
+    
+    if (canvas) {
+        canvas.style.display = 'none';
+    }
+    
+    if (musicPlayerPanel && musicPlayerPanel.style.display !== 'none') {
+        musicPlayerPanel.style.display = 'none';
+        if (window.musicPlayer) {
+            window.musicPlayer.isVisible = false;
+        }
+    }
+    
+    // Mostrar el editor
+    if (!window.editorApp) {
+        window.editorApp = new EditorApp();
+        window.editorApp.createEditorPanel();
+    } else {
+        const editorPanel = document.getElementById('editor-panel');
+        if (editorPanel) {
+            editorPanel.style.display = 'flex';
+            if (window.editorApp) {
+                window.editorApp.isVisible = true;
             }
         }
     }
