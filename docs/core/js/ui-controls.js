@@ -61,6 +61,34 @@ export function createConfigButton() {
     }
 }
 
+// Crear botón para el reproductor de música en la barra lateral
+export function createMusicPlayerButton() {
+    const blueBar = document.getElementById('blue-bar');
+    if (!blueBar) {
+        console.warn('Blue bar not found. Cannot create music player button.');
+        return;
+    }
+    
+    // Crear botón de reproductor (icono de música)
+    const musicPlayerButton = document.createElement('button');
+    musicPlayerButton.className = 'node-btn music-player-btn';
+    musicPlayerButton.innerHTML = '🎵';
+    musicPlayerButton.title = 'Reproductor de Música';
+    
+    // Evento para mostrar/ocultar reproductor
+    musicPlayerButton.addEventListener('click', () => {
+        showMusicPlayer();
+    });
+    
+    // Agregar a la barra lateral (después del botón de diagrama)
+    const diagramButton = document.querySelector('.diagram-btn');
+    if (diagramButton) {
+        blueBar.insertBefore(musicPlayerButton, diagramButton.nextSibling);
+    } else {
+        blueBar.appendChild(musicPlayerButton);
+    }
+}
+
 // Configurar evento del holograma para abrir configuración
 export function setupHologramConfig() {
     const yellowSquare = document.getElementById('yellow-square');
@@ -88,12 +116,20 @@ export function setupHologramConfig() {
 export function showDiagram() {
     const blackContentWrapper = document.getElementById('black-content-wrapper');
     const configPanel = document.getElementById('config-panel');
+    const musicPlayerPanel = document.getElementById('music-player-panel');
     
-    // Ocultar panel de configuración si está visible
+    // Ocultar panel de configuración y reproductor si están visibles
     if (configPanel && configPanel.style.display !== 'none') {
         configPanel.style.display = 'none';
         if (window.systemConfig) {
             window.systemConfig.isVisible = false;
+        }
+    }
+    
+    if (musicPlayerPanel && musicPlayerPanel.style.display !== 'none') {
+        musicPlayerPanel.style.display = 'none';
+        if (window.musicPlayer) {
+            window.musicPlayer.isVisible = false;
         }
     }
     
@@ -115,6 +151,42 @@ export function showDiagram() {
         } catch (error) {
             console.error('Error al inicializar el diagrama:', error);
             blackContentWrapper.innerHTML = '<div style="color: white; padding: 20px;">Error al cargar el diagrama</div>';
+        }
+    }
+}
+
+// Función para mostrar el reproductor de música dentro de black-bar
+export function showMusicPlayer() {
+    const blackContentWrapper = document.getElementById('black-content-wrapper');
+    const configPanel = document.getElementById('config-panel');
+    const canvas = document.getElementById('canvas');
+    
+    // Ocultar panel de configuración y diagrama si están visibles
+    if (configPanel && configPanel.style.display !== 'none') {
+        configPanel.style.display = 'none';
+        if (window.systemConfig) {
+            window.systemConfig.isVisible = false;
+        }
+    }
+    
+    if (canvas) {
+        canvas.style.display = 'none';
+    }
+    
+    // Mostrar el reproductor de música
+    if (!window.musicPlayer) {
+        // Importar dinámicamente el módulo del reproductor
+        import('./music-player.js').then(({ MusicPlayer }) => {
+            window.musicPlayer = new MusicPlayer();
+            window.musicPlayer.createMusicPlayerPanel();
+        });
+    } else {
+        const musicPlayerPanel = document.getElementById('music-player-panel');
+        if (musicPlayerPanel) {
+            musicPlayerPanel.style.display = 'flex';
+            if (window.musicPlayer) {
+                window.musicPlayer.isVisible = true;
+            }
         }
     }
 }
