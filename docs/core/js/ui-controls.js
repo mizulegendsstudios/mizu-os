@@ -237,13 +237,10 @@ export function showMusicPlayer() {
 
 // Función para mostrar el editor dentro de black-bar
 export function showEditor() {
-    if (!window.editorApp) {
-        window.editorApp = new EditorApp();
-        window.editorApp.createEditorPanel();
-    } else {
-        window.editorApp.toggleEditorPanel();
-    }
-}
+    const blackContentWrapper = document.getElementById('black-content-wrapper');
+    const configPanel = document.getElementById('config-panel');
+    const canvas = document.getElementById('canvas');
+    const musicPlayerPanel = document.getElementById('music-player-panel');
     
     // Ocultar otros paneles si están visibles
     if (configPanel && configPanel.style.display !== 'none') {
@@ -266,8 +263,11 @@ export function showEditor() {
     
     // Mostrar el editor
     if (!window.editorApp) {
-        window.editorApp = new EditorApp();
-        window.editorApp.createEditorPanel();
+        // Importar dinámicamente el módulo del editor
+        import('../../apps/editor/js/editor.js').then(({ EditorApp }) => {
+            window.editorApp = new EditorApp();
+            window.editorApp.createEditorPanel();
+        });
     } else {
         const editorPanel = document.getElementById('editor-panel');
         if (editorPanel) {
