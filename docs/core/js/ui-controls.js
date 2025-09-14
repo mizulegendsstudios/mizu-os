@@ -1,5 +1,7 @@
-// core/js/ui-controls.js — Controles de UI: botones, diagrama modal, holograma
+// core/js/ui-controls.js - Módulo para controles de UI
+import { SystemConfig } from "./config.js";
 
+// Crear botón para visualizar diagrama en la barra lateral
 export function createDiagramButton() {
     const blueBar = document.getElementById('blue-bar');
     if (!blueBar) {
@@ -7,15 +9,18 @@ export function createDiagramButton() {
         return;
     }
     
+    // Crear botón de diagrama (icono de diagrama)
     const diagramButton = document.createElement('button');
     diagramButton.className = 'node-btn diagram-btn';
     diagramButton.innerHTML = '📊';
     diagramButton.title = 'Visualizar Diagrama';
     
+    // Evento para mostrar/ocultar diagrama
     diagramButton.addEventListener('click', () => {
-        toggleDiagram();
+        showDiagram();
     });
     
+    // Agregar a la barra lateral (después del botón +)
     const createNodeBtn = document.getElementById('create-node-btn');
     if (createNodeBtn) {
         blueBar.insertBefore(diagramButton, createNodeBtn.nextSibling);
@@ -24,6 +29,7 @@ export function createDiagramButton() {
     }
 }
 
+// Crear botón de configuración en la barra lateral
 export function createConfigButton() {
     const blueBar = document.getElementById('blue-bar');
     if (!blueBar) {
@@ -31,11 +37,13 @@ export function createConfigButton() {
         return;
     }
     
+    // Crear botón de configuración (icono de engranaje)
     const configButton = document.createElement('button');
     configButton.className = 'node-btn config-btn';
     configButton.innerHTML = '⚙️';
     configButton.title = 'Configuración Visual';
     
+    // Evento para abrir/cerrar panel de configuración
     configButton.addEventListener('click', () => {
         if (window.systemConfig) {
             window.systemConfig.toggleConfigPanel();
@@ -44,6 +52,7 @@ export function createConfigButton() {
         }
     });
     
+    // Agregar a la barra lateral (antes del botón +)
     const createNodeBtn = document.getElementById('create-node-btn');
     if (createNodeBtn) {
         blueBar.insertBefore(configButton, createNodeBtn);
@@ -52,85 +61,14 @@ export function createConfigButton() {
     }
 }
 
-export function toggleDiagram() {
-    const diagramContainer = document.getElementById('diagram-container');
-    
-    if (!diagramContainer) {
-        const newContainer = document.createElement('div');
-        newContainer.id = 'diagram-container';
-        newContainer.className = 'diagram-container';
-        newContainer.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        `;
-        
-        const closeButton = document.createElement('button');
-        closeButton.className = 'diagram-close';
-        closeButton.innerHTML = '✕';
-        closeButton.style.cssText = `
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 24px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 1001;
-        `;
-        
-        closeButton.addEventListener('click', () => {
-            document.body.removeChild(newContainer);
-        });
-        
-        const diagramContent = document.createElement('div');
-        diagramContent.className = 'diagram-content';
-        diagramContent.style.cssText = `
-            width: 90%;
-            height: 90%;
-            background: rgba(30, 30, 30, 0.9);
-            border-radius: 16px;
-            overflow: hidden;
-        `;
-        
-        try {
-            // Asumimos que initDiagram y drawLines están disponibles globalmente o se importarán donde se use
-            const diagram = document.getElementById('diagram');
-            if (diagram) {
-                diagramContent.appendChild(diagram);
-            } else {
-                diagramContent.innerHTML = '<div style="color: white; padding: 20px;">Diagrama no encontrado</div>';
-            }
-        } catch (error) {
-            console.error('Error al inicializar el diagrama:', error);
-            diagramContent.innerHTML = '<div style="color: white; padding: 20px;">Error al cargar el diagrama</div>';
-        }
-        
-        newContainer.appendChild(closeButton);
-        newContainer.appendChild(diagramContent);
-        document.body.appendChild(newContainer);
-    } else {
-        document.body.removeChild(diagramContainer);
-    }
-}
-
+// Configurar evento del holograma para abrir configuración
 export function setupHologramConfig() {
     const yellowSquare = document.getElementById('yellow-square');
     const hologram = document.getElementById('hologram');
     
     if (yellowSquare && hologram) {
         yellowSquare.addEventListener('click', (e) => {
+            // Verificar si se hizo clic directamente en el holograma
             if (e.target === hologram || hologram.contains(e.target)) {
                 if (window.systemConfig) {
                     window.systemConfig.toggleConfigPanel();
@@ -140,7 +78,43 @@ export function setupHologramConfig() {
             }
         });
         
+        // Añadir cursor pointer para indicar que es clickable
         hologram.style.cursor = 'pointer';
         yellowSquare.style.cursor = 'pointer';
+    }
+}
+
+// Función para mostrar el diagrama dentro de black-bar
+export function showDiagram() {
+    const blackContentWrapper = document.getElementById('black-content-wrapper');
+    const configPanel = document.getElementById('config-panel');
+    
+    // Ocultar panel de configuración si está visible
+    if (configPanel && configPanel.style.display !== 'none') {
+        configPanel.style.display = 'none';
+        if (window.systemConfig) {
+            window.systemConfig.isVisible = false;
+        }
+    }
+    
+    // Mostrar el canvas del diagrama
+    const canvas = document.getElementById('canvas');
+    if (canvas) {
+        canvas.style.display = 'block';
+    }
+    
+    // Inicializar el diagrama si no está ya inicializado
+    if (!window.diagramInitialized) {
+        try {
+            import('../../apps/diagram/js/drawlines.js').then(({ drawLines }) => {
+                import('../../apps/diagram/js/nodos.js').then(({ initDiagram }) => {
+                    initDiagram(drawLines);
+                    window.diagramInitialized = true;
+                });
+            });
+        } catch (error) {
+            console.error('Error al inicializar el diagrama:', error);
+            blackContentWrapper.innerHTML = '<div style="color: white; padding: 20px;">Error al cargar el diagrama</div>';
+        }
     }
 }
