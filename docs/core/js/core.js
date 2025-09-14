@@ -9,7 +9,7 @@ import { initializeBarHiding } from "./monitor_bars.js";
 import { initializeMonitor } from "./monitor_axis.js";
 import { initializeStatusWidget } from "./status.js";
 import { SystemConfig } from "./config.js";
-import { createDiagramButton, createConfigButton, createMusicPlayerButton, setupHologramConfig } from "./ui-controls.js";
+import { createDiagramButton, createConfigButton, createMusicPlayerButton, createEditorButton, setupHologramConfig } from "./ui-controls.js";
 // Importaciones de diagramas
 import { drawLines } from '../../apps/diagram/js/drawlines.js';
 import { initDiagram } from '../../apps/diagram/js/nodos.js';
@@ -33,7 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Crear botones en la barra lateral
         createDiagramButton();
         createConfigButton();
-        createMusicPlayerButton(); // Nuevo botón para el reproductor
+        createMusicPlayerButton();
+        createEditorButton(); // Nuevo botón para el editor
         
         // Configurar evento del holograma
         setupHologramConfig();
