@@ -24,14 +24,14 @@ export function initializeStatusWidget() {
     // Sección izquierda: hora y fecha
     const timeSection = createTimeSection();
     
-    // Sección central: controles del reproductor
-    const playerControlsSection = createPlayerControls();
+    // Sección central: controles básicos
+    const controlsSection = createBasicControls();
     
     // Sección derecha: widget de estado (batería, wifi, volumen)
     const statusSection = createStatusSection();
     
     mainContainer.appendChild(timeSection);
-    mainContainer.appendChild(playerControlsSection);
+    mainContainer.appendChild(controlsSection);
     mainContainer.appendChild(statusSection);
     
     redBar.appendChild(mainContainer);
@@ -88,46 +88,17 @@ function updateDateTime() {
     }
 }
 
-// Crear controles básicos del reproductor para la barra roja
-function createPlayerControls() {
+// Crear controles básicos para la barra roja
+function createBasicControls() {
     const container = document.createElement('div');
-    container.className = 'player-controls';
-    container.style.cssText = `
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    `;
+    container.className = 'basic-controls';
+    container.style.cssText = 'display: flex; align-items: center; gap: 8px;';
     
-    // Botón de anterior
-    const prevBtn = document.createElement('button');
-    prevBtn.innerHTML = '<i class="fa-solid fa-backward"></i>';
-    prevBtn.title = 'Anterior';
-    prevBtn.style.cssText = `
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        font-size: 14px;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: rgba(255, 255, 255, 0.1);
-        transition: all 0.2s ease;
-    `;
-    prevBtn.addEventListener('click', () => {
-        if (window.musicPlayer) {
-            window.musicPlayer.playPrev();
-        }
-    });
-    
-    // Botón de play/pause
-    const playPauseBtn = document.createElement('button');
-    playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
-    playPauseBtn.title = 'Reproducir/Pausar';
-    playPauseBtn.style.cssText = `
+    // Botón para cambiar entre modo código y texto
+    const modeToggleBtn = document.createElement('button');
+    modeToggleBtn.innerHTML = '<i class="fa-solid fa-code"></i>';
+    modeToggleBtn.title = 'Cambiar modo Código/Texto';
+    modeToggleBtn.style.cssText = `
         background: none;
         border: none;
         color: white;
@@ -139,27 +110,30 @@ function createPlayerControls() {
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: rgba(255, 255, 255, 0.2);
+        background-color: rgba(255, 255, 255, 0.1);
         transition: all 0.2s ease;
     `;
-    playPauseBtn.addEventListener('click', () => {
-        if (window.musicPlayer) {
-            window.musicPlayer.togglePlayPause();
+    
+    modeToggleBtn.addEventListener('click', () => {
+        if (window.editorApp) {
+            window.editorApp.switchMode(
+                window.editorApp.mode === 'code' ? 'text' : 'code'
+            );
         }
     });
     
-    // Botón de stop
-    const stopBtn = document.createElement('button');
-    stopBtn.innerHTML = '<i class="fa-solid fa-stop"></i>';
-    stopBtn.title = 'Detener';
-    stopBtn.style.cssText = `
+    // Botón para nueva pestaña
+    const newTabBtn = document.createElement('button');
+    newTabBtn.innerHTML = '<i class="fa-solid fa-plus"></i>';
+    newTabBtn.title = 'Nueva pestaña';
+    newTabBtn.style.cssText = `
         background: none;
         border: none;
         color: white;
         cursor: pointer;
         font-size: 14px;
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -167,24 +141,27 @@ function createPlayerControls() {
         background-color: rgba(255, 255, 255, 0.1);
         transition: all 0.2s ease;
     `;
-    stopBtn.addEventListener('click', () => {
-        if (window.musicPlayer) {
-            window.musicPlayer.stop();
+    
+    newTabBtn.addEventListener('click', () => {
+        if (window.editorApp) {
+            if (window.editorApp.mode === 'text') {
+                window.editorApp.addNewTextTab();
+            }
         }
     });
     
-    // Botón de siguiente
-    const nextBtn = document.createElement('button');
-    nextBtn.innerHTML = '<i class="fa-solid fa-forward"></i>';
-    nextBtn.title = 'Siguiente';
-    nextBtn.style.cssText = `
+    // Botón para buscar
+    const searchBtn = document.createElement('button');
+    searchBtn.innerHTML = '<i class="fa-solid fa-search"></i>';
+    searchBtn.title = 'Buscar';
+    searchBtn.style.cssText = `
         background: none;
         border: none;
         color: white;
         cursor: pointer;
         font-size: 14px;
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -192,24 +169,25 @@ function createPlayerControls() {
         background-color: rgba(255, 255, 255, 0.1);
         transition: all 0.2s ease;
     `;
-    nextBtn.addEventListener('click', () => {
-        if (window.musicPlayer) {
-            window.musicPlayer.playNext();
+    
+    searchBtn.addEventListener('click', () => {
+        if (window.editorApp) {
+            window.editorApp.toggleSearchBar();
         }
     });
     
-    // Botón de abrir en nueva pestaña
-    const openLinkBtn = document.createElement('button');
-    openLinkBtn.innerHTML = '<i class="fa-solid fa-up-right-from-square"></i>';
-    openLinkBtn.title = 'Abrir en nueva pestaña';
-    openLinkBtn.style.cssText = `
+    // Botón para guardar/exportar
+    const saveBtn = document.createElement('button');
+    saveBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
+    saveBtn.title = 'Guardar/Exportar';
+    saveBtn.style.cssText = `
         background: none;
         border: none;
         color: white;
         cursor: pointer;
         font-size: 14px;
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -217,16 +195,17 @@ function createPlayerControls() {
         background-color: rgba(255, 255, 255, 0.1);
         transition: all 0.2s ease;
     `;
-    openLinkBtn.addEventListener('click', () => {
-        if (window.musicPlayer) {
-            window.musicPlayer.openInNewTab();
+    
+    saveBtn.addEventListener('click', () => {
+        if (window.editorApp) {
+            window.editorApp.saveOrExport();
         }
     });
     
-    // Información de la canción actual
-    const trackInfo = document.createElement('div');
-    trackInfo.id = 'mini-track-info';
-    trackInfo.style.cssText = `
+    // Información del documento actual
+    const docInfo = document.createElement('div');
+    docInfo.id = 'mini-doc-info';
+    docInfo.style.cssText = `
         font-size: 12px;
         text-align: center;
         white-space: nowrap;
@@ -236,40 +215,36 @@ function createPlayerControls() {
         color: white;
         margin-left: 10px;
     `;
-    trackInfo.textContent = 'No hay música';
+    docInfo.textContent = 'Editor';
     
-    // Actualizar la información de la canción cuando cambie
-    const updateTrackInfo = () => {
-        if (window.musicPlayer && window.musicPlayer.currentTrackIndex !== -1) {
-            const track = window.musicPlayer.playlist[window.musicPlayer.currentTrackIndex];
-            trackInfo.textContent = track.title;
-        } else {
-            trackInfo.textContent = 'No hay música';
-        }
-    };
-    
-    // Actualizar el botón de play/pause cuando cambie el estado
-    const updatePlayPauseButton = () => {
-        if (window.musicPlayer) {
-            const icon = playPauseBtn.querySelector('i');
-            if (icon) {
-                if (window.musicPlayer.isPlaying) {
-                    icon.className = 'fa-solid fa-pause';
+    // Actualizar la información del documento cuando cambie
+    const updateDocInfo = () => {
+        if (window.editorApp) {
+            if (window.editorApp.mode === 'code') {
+                const tabNames = {
+                    'html': 'HTML',
+                    'css': 'CSS',
+                    'js': 'JavaScript',
+                    'console': 'Consola'
+                };
+                docInfo.textContent = `Código - ${tabNames[window.editorApp.activeTab] || ''}`;
+            } else {
+                if (window.editorApp.currentTextTab >= 0 && 
+                    window.editorApp.currentTextTab < window.editorApp.textTabs.length) {
+                    const tab = window.editorApp.textTabs[window.editorApp.currentTextTab];
+                    docInfo.textContent = `Texto - ${tab.name}`;
                 } else {
-                    icon.className = 'fa-solid fa-play';
+                    docInfo.textContent = 'Texto';
                 }
             }
         }
     };
     
-    // Escuchar cambios en el reproductor
-    setInterval(() => {
-        updateTrackInfo();
-        updatePlayPauseButton();
-    }, 1000);
+    // Actualizar periódicamente la información del documento
+    setInterval(updateDocInfo, 1000);
     
     // Efectos hover
-    const buttons = [prevBtn, playPauseBtn, stopBtn, nextBtn, openLinkBtn];
+    const buttons = [modeToggleBtn, newTabBtn, searchBtn, saveBtn];
     buttons.forEach(btn => {
         btn.addEventListener('mouseenter', () => {
             btn.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
@@ -281,12 +256,11 @@ function createPlayerControls() {
         });
     });
     
-    container.appendChild(prevBtn);
-    container.appendChild(playPauseBtn);
-    container.appendChild(stopBtn);
-    container.appendChild(nextBtn);
-    container.appendChild(openLinkBtn);
-    container.appendChild(trackInfo);
+    container.appendChild(modeToggleBtn);
+    container.appendChild(newTabBtn);
+    container.appendChild(searchBtn);
+    container.appendChild(saveBtn);
+    container.appendChild(docInfo);
     
     return container;
 }
@@ -492,20 +466,4 @@ function initializeUpdates(statusSection) {
     window.addEventListener('offline', updateConnection);
     
     // Escuchar eventos de batería si está disponible
-    if ('getBattery' in navigator) {
-        navigator.getBattery().then(battery => {
-            battery.addEventListener('levelchange', updateBattery);
-            battery.addEventListener('chargingchange', updateBattery);
-        });
-    }
-}
-
-// Función para alternar la visibilidad del widget
-export function toggleStatusWidget() {
-    const widget = document.getElementById('system-widget');
-    if (widget) {
-        const isVisible = widget.style.display !== 'none';
-        widget.style.display = isVisible ? 'none' : 'flex';
-        console.log(`Status widget ${isVisible ? 'hidden' : 'shown'}`);
-    }
-}
+    if ('get
