@@ -143,7 +143,7 @@ flex-direction: column;
     background-color: rgba(0, 0, 0, 0.01); 
     backdrop-filter: blur(10px);
     border-radius: 2rem;
-    z-index: 1024;
+    z-index: 2025;
     perspective: 100vh;
     }
 #cube {
