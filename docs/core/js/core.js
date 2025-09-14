@@ -14,6 +14,8 @@ import { createDiagramButton, createConfigButton, createMusicPlayerButton, creat
 import { drawLines } from '../../apps/diagram/js/drawlines.js';
 import { initDiagram } from '../../apps/diagram/js/nodos.js';
 import { createContainerWithPorts } from '../../apps/diagram/js/nodos-puertos.js';
+// Importaciones del editor
+import { EditorApp } from '../../apps/editor/js/editor.js';
 
 // DOM
 console.log(`Iniciando sistema...`);
@@ -26,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeLoadingScreen();
         // Inicializa el widget de estado del sistema
         initializeStatusWidget();
-        
+        EditorApp();
         // Inicializa el sistema de configuración
         window.systemConfig = new SystemConfig();
         
