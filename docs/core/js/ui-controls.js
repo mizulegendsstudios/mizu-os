@@ -261,20 +261,14 @@ export function showEditor() {
         }
     }
     
-    // Mostrar el editor
-    if (!window.editorApp) {
-        // Importar dinámicamente el módulo del editor
-        import('../../apps/editor/js/editor.js').then(({ EditorApp }) => {
-            window.editorApp = new EditorApp();
+    // Mostrar el editor usando la instancia global
+    if (window.editorApp) {
+        if (!window.editorApp.panel) {
             window.editorApp.createEditorPanel();
-        });
-    } else {
-        const editorPanel = document.getElementById('editor-panel');
-        if (editorPanel) {
-            editorPanel.style.display = 'flex';
-            if (window.editorApp) {
-                window.editorApp.isVisible = true;
-            }
+        } else {
+            window.editorApp.toggleEditorPanel();
         }
+    } else {
+        console.error('La aplicación del editor no está disponible');
     }
 }
