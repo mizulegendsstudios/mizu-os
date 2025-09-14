@@ -24,14 +24,14 @@ export function initializeStatusWidget() {
     // Sección izquierda: hora y fecha
     const timeSection = createTimeSection();
     
-    // Sección central: reproductor de música
-    const playerSection = createMusicPlayer();
+    // Sección central: controles del reproductor
+    const playerControlsSection = createPlayerControls();
     
     // Sección derecha: widget de estado (batería, wifi, volumen)
     const statusSection = createStatusSection();
     
     mainContainer.appendChild(timeSection);
-    mainContainer.appendChild(playerSection);
+    mainContainer.appendChild(playerControlsSection);
     mainContainer.appendChild(statusSection);
     
     redBar.appendChild(mainContainer);
@@ -88,80 +88,40 @@ function updateDateTime() {
     }
 }
 
-// Crear reproductor de música con el motor integrado
-function createMusicPlayer() {
+// Crear controles básicos del reproductor para la barra roja
+function createPlayerControls() {
     const container = document.createElement('div');
-    container.className = 'music-player';
+    container.className = 'player-controls';
     container.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
-        padding: 8px 15px;
-        max-width: 400px;
-        width: 100%;
-    `;
-    
-    // Información de la canción actual
-    const trackInfo = document.createElement('div');
-    trackInfo.id = 'current-track-info';
-    trackInfo.style.cssText = `
-        font-size: 12px;
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        width: 100%;
-        color: white;
-    `;
-    trackInfo.textContent = 'No hay música reproduciéndose';
-    
-    // Contenedor de controles
-    const controlsContainer = document.createElement('div');
-    controlsContainer.style.cssText = `
         display: flex;
         align-items: center;
         gap: 8px;
-        width: 100%;
     `;
     
-    // Campo para ingresar URL
-    const urlInput = document.createElement('input');
-    urlInput.type = 'text';
-    urlInput.id = 'music-link';
-    urlInput.placeholder = 'URL de música';
-    urlInput.style.cssText = `
-        background: transparent;
-        border: none;
-        color: white;
-        outline: none;
-        flex-grow: 1;
-        font-size: 11px;
-        padding: 4px 8px;
-        background-color: rgba(0, 0, 0, 0.2);
-        border-radius: 15px;
-    `;
-    
-    // Botón de añadir a playlist
-    const addBtn = document.createElement('button');
-    addBtn.innerHTML = '<i class="fa-solid fa-plus"></i>';
-    addBtn.title = 'Añadir a playlist';
-    addBtn.style.cssText = `
+    // Botón de anterior
+    const prevBtn = document.createElement('button');
+    prevBtn.innerHTML = '<i class="fa-solid fa-backward"></i>';
+    prevBtn.title = 'Anterior';
+    prevBtn.style.cssText = `
         background: none;
         border: none;
         color: white;
         cursor: pointer;
-        font-size: 12px;
-        width: 24px;
-        height: 24px;
+        font-size: 14px;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         background-color: rgba(255, 255, 255, 0.1);
+        transition: all 0.2s ease;
     `;
+    prevBtn.addEventListener('click', () => {
+        if (window.musicPlayer) {
+            window.musicPlayer.playPrev();
+        }
+    });
     
     // Botón de play/pause
     const playPauseBtn = document.createElement('button');
@@ -172,15 +132,21 @@ function createMusicPlayer() {
         border: none;
         color: white;
         cursor: pointer;
-        font-size: 14px;
-        width: 28px;
-        height: 28px;
+        font-size: 16px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(255, 255, 255, 0.2);
+        transition: all 0.2s ease;
     `;
+    playPauseBtn.addEventListener('click', () => {
+        if (window.musicPlayer) {
+            window.musicPlayer.togglePlayPause();
+        }
+    });
     
     // Botón de stop
     const stopBtn = document.createElement('button');
@@ -191,15 +157,46 @@ function createMusicPlayer() {
         border: none;
         color: white;
         cursor: pointer;
-        font-size: 12px;
-        width: 24px;
-        height: 24px;
+        font-size: 14px;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         background-color: rgba(255, 255, 255, 0.1);
+        transition: all 0.2s ease;
     `;
+    stopBtn.addEventListener('click', () => {
+        if (window.musicPlayer) {
+            window.musicPlayer.stop();
+        }
+    });
+    
+    // Botón de siguiente
+    const nextBtn = document.createElement('button');
+    nextBtn.innerHTML = '<i class="fa-solid fa-forward"></i>';
+    nextBtn.title = 'Siguiente';
+    nextBtn.style.cssText = `
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(255, 255, 255, 0.1);
+        transition: all 0.2s ease;
+    `;
+    nextBtn.addEventListener('click', () => {
+        if (window.musicPlayer) {
+            window.musicPlayer.playNext();
+        }
+    });
     
     // Botón de abrir en nueva pestaña
     const openLinkBtn = document.createElement('button');
@@ -210,296 +207,86 @@ function createMusicPlayer() {
         border: none;
         color: white;
         cursor: pointer;
-        font-size: 12px;
-        width: 24px;
-        height: 24px;
+        font-size: 14px;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         background-color: rgba(255, 255, 255, 0.1);
+        transition: all 0.2s ease;
     `;
+    openLinkBtn.addEventListener('click', () => {
+        if (window.musicPlayer) {
+            window.musicPlayer.openInNewTab();
+        }
+    });
     
-    // Control de volumen
-    const volumeContainer = document.createElement('div');
-    volumeContainer.style.cssText = 'display: flex; align-items: center; gap: 5px;';
+    // Información de la canción actual
+    const trackInfo = document.createElement('div');
+    trackInfo.id = 'mini-track-info';
+    trackInfo.style.cssText = `
+        font-size: 12px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+        color: white;
+        margin-left: 10px;
+    `;
+    trackInfo.textContent = 'No hay música';
     
-    const volumeIcon = document.createElement('i');
-    volumeIcon.className = 'fa-solid fa-volume-high';
-    volumeIcon.style.cssText = 'color: white; font-size: 12px;';
-    
-    const volumeSlider = document.createElement('input');
-    volumeSlider.type = 'range';
-    volumeSlider.min = '0';
-    volumeSlider.max = '100';
-    volumeSlider.value = '50';
-    volumeSlider.style.cssText = 'width: 50px; height: 4px;';
-    
-    volumeContainer.appendChild(volumeIcon);
-    volumeContainer.appendChild(volumeSlider);
-    
-    // Elemento de audio (oculto)
-    const audioElement = document.createElement('audio');
-    audioElement.style.display = 'none';
-    
-    // Variables del reproductor
-    let playlist = [];
-    let currentTrackIndex = -1;
-    let isPlaying = false;
-    let youtubePlayer = null;
-    let isYouTubeApiReady = false;
-    
-    // Cargar el script de la API de YouTube Iframe
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-    
-    // Esta función es llamada por la API de YouTube cuando está lista
-    window.onYouTubeIframeAPIReady = function() {
-        console.log("YouTube Iframe Player API is ready.");
-        isYouTubeApiReady = true;
+    // Actualizar la información de la canción cuando cambie
+    const updateTrackInfo = () => {
+        if (window.musicPlayer && window.musicPlayer.currentTrackIndex !== -1) {
+            const track = window.musicPlayer.playlist[window.musicPlayer.currentTrackIndex];
+            trackInfo.textContent = track.title;
+        } else {
+            trackInfo.textContent = 'No hay música';
+        }
     };
     
-    // Extraer el ID de video de YouTube
-    function extractYoutubeId(url) {
-        let videoId = null;
-        try {
-            const urlObj = new URL(url);
-            if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be') || urlObj.hostname.includes('music.youtube.com')) {
-                const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/;
-                const match = url.match(regExp);
-                if (match && match[1].length === 11) {
-                    videoId = match[1];
-                }
-            }
-        } catch (e) {
-            return null;
-        }
-        return videoId;
-    }
-    
-    // Formatear segundos a mm:ss
-    function formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = Math.floor(seconds % 60);
-        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-    }
-    
-    // Mostrar notificación
-    function showNotification(message) {
-        const notification = document.createElement('div');
-        notification.className = 'config-notification';
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
-        `;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
-    
-    // Detener toda la reproducción de medios
-    function stopAllMedia() {
-        if (!audioElement.paused) {
-            audioElement.pause();
-            audioElement.removeAttribute('src');
-        }
-        if (youtubePlayer && typeof youtubePlayer.stopVideo === 'function') {
-            youtubePlayer.stopVideo();
-            youtubePlayer.destroy();
-            youtubePlayer = null;
-        }
-    }
-    
-    // Reproducir una pista específica por índice
-    function playTrack(index) {
-        if (index >= 0 && index < playlist.length) {
-            stopAllMedia();
-            currentTrackIndex = index;
-            const track = playlist[currentTrackIndex];
-            
-            if (track.source === 'YouTube' && track.videoId) {
-                if (isYouTubeApiReady) {
-                    if (youtubePlayer) {
-                        youtubePlayer.loadVideoById(track.videoId);
-                    } else {
-                        youtubePlayer = new YT.Player('dynamic-player', {
-                            height: '200',
-                            width: '100%',
-                            videoId: track.videoId,
-                            playerVars: { 'playsinline': 1 },
-                            events: {
-                                'onReady': (event) => {
-                                    event.target.playVideo();
-                                },
-                                'onStateChange': (event) => {
-                                    if (event.data === YT.PlayerState.ENDED) {
-                                        playNext();
-                                    }
-                                    if (event.data === YT.PlayerState.PLAYING) {
-                                        isPlaying = true;
-                                        playPauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-                                    }
-                                }
-                            }
-                        });
-                    }
-                    isPlaying = true;
-                    playPauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    // Actualizar el botón de play/pause cuando cambie el estado
+    const updatePlayPauseButton = () => {
+        if (window.musicPlayer) {
+            const icon = playPauseBtn.querySelector('i');
+            if (icon) {
+                if (window.musicPlayer.isPlaying) {
+                    icon.className = 'fa-solid fa-pause';
                 } else {
-                    showNotification("Error: La API de YouTube no está lista. Inténtalo de nuevo en unos segundos.");
-                    isPlaying = false;
+                    icon.className = 'fa-solid fa-play';
                 }
-            } else if (track.source === 'SoundCloud' || track.source === 'Mixcloud') {
-                // Para estos servicios, abrimos en una nueva pestaña
-                window.open(track.url, '_blank');
-                isPlaying = true;
-                playPauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-            } else if (track.source === 'Local' && track.file) {
-                const fileUrl = URL.createObjectURL(track.file);
-                audioElement.src = fileUrl;
-                audioElement.play();
-                isPlaying = true;
-                playPauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-            }
-            
-            trackInfo.textContent = track.title || "Título Desconocido";
-        }
-    }
-    
-    // Reproducir la siguiente pista
-    function playNext() {
-        if (playlist.length > 0) {
-            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-            playTrack(currentTrackIndex);
-        }
-    }
-    
-    // Eventos del reproductor
-    playPauseBtn.addEventListener('click', () => {
-        if (currentTrackIndex === -1) {
-            if (playlist.length > 0) {
-                playTrack(0);
-            }
-            return;
-        }
-        
-        const track = playlist[currentTrackIndex];
-        if (track.source === 'YouTube' && youtubePlayer) {
-            if (isPlaying) {
-                youtubePlayer.pauseVideo();
-                playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
-            } else {
-                youtubePlayer.playVideo();
-                playPauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-            }
-        } else if (track.source === 'Local') {
-            if (isPlaying) {
-                audioElement.pause();
-                playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
-            } else {
-                audioElement.play();
-                playPauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
             }
         }
-        isPlaying = !isPlaying;
+    };
+    
+    // Escuchar cambios en el reproductor
+    setInterval(() => {
+        updateTrackInfo();
+        updatePlayPauseButton();
+    }, 1000);
+    
+    // Efectos hover
+    const buttons = [prevBtn, playPauseBtn, stopBtn, nextBtn, openLinkBtn];
+    buttons.forEach(btn => {
+        btn.addEventListener('mouseenter', () => {
+            btn.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+            btn.style.transform = 'scale(1.1)';
+        });
+        btn.addEventListener('mouseleave', () => {
+            btn.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            btn.style.transform = 'scale(1)';
+        });
     });
     
-    stopBtn.addEventListener('click', () => {
-        stopAllMedia();
-        isPlaying = false;
-        currentTrackIndex = -1;
-        playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
-        trackInfo.textContent = 'No hay música reproduciéndose';
-    });
-    
-    openLinkBtn.addEventListener('click', () => {
-        if (currentTrackIndex !== -1) {
-            const track = playlist[currentTrackIndex];
-            window.open(track.url, '_blank');
-        }
-    });
-    
-    addBtn.addEventListener('click', async () => {
-        const link = urlInput.value.trim();
-        if (!link) {
-            showNotification('Por favor, ingresa una URL de música');
-            return;
-        }
-        
-        const youtubeId = extractYoutubeId(link);
-        const isSoundcloud = link.includes('soundcloud.com');
-        const isMixcloud = link.includes('mixcloud.com');
-        
-        if (youtubeId) {
-            const track = {
-                title: 'Video de YouTube',
-                source: 'YouTube',
-                url: link,
-                videoId: youtubeId
-            };
-            playlist.push(track);
-            showNotification('Añadido a la playlist');
-            if (playlist.length === 1) {
-                playTrack(0);
-            }
-            urlInput.value = '';
-        } else if (isSoundcloud || isMixcloud) {
-            const track = {
-                title: isSoundcloud ? 'Track de SoundCloud' : 'Mix de Mixcloud',
-                source: isSoundcloud ? 'SoundCloud' : 'Mixcloud',
-                url: link
-            };
-            playlist.push(track);
-            showNotification('Añadido a la playlist');
-            if (playlist.length === 1) {
-                playTrack(0);
-            }
-            urlInput.value = '';
-        } else {
-            showNotification('Enlace no válido. Por favor, ingresa un enlace de YouTube, SoundCloud o Mixcloud');
-        }
-    });
-    
-    volumeSlider.addEventListener('input', () => {
-        const volume = volumeSlider.value / 100;
-        audioElement.volume = volume;
-        if (youtubePlayer) {
-            youtubePlayer.setVolume(volume * 100);
-        }
-    });
-    
-    // Eventos del elemento de audio
-    audioElement.addEventListener('ended', playNext);
-    audioElement.addEventListener('error', () => {
-        playNext();
-    });
-    
-    // Añadir elementos al contenedor
-    controlsContainer.appendChild(urlInput);
-    controlsContainer.appendChild(addBtn);
-    controlsContainer.appendChild(playPauseBtn);
-    controlsContainer.appendChild(stopBtn);
-    controlsContainer.appendChild(openLinkBtn);
-    controlsContainer.appendChild(volumeContainer);
-    
+    container.appendChild(prevBtn);
+    container.appendChild(playPauseBtn);
+    container.appendChild(stopBtn);
+    container.appendChild(nextBtn);
+    container.appendChild(openLinkBtn);
     container.appendChild(trackInfo);
-    container.appendChild(controlsContainer);
-    container.appendChild(audioElement);
     
     return container;
 }
