@@ -6,11 +6,11 @@ export function initializeStatusWidget() {
         console.warn('Red bar not found. Skipping status widget initialization.');
         return;
     }
-
+    
     // Crear contenedor del widget
     const statusWidget = document.createElement('div');
     statusWidget.id = 'system-widget';
-    statusWidget.className = 'system-widget';
+    statusWidget.className = 'system-widget flex items-center gap-4 px-4 h-full';
     statusWidget.style.cssText = `
         display: flex;
         align-items: center;
@@ -23,42 +23,41 @@ export function initializeStatusWidget() {
         color: white;
         z-index: 1000;
     `;
-
+    
     // Crear elementos para cada indicador
     const timeElement = createTimeElement();
     const batteryElement = createBatteryElement();
     const connectionElement = createConnectionElement();
     const volumeElement = createVolumeElement();
-
-    // Añadir elementos al widget
+    
+    // Añadir elementos al widget en el orden correcto
     statusWidget.appendChild(timeElement);
     statusWidget.appendChild(batteryElement);
     statusWidget.appendChild(connectionElement);
     statusWidget.appendChild(volumeElement);
-
+    
     // Añadir widget a la barra roja
     redBar.appendChild(statusWidget);
-
+    
     // Inicializar actualizaciones
     initializeUpdates(timeElement, batteryElement, connectionElement, volumeElement);
-
     console.log('Status widget initialized in red bar.');
 }
 
 // Crear elemento de tiempo
 function createTimeElement() {
     const container = document.createElement('div');
-    container.className = 'status-item status-time';
+    container.className = 'status-item status-time text-center';
     container.style.cssText = 'display: flex; flex-direction: column; align-items: center;';
     
     const time = document.createElement('div');
-    time.id = 'widget-time';
-    time.className = 'status-time-value';
+    time.id = 'widget-hora';
+    time.className = 'status-time-value text-lg font-bold';
     time.style.cssText = 'font-weight: bold; font-size: 14px;';
     
     const date = document.createElement('div');
-    date.id = 'widget-date';
-    date.className = 'status-date-value';
+    date.id = 'widget-fecha';
+    date.className = 'status-date-value text-xs opacity-80';
     date.style.cssText = 'font-size: 10px; opacity: 0.8;';
     
     container.appendChild(time);
@@ -70,7 +69,7 @@ function createTimeElement() {
 // Crear elemento de batería
 function createBatteryElement() {
     const container = document.createElement('div');
-    container.className = 'status-item status-battery';
+    container.className = 'status-item status-battery flex items-center gap-2';
     container.style.cssText = 'display: flex; align-items: center; gap: 5px;';
     
     const batteryIcon = document.createElement('div');
@@ -115,8 +114,8 @@ function createBatteryElement() {
     batteryIcon.appendChild(batteryLevel);
     
     const batteryText = document.createElement('span');
-    batteryText.id = 'widget-battery-text';
-    batteryText.className = 'battery-text';
+    batteryText.id = 'widget-battery-pct';
+    batteryText.className = 'battery-text text-xs';
     batteryText.style.cssText = 'font-size: 10px; min-width: 30px;';
     
     container.appendChild(batteryIcon);
@@ -125,31 +124,23 @@ function createBatteryElement() {
     return container;
 }
 
-// Crear elemento de conexión
+// Crear elemento de conexión - CORREGIDO para usar Font Awesome y IDs correctos
 function createConnectionElement() {
     const container = document.createElement('div');
-    container.className = 'status-item status-connection';
+    container.className = 'status-item status-connection flex items-center gap-1';
     container.style.cssText = 'display: flex; align-items: center; gap: 5px;';
     
     const connectionIcon = document.createElement('i');
-    connectionIcon.id = 'widget-connection-icon';
-    connectionIcon.className = 'connection-icon';
+    connectionIcon.id = 'widget-wifi-icon';
+    connectionIcon.className = 'fa-solid fa-wifi text-sm';
     connectionIcon.style.cssText = `
-        width: 16px;
-        height: 16px;
-        display: inline-block;
-        position: relative;
-    `;
-    // Crear icono de WiFi usando CSS
-    connectionIcon.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 100%; height: 100%;">
-            <path d="M1 9l2 2c4.97-4.97 11.03-4.97 16 0l2-2C15.14 5.86 8.86 5.86 1 9zm8 8l2 2c6.63-6.63 6.63-17.37 0-24l-2 2c5.11 5.11 5.11 13.37 0 18.5zM4.93 19.07l1.41 1.41C9.21 15.81 14.8 15.81 19.07 19.07l1.41-1.41c-3.9-3.9-3.9-10.24 0-14.14zM8 16l1.41 1.41c1.17-1.17 2.59-1.76 4.07-1.76l-1.41-1.41c-1.8.01-3.46.72-4.93 1.93l-.14.14z"/>
-        </svg>
+        font-size: 14px;
+        color: #10b981;
     `;
     
     const connectionText = document.createElement('span');
-    connectionText.id = 'widget-connection-text';
-    connectionText.className = 'connection-text';
+    connectionText.id = 'widget-wifi-status';
+    connectionText.className = 'connection-text text-xs';
     connectionText.style.cssText = 'font-size: 10px; min-width: 50px;';
     
     container.appendChild(connectionIcon);
@@ -158,30 +149,23 @@ function createConnectionElement() {
     return container;
 }
 
-// Crear elemento de volumen
+// Crear elemento de volumen - CORREGIDO para usar Font Awesome y IDs correctos
 function createVolumeElement() {
     const container = document.createElement('div');
-    container.className = 'status-item status-volume';
+    container.className = 'status-item status-volume flex items-center gap-1';
     container.style.cssText = 'display: flex; align-items: center; gap: 5px;';
     
     const volumeIcon = document.createElement('i');
     volumeIcon.id = 'widget-volume-icon';
-    volumeIcon.className = 'volume-icon';
+    volumeIcon.className = 'fa-solid fa-volume-high text-sm';
     volumeIcon.style.cssText = `
-        width: 16px;
-        height: 16px;
-        display: inline-block;
-    `;
-    // Crear icono de volumen usando CSS
-    volumeIcon.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 100%; height: 100%;">
-            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.1-0.9-2-2-2s-2 .9-2 2v9l5 5-1.41-1.41V6.1c.9.31 1.91.9 3.3.9 1.4 0 2.5-1.1 2.5-2.5 0-.4-.1-.8-.2-1.1l1.9-1.9c-.2-.6-.3-1.3-.3-2 0-2.21 1.79-4 4-4z"/>
-        </svg>
+        font-size: 14px;
+        color: #10b981;
     `;
     
     const volumeText = document.createElement('span');
-    volumeText.id = 'widget-volume-text';
-    volumeText.className = 'volume-text';
+    volumeText.id = 'widget-volume-pct';
+    volumeText.className = 'volume-text text-xs';
     volumeText.style.cssText = 'font-size: 10px; min-width: 30px;';
     
     container.appendChild(volumeIcon);
@@ -192,14 +176,14 @@ function createVolumeElement() {
 
 // Inicializar actualizaciones periódicas
 function initializeUpdates(timeElement, batteryElement, connectionElement, volumeElement) {
-    // Actualizar hora y fecha
+    // Actualizar hora y fecha - CORREGIDO para usar IDs correctos
     function updateDateTime() {
         const now = new Date();
         const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
         const dateOptions = { day: '2-digit', month: 'short', year: '2-digit' };
         
-        const timeEl = timeElement.querySelector('#widget-time');
-        const dateEl = timeElement.querySelector('#widget-date');
+        const timeEl = document.getElementById('widget-hora');
+        const dateEl = document.getElementById('widget-fecha');
         
         if (timeEl) {
             timeEl.textContent = now.toLocaleTimeString('es-ES', timeOptions);
@@ -211,13 +195,13 @@ function initializeUpdates(timeElement, batteryElement, connectionElement, volum
         }
     }
     
-    // Actualizar batería
+    // Actualizar batería - CORREGIDO para usar IDs correctos
     function updateBattery() {
         if ('getBattery' in navigator) {
             navigator.getBattery().then(battery => {
                 const level = Math.floor(battery.level * 100);
-                const batteryLevelEl = batteryElement.querySelector('#widget-battery-level');
-                const batteryTextEl = batteryElement.querySelector('#widget-battery-text');
+                const batteryLevelEl = document.getElementById('widget-battery-level');
+                const batteryTextEl = document.getElementById('widget-battery-pct');
                 const batteryIcon = batteryElement.querySelector('.battery-icon');
                 
                 if (batteryLevelEl) {
@@ -238,18 +222,18 @@ function initializeUpdates(timeElement, batteryElement, connectionElement, volum
                 }
             });
         } else {
-            const batteryTextEl = batteryElement.querySelector('#widget-battery-text');
+            const batteryTextEl = document.getElementById('widget-battery-pct');
             if (batteryTextEl) {
                 batteryTextEl.textContent = 'N/A';
             }
         }
     }
     
-    // Actualizar conexión
+    // Actualizar conexión - CORREGIDO para usar IDs correctos
     function updateConnection() {
         const online = navigator.onLine;
-        const connectionIconEl = connectionElement.querySelector('#widget-connection-icon');
-        const connectionTextEl = connectionElement.querySelector('#widget-connection-text');
+        const connectionIconEl = document.getElementById('widget-wifi-icon');
+        const connectionTextEl = document.getElementById('widget-wifi-status');
         
         if (connectionIconEl) {
             connectionIconEl.style.color = online ? '#10b981' : '#ef4444';
@@ -260,10 +244,10 @@ function initializeUpdates(timeElement, batteryElement, connectionElement, volum
         }
     }
     
-    // Actualizar volumen (simulado)
+    // Actualizar volumen (simulado) - CORREGIDO para usar IDs correctos
     function updateVolume() {
         const volume = 75; // Valor simulado
-        const volumeTextEl = volumeElement.querySelector('#widget-volume-text');
+        const volumeTextEl = document.getElementById('widget-volume-pct');
         
         if (volumeTextEl) {
             volumeTextEl.textContent = `${volume}%`;
