@@ -14,12 +14,11 @@ import { createDiagramButton, createConfigButton, createMusicPlayerButton, creat
 import { drawLines } from '../../apps/diagram/js/drawlines.js';
 import { initDiagram } from '../../apps/diagram/js/nodos.js';
 import { createContainerWithPorts } from '../../apps/diagram/js/nodos-puertos.js';
-// Importaciones del editor
+// Importación del editor
 import { EditorApp } from '../../apps/editor/js/editor.js';
 
 // DOM
 console.log(`Iniciando sistema...`);
-
 document.addEventListener('DOMContentLoaded', () => {
     try {
         // Inicializa módulos estables
@@ -28,15 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeLoadingScreen();
         // Inicializa el widget de estado del sistema
         initializeStatusWidget();
-        EditorApp();
+        
         // Inicializa el sistema de configuración
         window.systemConfig = new SystemConfig();
+        
+        // Crear instancia global del editor
+        window.editorApp = new EditorApp();
         
         // Crear botones en la barra lateral
         createDiagramButton();
         createConfigButton();
         createMusicPlayerButton();
-        createEditorButton(); // Nuevo botón para el editor
+        createEditorButton();
         
         // Configurar evento del holograma
         setupHologramConfig();
