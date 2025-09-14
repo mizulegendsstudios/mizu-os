@@ -237,10 +237,13 @@ export function showMusicPlayer() {
 
 // Función para mostrar el editor dentro de black-bar
 export function showEditor() {
-    const blackContentWrapper = document.getElementById('black-content-wrapper');
-    const configPanel = document.getElementById('config-panel');
-    const canvas = document.getElementById('canvas');
-    const musicPlayerPanel = document.getElementById('music-player-panel');
+    if (!window.editorApp) {
+        window.editorApp = new EditorApp();
+        window.editorApp.createEditorPanel();
+    } else {
+        window.editorApp.toggleEditorPanel();
+    }
+}
     
     // Ocultar otros paneles si están visibles
     if (configPanel && configPanel.style.display !== 'none') {
