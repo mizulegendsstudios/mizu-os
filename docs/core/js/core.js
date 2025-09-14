@@ -2,33 +2,37 @@
     Archivo principal que orquesta la lógica de la aplicación.
     Mizu OS v2.10.20 — compatible, estable, extensible.
 */
+
+// CORE SYSTEM
 console.log(`Cargando sistema...`);
 // Importaciones de módulos core
 import { initializeLoadingScreen } from "./loading.js";
 import { initializeBarHiding } from "./monitor_bars.js";
 import { initializeMonitor } from "./monitor_axis.js";
+// Importación del widget de estado del sistema
+import { initializeStatusWidget } from "./status.js";
+
+// APPS
+console.log(`Cargando mejoras...`);
+// Importación del sistema de configuración
+import { SystemConfig } from "./config.js";
 // Importaciones de diagramas
 import { drawLines } from '../../apps/diagram/js/drawlines.js';
 import { initDiagram } from '../../apps/diagram/js/nodos.js';
 import { createContainerWithPorts } from '../../apps/diagram/js/nodos-puertos.js';
-// Importación del widget de estado del sistema
-import { initializeStatusWidget } from "./status.js";
-// Importación del sistema de configuración
-import { SystemConfig } from "./config.js";
 
-// DEV
-console.log(`Cargando mejoras...`);
+
+
 // DOM
 console.log(`Iniciando sistema...`);
-
 document.addEventListener('DOMContentLoaded', () => {
     try {
-        // Inicializa módulos estables
+        // Inicializa módulos principales
+        initializeLoadingScreen();
         initializeMonitor();
         initializeBarHiding();
-        initializeLoadingScreen();
-        // Inicializa el widget de estado del sistema (hora, batería, conexión, volumen)
-        initializeStatusWidget();
+        // Inicializa el widget de estado del sistema (hora, batería, conexión, volumen
+        initializeStatusWidget();  
         
         // Inicializa el sistema de configuración
         window.systemConfig = new SystemConfig();
@@ -65,7 +69,7 @@ function createDiagramButton() {
     const diagramButton = document.createElement('button');
     diagramButton.className = 'node-btn diagram-btn';
     diagramButton.innerHTML = '📊';
-    diagramButton.title = 'Visualizar Diagrama';
+    diagramButton.title = 'Diagrama';
     
     // Evento para mostrar/ocultar diagrama
     diagramButton.addEventListener('click', () => {
@@ -141,7 +145,7 @@ function toggleDiagram() {
         closeButton.innerHTML = '✕';
         closeButton.style.cssText = `
             position: absolute;
-            top: 20px;
+            top: 40px;
             right: 20px;
             background: rgba(255, 255, 255, 0.2);
             border: none;
