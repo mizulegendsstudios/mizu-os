@@ -2,17 +2,14 @@
     Archivo principal que orquesta la lógica de la aplicación.
     Mizu OS v2.10.21
 */
-
 console.log(`Cargando sistema...`);
-
 // Importaciones de módulos core
 import { initializeLoadingScreen } from "./loading.js";
 import { initializeBarHiding } from "./monitor_bars.js";
 import { initializeMonitor } from "./monitor_axis.js";
 import { initializeStatusWidget } from "./status.js";
 import { SystemConfig } from "./config.js";
-import { createDiagramButton, createConfigButton, setupHologramConfig } from "./ui-controls.js";
-
+import { createDiagramButton, createConfigButton, createMusicPlayerButton, setupHologramConfig } from "./ui-controls.js";
 // Importaciones de diagramas
 import { drawLines } from '../../apps/diagram/js/drawlines.js';
 import { initDiagram } from '../../apps/diagram/js/nodos.js';
@@ -27,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeMonitor();
         initializeBarHiding();
         initializeLoadingScreen();
-
         // Inicializa el widget de estado del sistema
         initializeStatusWidget();
         
@@ -37,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Crear botones en la barra lateral
         createDiagramButton();
         createConfigButton();
+        createMusicPlayerButton(); // Nuevo botón para el reproductor
         
         // Configurar evento del holograma
         setupHologramConfig();
