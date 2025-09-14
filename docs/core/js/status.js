@@ -7,61 +7,230 @@ export function initializeStatusWidget() {
         return;
     }
     
-    // Crear contenedor del widget
-    const statusWidget = document.createElement('div');
-    statusWidget.id = 'system-widget';
-    statusWidget.className = 'system-widget flex items-center gap-4 px-4 h-full';
-    statusWidget.style.cssText = `
+    // Limpiar el contenido existente de la barra roja
+    redBar.innerHTML = '';
+    
+    // Crear contenedor principal para la barra roja
+    const mainContainer = document.createElement('div');
+    mainContainer.style.cssText = `
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        gap: 15px;
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 12px;
-        color: white;
-        z-index: 1000;
+        width: 100%;
+        height: 100%;
+        padding: 0 15px;
     `;
     
-    // Crear elementos para cada indicador
-    const timeElement = createTimeElement();
-    const batteryElement = createBatteryElement();
-    const connectionElement = createConnectionElement();
-    const volumeElement = createVolumeElement();
+    // Sección izquierda: hora y fecha
+    const timeSection = createTimeSection();
     
-    // Añadir elementos al widget en el orden correcto
-    statusWidget.appendChild(timeElement);
-    statusWidget.appendChild(batteryElement);
-    statusWidget.appendChild(connectionElement);
-    statusWidget.appendChild(volumeElement);
+    // Sección central: reproductor de música
+    const playerSection = createMusicPlayer();
     
-    // Añadir widget a la barra roja
-    redBar.appendChild(statusWidget);
+    // Sección derecha: widget de estado (batería, wifi, volumen)
+    const statusSection = createStatusSection();
     
-    // Inicializar actualizaciones
-    initializeUpdates(timeElement, batteryElement, connectionElement, volumeElement);
+    mainContainer.appendChild(timeSection);
+    mainContainer.appendChild(playerSection);
+    mainContainer.appendChild(statusSection);
+    
+    redBar.appendChild(mainContainer);
+    
+    // Inicializar actualizaciones para el widget de estado
+    initializeUpdates(statusSection);
     console.log('Status widget initialized in red bar.');
 }
 
-// Crear elemento de tiempo
-function createTimeElement() {
+// Crear sección de hora y fecha
+function createTimeSection() {
     const container = document.createElement('div');
-    container.className = 'status-item status-time text-center';
-    container.style.cssText = 'display: flex; flex-direction: column; align-items: center;';
+    container.className = 'time-section';
+    container.style.cssText = 'display: flex; align-items: center; gap: 10px;';
     
     const time = document.createElement('div');
     time.id = 'widget-hora';
-    time.className = 'status-time-value text-lg font-bold';
-    time.style.cssText = 'font-weight: bold; font-size: 14px;';
+    time.className = 'status-time-value';
+    time.style.cssText = 'font-weight: bold; font-size: 16px;';
     
     const date = document.createElement('div');
     date.id = 'widget-fecha';
-    date.className = 'status-date-value text-xs opacity-80';
-    date.style.cssText = 'font-size: 10px; opacity: 0.8;';
+    date.className = 'status-date-value';
+    date.style.cssText = 'font-size: 12px; opacity: 0.8;';
     
     container.appendChild(time);
     container.appendChild(date);
+    
+    // Actualizar hora y fecha inicialmente
+    updateDateTime();
+    
+    // Configurar actualización periódica
+    setInterval(updateDateTime, 1000);
+    
+    return container;
+}
+
+// Actualizar hora y fecha
+function updateDateTime() {
+    const now = new Date();
+    const timeOptions = { hour: '2-digit', minute: '2-digit' };
+    const dateOptions = { day: '2-digit', month: 'short', year: '2-digit' };
+    
+    const timeEl = document.getElementById('widget-hora');
+    const dateEl = document.getElementById('widget-fecha');
+    
+    if (timeEl) {
+        timeEl.textContent = now.toLocaleTimeString('es-ES', timeOptions);
+    }
+    if (dateEl) {
+        dateEl.textContent = now.toLocaleDateString('es-ES', dateOptions)
+            .replace(/ de /g, ' ')
+            .replace(/\./g, '');
+    }
+}
+
+// Crear reproductor de música
+function createMusicPlayer() {
+    const container = document.createElement('div');
+    container.className = 'music-player';
+    container.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 5px 15px;
+        max-width: 400px;
+    `;
+    
+    // Campo para ingresar URL
+    const urlInput = document.createElement('input');
+    urlInput.type = 'text';
+    urlInput.placeholder = 'URL de la música';
+    urlInput.style.cssText = `
+        background: transparent;
+        border: none;
+        color: white;
+        outline: none;
+        width: 200px;
+        font-size: 12px;
+    `;
+    
+    // Botón de play/pause
+    const playPauseBtn = document.createElement('button');
+    playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+    playPauseBtn.style.cssText = `
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    // Botón de stop
+    const stopBtn = document.createElement('button');
+    stopBtn.innerHTML = '<i class="fa-solid fa-stop"></i>';
+    stopBtn.style.cssText = `
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    // Control de volumen
+    const volumeContainer = document.createElement('div');
+    volumeContainer.style.cssText = 'display: flex; align-items: center; gap: 5px;';
+    
+    const volumeIcon = document.createElement('i');
+    volumeIcon.className = 'fa-solid fa-volume-high';
+    volumeIcon.style.cssText = 'color: white; font-size: 14px;';
+    
+    const volumeSlider = document.createElement('input');
+    volumeSlider.type = 'range';
+    volumeSlider.min = '0';
+    volumeSlider.max = '100';
+    volumeSlider.value = '50';
+    volumeSlider.style.cssText = 'width: 60px;';
+    
+    volumeContainer.appendChild(volumeIcon);
+    volumeContainer.appendChild(volumeSlider);
+    
+    // Elemento de audio (oculto)
+    const audioElement = document.createElement('audio');
+    audioElement.style.display = 'none';
+    
+    // Eventos del reproductor
+    let isPlaying = false;
+    
+    playPauseBtn.addEventListener('click', () => {
+        if (!urlInput.value) {
+            showNotification('Por favor, ingresa una URL de música');
+            return;
+        }
+        
+        if (isPlaying) {
+            audioElement.pause();
+            playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+        } else {
+            audioElement.src = urlInput.value;
+            audioElement.play().catch(e => {
+                showNotification('Error al reproducir: ' + e.message);
+            });
+            playPauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+        }
+        isPlaying = !isPlaying;
+    });
+    
+    stopBtn.addEventListener('click', () => {
+        audioElement.pause();
+        audioElement.currentTime = 0;
+        playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+        isPlaying = false;
+    });
+    
+    volumeSlider.addEventListener('input', () => {
+        audioElement.volume = volumeSlider.value / 100;
+    });
+    
+    container.appendChild(urlInput);
+    container.appendChild(playPauseBtn);
+    container.appendChild(stopBtn);
+    container.appendChild(volumeContainer);
+    container.appendChild(audioElement);
+    
+    return container;
+}
+
+// Crear sección de estado (batería, wifi, volumen)
+function createStatusSection() {
+    const container = document.createElement('div');
+    container.className = 'status-section';
+    container.style.cssText = 'display: flex; align-items: center; gap: 15px;';
+    
+    // Elemento de batería
+    const batteryElement = createBatteryElement();
+    
+    // Elemento de conexión
+    const connectionElement = createConnectionElement();
+    
+    // Elemento de volumen
+    const volumeElement = createVolumeElement();
+    
+    container.appendChild(batteryElement);
+    container.appendChild(connectionElement);
+    container.appendChild(volumeElement);
     
     return container;
 }
@@ -69,7 +238,7 @@ function createTimeElement() {
 // Crear elemento de batería
 function createBatteryElement() {
     const container = document.createElement('div');
-    container.className = 'status-item status-battery flex items-center gap-2';
+    container.className = 'status-item status-battery';
     container.style.cssText = 'display: flex; align-items: center; gap: 5px;';
     
     const batteryIcon = document.createElement('div');
@@ -115,7 +284,7 @@ function createBatteryElement() {
     
     const batteryText = document.createElement('span');
     batteryText.id = 'widget-battery-pct';
-    batteryText.className = 'battery-text text-xs';
+    batteryText.className = 'battery-text';
     batteryText.style.cssText = 'font-size: 10px; min-width: 30px;';
     
     container.appendChild(batteryIcon);
@@ -124,10 +293,10 @@ function createBatteryElement() {
     return container;
 }
 
-// Crear elemento de conexión - CORREGIDO para usar Font Awesome y IDs correctos
+// Crear elemento de conexión
 function createConnectionElement() {
     const container = document.createElement('div');
-    container.className = 'status-item status-connection flex items-center gap-1';
+    container.className = 'status-item status-connection';
     container.style.cssText = 'display: flex; align-items: center; gap: 5px;';
     
     const connectionIcon = document.createElement('i');
@@ -140,7 +309,7 @@ function createConnectionElement() {
     
     const connectionText = document.createElement('span');
     connectionText.id = 'widget-wifi-status';
-    connectionText.className = 'connection-text text-xs';
+    connectionText.className = 'connection-text';
     connectionText.style.cssText = 'font-size: 10px; min-width: 50px;';
     
     container.appendChild(connectionIcon);
@@ -149,10 +318,10 @@ function createConnectionElement() {
     return container;
 }
 
-// Crear elemento de volumen - CORREGIDO para usar Font Awesome y IDs correctos
+// Crear elemento de volumen
 function createVolumeElement() {
     const container = document.createElement('div');
-    container.className = 'status-item status-volume flex items-center gap-1';
+    container.className = 'status-item status-volume';
     container.style.cssText = 'display: flex; align-items: center; gap: 5px;';
     
     const volumeIcon = document.createElement('i');
@@ -165,7 +334,7 @@ function createVolumeElement() {
     
     const volumeText = document.createElement('span');
     volumeText.id = 'widget-volume-pct';
-    volumeText.className = 'volume-text text-xs';
+    volumeText.className = 'volume-text';
     volumeText.style.cssText = 'font-size: 10px; min-width: 30px;';
     
     container.appendChild(volumeIcon);
@@ -174,35 +343,16 @@ function createVolumeElement() {
     return container;
 }
 
-// Inicializar actualizaciones periódicas
-function initializeUpdates(timeElement, batteryElement, connectionElement, volumeElement) {
-    // Actualizar hora y fecha - CORREGIDO para usar IDs correctos
-    function updateDateTime() {
-        const now = new Date();
-        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
-        const dateOptions = { day: '2-digit', month: 'short', year: '2-digit' };
-        
-        const timeEl = document.getElementById('widget-hora');
-        const dateEl = document.getElementById('widget-fecha');
-        
-        if (timeEl) {
-            timeEl.textContent = now.toLocaleTimeString('es-ES', timeOptions);
-        }
-        if (dateEl) {
-            dateEl.textContent = now.toLocaleDateString('es-ES', dateOptions)
-                .replace(/ de /g, ' ')
-                .replace(/\./g, '');
-        }
-    }
-    
-    // Actualizar batería - CORREGIDO para usar IDs correctos
+// Inicializar actualizaciones para el widget de estado
+function initializeUpdates(statusSection) {
+    // Actualizar batería
     function updateBattery() {
         if ('getBattery' in navigator) {
             navigator.getBattery().then(battery => {
                 const level = Math.floor(battery.level * 100);
                 const batteryLevelEl = document.getElementById('widget-battery-level');
                 const batteryTextEl = document.getElementById('widget-battery-pct');
-                const batteryIcon = batteryElement.querySelector('.battery-icon');
+                const batteryIcon = statusSection.querySelector('.battery-icon');
                 
                 if (batteryLevelEl) {
                     batteryLevelEl.style.width = `${level}%`;
@@ -229,7 +379,7 @@ function initializeUpdates(timeElement, batteryElement, connectionElement, volum
         }
     }
     
-    // Actualizar conexión - CORREGIDO para usar IDs correctos
+    // Actualizar conexión
     function updateConnection() {
         const online = navigator.onLine;
         const connectionIconEl = document.getElementById('widget-wifi-icon');
@@ -244,7 +394,7 @@ function initializeUpdates(timeElement, batteryElement, connectionElement, volum
         }
     }
     
-    // Actualizar volumen (simulado) - CORREGIDO para usar IDs correctos
+    // Actualizar volumen (simulado)
     function updateVolume() {
         const volume = 75; // Valor simulado
         const volumeTextEl = document.getElementById('widget-volume-pct');
@@ -255,13 +405,9 @@ function initializeUpdates(timeElement, batteryElement, connectionElement, volum
     }
     
     // Ejecutar actualizaciones iniciales
-    updateDateTime();
     updateBattery();
     updateConnection();
     updateVolume();
-    
-    // Configurar actualizaciones periódicas
-    setInterval(updateDateTime, 1000);
     
     // Escuchar eventos de conexión
     window.addEventListener('online', updateConnection);
@@ -274,6 +420,32 @@ function initializeUpdates(timeElement, batteryElement, connectionElement, volum
             battery.addEventListener('chargingchange', updateBattery);
         });
     }
+}
+
+// Mostrar notificación
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'config-notification';
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 // Función para alternar la visibilidad del widget
