@@ -1,4 +1,4 @@
-// core/js/config.js - Sistema de configuración visual del sistema corregido
+// core/js/config.js - Sistema de configuración visual del sistema
 export class SystemConfig {
     constructor() {
         // Guardamos la configuración por defecto original
@@ -15,7 +15,7 @@ export class SystemConfig {
             bars: {
                 width: {
                     red: 100,    // ancho barra roja en % (100% en CSS original)
-                    blue: 12.5     // ancho barra azul en % (5rem de 24rem base ≈ 20%)
+                    blue: 20     // ancho barra azul en % (5rem de 24rem base ≈ 20%)
                 },
                 height: {
                     red: 12.5,   // alto barra roja en % (3rem de 24rem base ≈ 12.5%)
@@ -26,14 +26,14 @@ export class SystemConfig {
                     blue: 'linear-gradient(270deg, hsla(240, 100%, 6%, 0.6), hsla(250, 95%, 30%, 0.6))'
                 },
                 transparency: {
-                    red: 0.3,   // transparencia barra roja (0-1)
-                    blue: 0.3   // transparencia barra azul (0-1)
+                    red: 0.6,   // transparencia barra roja (0-1)
+                    blue: 0.6   // transparencia barra azul (0-1)
                 },
                 blur: {
                     red: 10,     // blur barra roja en px
                     blue: 10     // blur barra azul en px
                 },
-                borderRadius: 1, // redondeo de bordes (rem)
+                borderRadius: 0.5, // redondeo de bordes (rem)
                 margin: 15         // margen en px
             },
             typography: {
@@ -96,11 +96,24 @@ export class SystemConfig {
         }
     }
     
-    // Crear panel de configuración
+    // Crear panel de configuración dentro de black-bar
     createConfigPanel() {
         if (this.configPanel) {
             this.toggleConfigPanel();
             return;
+        }
+        
+        // Obtener el contenedor black-content-wrapper
+        const blackContentWrapper = document.getElementById('black-content-wrapper');
+        if (!blackContentWrapper) {
+            console.error('No se encontró el contenedor black-content-wrapper');
+            return;
+        }
+        
+        // Ocultar el canvas del diagrama
+        const canvas = document.getElementById('canvas');
+        if (canvas) {
+            canvas.style.display = 'none';
         }
         
         const panel = document.createElement('div');
@@ -228,7 +241,8 @@ export class SystemConfig {
             </div>
         `;
         
-        document.body.appendChild(panel);
+        // Añadir el panel al contenedor black-content-wrapper
+        blackContentWrapper.appendChild(panel);
         this.configPanel = panel;
         this.isVisible = true;
         this.attachEventListeners();
@@ -396,7 +410,7 @@ export class SystemConfig {
         }
     }
     
-    // Restablecer configuración - CORREGIDO
+    // Restablecer configuración
     resetConfig() {
         // Restaurar la configuración por defecto original
         this.config = JSON.parse(JSON.stringify(this.defaultConfig));
@@ -508,7 +522,22 @@ export class SystemConfig {
         if (!this.configPanel) {
             this.createConfigPanel();
         } else {
-            this.configPanel.style.display = this.isVisible ? 'none' : 'flex';
+            // Obtener el canvas del diagrama
+            const canvas = document.getElementById('canvas');
+            
+            if (this.isVisible) {
+                // Si está visible, ocultar el panel y mostrar el canvas
+                this.configPanel.style.display = 'none';
+                if (canvas) {
+                    canvas.style.display = 'block';
+                }
+            } else {
+                // Si no está visible, mostrar el panel y ocultar el canvas
+                this.configPanel.style.display = 'flex';
+                if (canvas) {
+                    canvas.style.display = 'none';
+                }
+            }
             this.isVisible = !this.isVisible;
         }
     }
