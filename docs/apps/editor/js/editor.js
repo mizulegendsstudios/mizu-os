@@ -1,4 +1,4 @@
-// apps/editor/js/editor.js - Versión con exportación correcta
+// apps/editor/js/editor.js - Versión con métodos de visibilidad
 
 class EditorApp {
   constructor() {
@@ -11,6 +11,7 @@ class EditorApp {
     };
     this.previewDoc = null;
     this.consoleOutput = [];
+    this.container = null;
     this.init();
   }
 
@@ -25,6 +26,7 @@ class EditorApp {
     const container = document.createElement('div');
     container.className = 'editor-container';
     container.id = 'editor-container';
+    container.style.display = 'none'; // Inicialmente oculto
     
     // Crear barra de pestañas
     const tabs = document.createElement('div');
@@ -320,6 +322,36 @@ class EditorApp {
     } else {
       content.style.flexDirection = 'column';
     }
+  }
+  
+  // NUEVO: Método para mostrar el editor
+  show() {
+    if (this.container) {
+      this.container.style.display = 'block';
+      this.isVisible = true;
+    }
+  }
+  
+  // NUEVO: Método para ocultar el editor
+  hide() {
+    if (this.container) {
+      this.container.style.display = 'none';
+      this.isVisible = false;
+    }
+  }
+  
+  // NUEVO: Método para alternar la visibilidad del editor
+  toggle() {
+    if (this.isVisible) {
+      this.hide();
+    } else {
+      this.show();
+    }
+  }
+  
+  // NUEVO: Método para crear el panel del editor (compatibilidad con ui-controls.js)
+  createEditorPanel() {
+    this.show();
   }
 }
 
