@@ -1,4 +1,4 @@
-// apps/spreadsheet/modules/logic.js — Lógica de cálculo y fórmulas
+// docs/apps/spreadsheet/modules/logic.js — Lógica de cálculo y fórmulas
 export let cellValues = {};
 export let selectedCells = new Set();
 
