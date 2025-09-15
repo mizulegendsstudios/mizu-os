@@ -1,0 +1,18 @@
+// apps/settings/manifest.json
+{
+  "name": "Configuración",
+  "version": "1.0.0",
+  "description": "Configuración del sistema",
+  "icon": "⚙️",
+  "entry": "appcore.js",
+  "styles": ["app.css"],
+  "scripts": [
+    "modules/visual.js",
+    "modules/hologram.js",
+    "modules/preferences.js"
+  ],
+  "permissions": ["storage"],
+  "dependencies": [],
+  "author": "Mizu Legends Studios",
+  "license": "GNU AGPL-3.0"
+}
