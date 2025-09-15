@@ -2,7 +2,7 @@ apps/
 └── core/
     ├── estructura              ← Estructura del app
     ├── manifest.json           ← Metadatos de la app
-    ├── core.js                 ← Orquestador del sistema
+    ├── appcore.js              ← Orquestador del sistema
     └── modules/
         ├── css.js              ← Genera estilos CSS dinámicamente
         ├── loader.js           ← 
