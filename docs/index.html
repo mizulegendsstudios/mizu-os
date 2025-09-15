@@ -4,88 +4,73 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mizu OS</title>
-  <link rel="stylesheet" href="./core/css/core.css">
-<link rel="stylesheet" href="./core/css/config.css">
-  <link rel="stylesheet" href="./apps/diagram/css/nodos.css">
-<script>
-  window.MIZU_VERSION = '2.10.20';
-  console.log(`Mizu OS. Versión: ${window.MIZU_VERSION}`);
-</script>
-  <script type="module" src="./core/js/core.js"></script>
+  
+  <!-- Configuración inicial -->
+  <script>
+    window.MIZU_VERSION = '3.0.0';
+    window.MIZU_ARCHITECTURE = 'hybrid-decentralized';
+    console.log(`Mizu OS. Versión: ${window.MIZU_VERSION}`);
+  </script>
+  
+  <!-- Punto de entrada principal -->
+  <script type="module" src="./apps/core/core.js"></script>
+  
+  <!-- Recursos externos -->
   <link rel="icon" type="image/x-icon" href="https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-board@main/docs/favicon.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+  
   <!-- Estilos críticos inline -->
   <style>
-    html { 
-      opacity: 0.01;
-      transition: opacity 0.3s ease-in;
-    }
+    /* Solo estilos mínimos de inicialización */
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+      overflow: hidden;
+    }
+    
+    body.loaded {
+      opacity: 1;
+    }
+    
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #121212;
+      z-index: 1000;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: #bb86fc;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
 </head>
-
-<!-- Añadido: clase 'debug' para ver puertos durante desarrollo (opcional) -->
-<body id="body-container" class="debug">
-    <video autoplay muted loop playsinline class="video-background">
-        <source src="https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-board@main/docs/core/assets/bibiye.webm" type="video/webm">
-        Su navegador no soporta HTML5 video tag.
-    </video>
-<!--  <div id="mouse-monitor">
-    <div id="mouse-position">X: 0, Y: 0</div>
-    <div id="viewport-size">Ancho: 0, Alto: 0</div>
-  </div>-->
-  <div id="green-div" class="div"></div>
-  <div id="red-bar" class="div">
-<!-- Barra Superior -->
-<!-- Widget de estado del sistema -->
-<div id="system-widget" class="flex items-center gap-4 px-4 h-full">
-  <!-- Fecha y hora -->
-  <div class="text-center">
-    <div id="widget-hora" class="text-lg font-bold"></div>
-    <div id="widget-fecha" class="text-xs opacity-80"></div>
+<body id="body-container">
+  <!-- Loading inicial -->
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
   </div>
-
-  <!-- Batería -->
-  <div class="flex items-center gap-2">
-    <div class="battery-icon"></div>
-    <span id="widget-battery-pct" class="text-xs"></span>
-  </div>
-
-  <!-- Conexión -->
-  <div class="flex items-center gap-1">
-    <i id="widget-wifi-icon" class="fa-solid fa-wifi text-sm"></i>
-    <span id="widget-wifi-status" class="text-xs"></span>
-  </div>
-
-  <!-- Volumen -->
-  <div class="flex items-center gap-1">
-    <i id="widget-volume-icon" class="fa-solid fa-volume-high text-sm"></i>
-    <span id="widget-volume-pct" class="text-xs"></span>
-  </div>
-</div>
-</div>
-  <div id="blue-bar" class="div center-vertically">
-<!-- Barra Lateral-->
-    <button id="create-node-btn" class="node-btn">
-      <span class="plus-icon">+</span>
-    </button>
-  </div>
-  <div id="yellow-square" class="div">  
-    <div id="cube">
-      <div id="hologram"></div>
-    </div>
-  </div>
-  <div id="black-bar" class="div">
-    <div id="black-content-wrapper" class="w-full h-full">
-      <!-- EL CONTENIDO DINÁMICO SERÁ INYECTADO AQUÍ POR JAVASCRIPT -->
-      <div id="canvas" style="width: 100%; height: 100%; position: relative;">
-        <!-- Capa para dibujar conexiones con DIV en lugar de SVG -->
-        <div id="connections-layer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
-      </div>
-    </div>
-  </div>
+  
+  <!-- Contenedor principal para el sistema -->
+  <div id="app-container"></div>
 </body>
 </html>
