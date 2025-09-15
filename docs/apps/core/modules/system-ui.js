@@ -1,4 +1,4 @@
-//docs/apps/core/modules/system-ui.js
+// docs/apps/core/modules/system-ui.js - Sistema de creación de interfaz de usuario para Mizu OS v3.0.0
 /*
  * Mizu OS - System UI Module
  * Copyright (C) 2025 Mizu Legends Studios
@@ -35,9 +35,6 @@ class SystemUI {
   createSystemStructure(container) {
     // Limpiar contenedor
     container.innerHTML = '';
-    
-    // Crear video de fondo primero
-    this.createVideoBackground();
     
     // Crear barra superior (roja)
     this.elements.redBar = this.createRedBar();
@@ -185,34 +182,6 @@ class SystemUI {
     yellowSquare.appendChild(cube);
     
     return yellowSquare;
-  }
-
-  /**
-   * Crea el video de fondo
-   * @returns {HTMLVideoElement} Elemento de video
-   */
-  createVideoBackground() {
-    // Verificar si ya existe un video de fondo
-    const existingVideo = document.querySelector('.video-background');
-    if (existingVideo) {
-      existingVideo.remove();
-    }
-    
-    const video = document.createElement('video');
-    video.className = 'video-background';
-    video.autoplay = true;
-    video.loop = true;
-    video.muted = true;
-    video.playsInline = true;
-    
-    const source = document.createElement('source');
-    source.src = this.videoBackgroundUrl;
-    source.type = 'video/webm';
-    
-    video.appendChild(source);
-    document.body.insertBefore(video, document.body.firstChild);
-    
-    return video;
   }
 
   /**
