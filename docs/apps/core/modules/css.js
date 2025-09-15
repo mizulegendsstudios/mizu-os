@@ -151,6 +151,7 @@ class CoreCSSLoader {
         position: relative;
         margin: 0;
         padding: 0;
+        overflow: hidden;
       }
       
       /* Video de fondo corregido */
@@ -162,6 +163,8 @@ class CoreCSSLoader {
         height: 100vh;
         object-fit: cover;
         z-index: -1;
+        transform: translateZ(0);
+        will-change: transform;
       }
       
       /* Contenedor principal */
@@ -173,6 +176,11 @@ class CoreCSSLoader {
         height: 100vh;
         overflow: hidden;
         z-index: 1;
+        pointer-events: none;
+      }
+      
+      #app-container > * {
+        pointer-events: auto;
       }
       
       /* Sistema de barras */
