@@ -63,7 +63,7 @@ export default class CSSManager {
       
       #red-bar {
         position: absolute;
-        width: calc(100vh + 4px);
+        width: calc(100vw - 4px);
         height: calc(2vh + 1rem);
         top: 2px;
         left: 2px;
