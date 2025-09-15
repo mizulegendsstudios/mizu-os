@@ -1,4 +1,4 @@
-// apps/spreadsheet/modules/style.js — Genera estilos CSS dinámicamente
+// docs/apps/spreadsheet/modules/style.js — Genera estilos CSS dinámicamente
 export function generateStyles() {
     const css = `
         .spreadsheet-container {
