@@ -1,0 +1,11 @@
+´´´
+apps/
+└── spreadsheet/
+    ├── manifest.json           ← Metadatos de la app
+    ├── appcore.js              ← Orquestador (cargado por core.js)
+    └── modules/
+        ├── style.js            ← Genera estilos CSS dinámicamente
+        ├── logic.js            ← Lógica de cálculo, fórmulas, selección
+        ├── ui.js               ← Creación de tabla, eventos, redimensionamiento
+        └── operations.js       ← Botones: añadir/eliminar filas/columnas
+´´´
