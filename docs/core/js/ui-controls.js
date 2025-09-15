@@ -117,6 +117,34 @@ export function createEditorButton() {
     }
 }
 
+// Crear botón para la app de spreadsheet en la barra lateral
+export function createSpreadsheetButton() {
+    const blueBar = document.getElementById('blue-bar');
+    if (!blueBar) {
+        console.warn('Blue bar not found. Cannot create spreadsheet button.');
+        return;
+    }
+    
+    // Crear botón de spreadsheet (icono de hoja de cálculo)
+    const spreadsheetButton = document.createElement('button');
+    spreadsheetButton.className = 'node-btn spreadsheet-btn';
+    spreadsheetButton.innerHTML = '📊'; // Usamos el icono del manifest
+    spreadsheetButton.title = 'Hoja de Cálculo';
+    
+    // Evento para mostrar/ocultar spreadsheet
+    spreadsheetButton.addEventListener('click', () => {
+        showSpreadsheet();
+    });
+    
+    // Agregar a la barra lateral (después del botón de editor)
+    const editorButton = document.querySelector('.editor-btn');
+    if (editorButton) {
+        blueBar.insertBefore(spreadsheetButton, editorButton.nextSibling);
+    } else {
+        blueBar.appendChild(spreadsheetButton);
+    }
+}
+
 // Configurar evento del holograma para abrir configuración
 export function setupHologramConfig() {
     const yellowSquare = document.getElementById('yellow-square');
@@ -169,6 +197,11 @@ export function showDiagram() {
         if (window.editorApp) {
             window.editorApp.isVisible = false;
         }
+    }
+    
+    // Descargar la app de spreadsheet si está cargada
+    if (window.spreadsheetApp && window.spreadsheetApp.isLoaded) {
+        window.spreadsheetApp.unload();
     }
     
     // Mostrar el canvas del diagrama
@@ -251,6 +284,11 @@ export function showMusicPlayer() {
         }
     }
     
+    // Descargar la app de spreadsheet si está cargada
+    if (window.spreadsheetApp && window.spreadsheetApp.isLoaded) {
+        window.spreadsheetApp.unload();
+    }
+    
     // Mostrar el reproductor de música
     if (!window.musicPlayer) {
         console.log('Creando nueva instancia del reproductor de música...');
@@ -306,6 +344,11 @@ export function showEditor() {
         }
     }
     
+    // Descargar la app de spreadsheet si está cargada
+    if (window.spreadsheetApp && window.spreadsheetApp.isLoaded) {
+        window.spreadsheetApp.unload();
+    }
+    
     // Mostrar el editor usando la instancia global
     if (window.editorApp) {
         console.log('EditorApp encontrado, mostrando...');
@@ -334,5 +377,56 @@ export function showEditor() {
     } else {
         console.error('La aplicación del editor no está disponible');
         blackContentWrapper.innerHTML = '<div style="color: white; padding: 20px;">La aplicación del editor no está disponible</div>';
+    }
+}
+
+// Función para mostrar la app de spreadsheet dentro de black-bar
+export function showSpreadsheet() {
+    console.log('Mostrando hoja de cálculo...');
+    
+    const blackContentWrapper = document.getElementById('black-content-wrapper');
+    const configPanel = document.getElementById('config-panel');
+    const canvas = document.getElementById('canvas');
+    const musicPlayerPanel = document.getElementById('music-player-panel');
+    const editorPanel = document.getElementById('editor-panel');
+    
+    // Ocultar otros paneles si están visibles
+    if (configPanel && configPanel.style.display !== 'none') {
+        configPanel.style.display = 'none';
+        if (window.systemConfig) {
+            window.systemConfig.isVisible = false;
+        }
+    }
+    
+    if (canvas) {
+        canvas.style.display = 'none';
+    }
+    
+    if (musicPlayerPanel && musicPlayerPanel.style.display !== 'none') {
+        musicPlayerPanel.style.display = 'none';
+        if (window.musicPlayer) {
+            window.musicPlayer.isVisible = false;
+        }
+    }
+    
+    if (editorPanel && editorPanel.style.display !== 'none') {
+        editorPanel.style.display = 'none';
+        if (window.editorApp) {
+            window.editorApp.isVisible = false;
+        }
+    }
+    
+    // Mostrar la app de spreadsheet
+    if (window.spreadsheetApp) {
+        try {
+            window.spreadsheetApp.load();
+            console.log('Hoja de cálculo mostrada correctamente');
+        } catch (error) {
+            console.error('Error al mostrar la hoja de cálculo:', error);
+            blackContentWrapper.innerHTML = '<div style="color: white; padding: 20px;">Error al mostrar la hoja de cálculo</div>';
+        }
+    } else {
+        console.error('La aplicación de hoja de cálculo no está disponible');
+        blackContentWrapper.innerHTML = '<div style="color: white; padding: 20px;">La aplicación de hoja de cálculo no está disponible</div>';
     }
 }
