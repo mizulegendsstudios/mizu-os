@@ -142,6 +142,8 @@ export function setupHologramConfig() {
 
 // Función para mostrar el diagrama dentro de black-bar
 export function showDiagram() {
+    console.log('Mostrando diagrama...');
+    
     const blackContentWrapper = document.getElementById('black-content-wrapper');
     const configPanel = document.getElementById('config-panel');
     const musicPlayerPanel = document.getElementById('music-player-panel');
@@ -173,26 +175,58 @@ export function showDiagram() {
     const canvas = document.getElementById('canvas');
     if (canvas) {
         canvas.style.display = 'block';
+        console.log('Canvas del diagrama encontrado y mostrado');
+    } else {
+        console.warn('Canvas del diagrama no encontrado, creando uno nuevo...');
+        // Crear canvas si no existe
+        const newCanvas = document.createElement('canvas');
+        newCanvas.id = 'canvas';
+        newCanvas.style.width = '100%';
+        newCanvas.style.height = '100%';
+        newCanvas.style.backgroundColor = '#2d2d2d';
+        blackContentWrapper.appendChild(newCanvas);
+        console.log('Canvas creado dinámicamente');
     }
     
-    // Inicializar el diagrama si no está ya inicializado
+    // Verificar si el diagrama está inicializado
     if (!window.diagramInitialized) {
+        console.warn('El diagrama no está inicializado. Intentando inicializar...');
         try {
-            import('../../apps/diagram/js/drawlines.js').then(({ drawLines }) => {
-                import('../../apps/diagram/js/nodos.js').then(({ initDiagram }) => {
-                    initDiagram(drawLines);
-                    window.diagramInitialized = true;
+            // Verificar si las funciones están disponibles globalmente
+            if (typeof initDiagram === 'function' && typeof drawLines === 'function') {
+                initDiagram(drawLines);
+                window.diagramInitialized = true;
+                console.log('Diagrama inicializado correctamente usando funciones globales');
+            } else {
+                console.error('Funciones de diagrama no disponibles globalmente');
+                // Intentar importar dinámicamente como último recurso
+                import('../../apps/diagram/js/drawlines.js').then(({ drawLines }) => {
+                    import('../../apps/diagram/js/nodos.js').then(({ initDiagram }) => {
+                        initDiagram(drawLines);
+                        window.diagramInitialized = true;
+                        console.log('Diagrama inicializado correctamente mediante importación dinámica');
+                    }).catch(err => {
+                        console.error('Error al importar nodos.js:', err);
+                        blackContentWrapper.innerHTML = '<div style="color: white; padding: 20px;">Error al cargar el módulo de nodos</div>';
+                    });
+                }).catch(err => {
+                    console.error('Error al importar drawlines.js:', err);
+                    blackContentWrapper.innerHTML = '<div style="color: white; padding: 20px;">Error al cargar el módulo de diagramas</div>';
                 });
-            });
+            }
         } catch (error) {
             console.error('Error al inicializar el diagrama:', error);
-            blackContentWrapper.innerHTML = '<div style="color: white; padding: 20px;">Error al cargar el diagrama</div>';
+            blackContentWrapper.innerHTML = '<div style="color: white; padding: 20px;">Error al cargar el diagrama: ' + error.message + '</div>';
         }
+    } else {
+        console.log('Diagrama ya estaba inicializado');
     }
 }
 
 // Función para mostrar el reproductor de música dentro de black-bar
 export function showMusicPlayer() {
+    console.log('Mostrando reproductor de música...');
+    
     const blackContentWrapper = document.getElementById('black-content-wrapper');
     const configPanel = document.getElementById('config-panel');
     const canvas = document.getElementById('canvas');
@@ -219,24 +253,35 @@ export function showMusicPlayer() {
     
     // Mostrar el reproductor de música
     if (!window.musicPlayer) {
+        console.log('Creando nueva instancia del reproductor de música...');
         // Importar dinámicamente el módulo del reproductor
         import('./music-player.js').then(({ MusicPlayer }) => {
             window.musicPlayer = new MusicPlayer();
             window.musicPlayer.createMusicPlayerPanel();
+            console.log('Reproductor de música creado y mostrado');
+        }).catch(err => {
+            console.error('Error al cargar el reproductor de música:', err);
+            blackContentWrapper.innerHTML = '<div style="color: white; padding: 20px;">Error al cargar el reproductor de música</div>';
         });
     } else {
+        console.log('Mostrando reproductor de música existente...');
         const musicPlayerPanel = document.getElementById('music-player-panel');
         if (musicPlayerPanel) {
             musicPlayerPanel.style.display = 'flex';
             if (window.musicPlayer) {
                 window.musicPlayer.isVisible = true;
             }
+        } else {
+            console.warn('Panel del reproductor no encontrado, creando uno nuevo...');
+            window.musicPlayer.createMusicPlayerPanel();
         }
     }
 }
 
 // Función para mostrar el editor dentro de black-bar
 export function showEditor() {
+    console.log('Mostrando editor...');
+    
     const blackContentWrapper = document.getElementById('black-content-wrapper');
     const configPanel = document.getElementById('config-panel');
     const canvas = document.getElementById('canvas');
@@ -263,12 +308,31 @@ export function showEditor() {
     
     // Mostrar el editor usando la instancia global
     if (window.editorApp) {
-        if (!window.editorApp.panel) {
-            window.editorApp.createEditorPanel();
-        } else {
-            window.editorApp.toggleEditorPanel();
+        console.log('EditorApp encontrado, mostrando...');
+        try {
+            // Usar el método show() para mostrar el editor
+            window.editorApp.show();
+            console.log('Editor mostrado correctamente');
+        } catch (error) {
+            console.error('Error al mostrar el editor:', error);
+            // Fallback: intentar con el método toggle
+            try {
+                window.editorApp.toggle();
+                console.log('Editor mostrado mediante toggle');
+            } catch (toggleError) {
+                console.error('Error al hacer toggle del editor:', toggleError);
+                // Último recurso: intentar con el método createEditorPanel
+                try {
+                    window.editorApp.createEditorPanel();
+                    console.log('Editor mostrado mediante createEditorPanel');
+                } catch (createError) {
+                    console.error('Error al crear el panel del editor:', createError);
+                    blackContentWrapper.innerHTML = '<div style="color: white; padding: 20px;">Error al mostrar el editor</div>';
+                }
+            }
         }
     } else {
         console.error('La aplicación del editor no está disponible');
+        blackContentWrapper.innerHTML = '<div style="color: white; padding: 20px;">La aplicación del editor no está disponible</div>';
     }
 }
