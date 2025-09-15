@@ -21,9 +21,6 @@ class CoreCSSLoader {
     // Cargar estilos base del core
     this.loadCoreStyles();
     
-    // Crear video de fondo
-    this.createVideoBackground();
-    
     console.log('Sistema de estilos inicializado');
   }
   
@@ -175,6 +172,7 @@ class CoreCSSLoader {
         width: 100vw;
         height: 100vh;
         overflow: hidden;
+        z-index: 1;
       }
       
       /* Sistema de barras */
@@ -527,123 +525,6 @@ class CoreCSSLoader {
       this.loadModule('workspace'),
       this.loadModule('hologram')
     ]);
-  }
-  
-  // Crear elemento de video de fondo
-  createVideoBackground() {
-    // Verificar si ya existe un video de fondo
-    const existingVideo = document.querySelector('.video-background');
-    if (existingVideo) {
-      existingVideo.remove();
-    }
-    
-    const video = document.createElement('video');
-    video.className = 'video-background';
-    video.autoplay = true;
-    video.loop = true;
-    video.muted = true;
-    video.playsInline = true;
-    
-    const source = document.createElement('source');
-    source.src = this.videoBackgroundUrl;
-    source.type = 'video/webm';
-    
-    video.appendChild(source);
-    document.body.insertBefore(video, document.body.firstChild);
-    
-    return video;
-  }
-  
-  // Crear elementos de UI básicos
-  createBasicUI() {
-    // Crear barra superior (roja)
-    const redBar = document.createElement('div');
-    redBar.id = 'red-bar';
-    redBar.className = 'system-bar';
-    
-    // Crear widget de sistema
-    const systemWidget = document.createElement('div');
-    systemWidget.id = 'system-widget';
-    systemWidget.className = 'status-widget-container';
-    
-    // Crear elementos del widget
-    const timeWidget = document.createElement('div');
-    timeWidget.className = 'status-widget status-widget-clock';
-    timeWidget.innerHTML = `
-      <div id="widget-hora" class="status-time">00:00</div>
-      <div id="widget-fecha" class="status-date">01/01/2025</div>
-    `;
-    
-    const batteryWidget = document.createElement('div');
-    batteryWidget.className = 'status-widget status-widget-battery';
-    batteryWidget.innerHTML = `
-      <i class="widget-icon fas fa-battery-three-quarters"></i>
-      <span id="widget-battery">100%</span>
-    `;
-    
-    const wifiWidget = document.createElement('div');
-    wifiWidget.className = 'status-widget status-widget-wifi';
-    wifiWidget.innerHTML = `
-      <i class="widget-icon fas fa-wifi"></i>
-      <span id="widget-wifi">Conectado</span>
-    `;
-    
-    const volumeWidget = document.createElement('div');
-    volumeWidget.className = 'status-widget status-widget-volume';
-    volumeWidget.innerHTML = `
-      <i class="widget-icon fas fa-volume-up"></i>
-      <span id="widget-volume">100%</span>
-    `;
-    
-    // Añadir widgets al contenedor
-    systemWidget.appendChild(timeWidget);
-    systemWidget.appendChild(batteryWidget);
-    systemWidget.appendChild(wifiWidget);
-    systemWidget.appendChild(volumeWidget);
-    redBar.appendChild(systemWidget);
-    
-    // Crear barra lateral (azul)
-    const blueBar = document.createElement('div');
-    blueBar.id = 'blue-bar';
-    blueBar.className = 'system-bar';
-    
-    // Crear contenedor para botones de aplicaciones
-    const appsContainer = document.createElement('div');
-    appsContainer.id = 'apps-container';
-    appsContainer.className = 'apps-container';
-    blueBar.appendChild(appsContainer);
-    
-    // Crear barra inferior (negra)
-    const blackBar = document.createElement('div');
-    blackBar.id = 'black-bar';
-    
-    // Crear contenedor de contenido
-    const contentWrapper = document.createElement('div');
-    contentWrapper.id = 'black-content-wrapper';
-    blackBar.appendChild(contentWrapper);
-    
-    // Crear holograma
-    const yellowSquare = document.createElement('div');
-    yellowSquare.id = 'yellow-square';
-    yellowSquare.innerHTML = `
-      <div id="cube">
-        <div id="hologram"></div>
-      </div>
-    `;
-    
-    // Añadir todo al body
-    document.body.appendChild(redBar);
-    document.body.appendChild(blueBar);
-    document.body.appendChild(blackBar);
-    document.body.appendChild(yellowSquare);
-    
-    return {
-      redBar,
-      blueBar,
-      blackBar,
-      contentWrapper,
-      yellowSquare
-    };
   }
 }
 
