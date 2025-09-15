@@ -1,6 +1,6 @@
 // apps/spreadsheet/modules/operations.js — Botones de operaciones
-import { rows, cols, createTable, cellValues, getCellId } from './ui.js';
-import { getCellPosition } from './logic.js';
+import { rows, cols, createTable } from './ui.js';
+import { getCellId, getCellPosition, cellValues } from './logic.js';
 
 export function initializeOperations() {
     document.getElementById('add-row-btn').addEventListener('click', () => {
@@ -26,6 +26,7 @@ export function initializeOperations() {
                 }
             }
             
+            // Limpiar cellValues y asignar los nuevos valores
             Object.keys(cellValues).forEach(key => delete cellValues[key]);
             Object.assign(cellValues, newCellValues);
             
