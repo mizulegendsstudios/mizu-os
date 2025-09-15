@@ -1,4 +1,4 @@
-// apps/editor/js/editor.js - Versión con métodos de visibilidad
+// apps/editor/js/editor.js - Versión con compatibilidad para ui-controls.js
 
 class EditorApp {
   constructor() {
@@ -12,6 +12,7 @@ class EditorApp {
     this.previewDoc = null;
     this.consoleOutput = [];
     this.container = null;
+    this.panel = null; // Propiedad para compatibilidad con ui-controls.js
     this.init();
   }
 
@@ -25,7 +26,7 @@ class EditorApp {
     // Crear contenedor principal
     const container = document.createElement('div');
     container.className = 'editor-container';
-    container.id = 'editor-container';
+    container.id = 'editor-panel'; // ID para compatibilidad con ui-controls.js
     container.style.display = 'none'; // Inicialmente oculto
     
     // Crear barra de pestañas
@@ -115,6 +116,7 @@ class EditorApp {
     
     // Guardar referencias
     this.container = container;
+    this.panel = container; // Para compatibilidad con ui-controls.js
     this.htmlArea = htmlArea;
     this.cssArea = cssArea;
     this.jsArea = jsArea;
@@ -199,7 +201,7 @@ class EditorApp {
     document.querySelectorAll('.editor-tab').forEach(tab => {
       tab.classList.remove('active');
     });
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    document.querySelector(`[data-tab="${tabName}"]`).classListadd('active');
     
     // Mostrar/ocultar áreas correspondientes
     this.htmlArea.style.display = tabName === 'html' ? 'block' : 'none';
@@ -324,7 +326,7 @@ class EditorApp {
     }
   }
   
-  // NUEVO: Método para mostrar el editor
+  // Método para mostrar el editor
   show() {
     if (this.container) {
       this.container.style.display = 'block';
@@ -332,7 +334,7 @@ class EditorApp {
     }
   }
   
-  // NUEVO: Método para ocultar el editor
+  // Método para ocultar el editor
   hide() {
     if (this.container) {
       this.container.style.display = 'none';
@@ -340,7 +342,7 @@ class EditorApp {
     }
   }
   
-  // NUEVO: Método para alternar la visibilidad del editor
+  // Método para alternar la visibilidad del editor
   toggle() {
     if (this.isVisible) {
       this.hide();
@@ -349,9 +351,14 @@ class EditorApp {
     }
   }
   
-  // NUEVO: Método para crear el panel del editor (compatibilidad con ui-controls.js)
+  // Método para crear el panel del editor (compatibilidad con ui-controls.js)
   createEditorPanel() {
     this.show();
+  }
+  
+  // Método para alternar el panel del editor (compatibilidad con ui-controls.js)
+  toggleEditorPanel() {
+    this.toggle();
   }
 }
 
