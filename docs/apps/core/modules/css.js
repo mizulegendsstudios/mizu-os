@@ -64,7 +64,7 @@ export default class CSSManager {
       #red-bar {
         position: absolute;
         width: 100%;
-        height: calc(1% + 2rem);
+        height: calc(1vh + 2rem);
         top: 0;
         left: 0;
         background-color: rgba(30, 0, 0, 0.6);
@@ -81,7 +81,7 @@ export default class CSSManager {
       
       #blue-bar {
         position: absolute;
-        width: calc(1% + 4rem);
+        width: calc(1vw + 4rem);
         height: 100%;
         top: 0;
         left: 0;
