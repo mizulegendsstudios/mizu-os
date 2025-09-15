@@ -1,0 +1,10 @@
+apps/
+└── core/
+    ├── estructura              ← Estructura del app
+    ├── manifest.json           ← Metadatos de la app
+    ├── core.js                 ← Orquestador del sistema
+    └── modules/
+        ├── css.js              ← Genera estilos CSS dinámicamente
+        ├── loader.js           ← 
+        ├── ui-controls.js      ← 
+        └── config.js           ← 
