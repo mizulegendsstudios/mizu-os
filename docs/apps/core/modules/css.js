@@ -74,20 +74,20 @@ export default class CSSManager {
         justify-content: center;
         transition: transform 0.5s ease, opacity 0.5s ease;
         color: white;
-        padding: 15px;
+        padding: 2px;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.1);
       }
       
       #blue-bar {
         position: absolute;
-        width: calc(1vw + 4rem);
+        width: calc(2vw + 3rem);
         height: 100%;
         top: 0;
         left: 0;
         background: linear-gradient(270deg,hsla(240, 100%, 6%, 0.6),hsl(250, 95%, 30%));
         color: white;
-        padding: 15px;
+        padding: 2px;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 0.5rem;
@@ -148,13 +148,13 @@ export default class CSSManager {
       
       #black-bar {
         position: absolute;
-        top: 5rem;
-        left: 5rem;
+        top: calc(1vh + 2rem);
+        left: calc(2vw + 3rem);
         right: 0;
         bottom: 0;
         background-size: contain;
         background-color: rgba(0, 0, 0, 0.5);
-        border-radius: 0.5rem;
+        border-radius: 0rem;
         padding: 1rem;
         display: flex;
         gap: 0.5rem;
