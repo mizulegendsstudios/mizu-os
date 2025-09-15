@@ -36,6 +36,9 @@ class SystemUI {
     // Limpiar contenedor
     container.innerHTML = '';
     
+    // Crear video de fondo primero
+    this.createVideoBackground();
+    
     // Crear barra superior (roja)
     this.elements.redBar = this.createRedBar();
     container.appendChild(this.elements.redBar);
@@ -67,37 +70,38 @@ class SystemUI {
     // Widget de estado del sistema
     const systemWidget = document.createElement('div');
     systemWidget.id = 'system-widget';
+    systemWidget.className = 'status-widget-container';
     
     // Reloj
     const clockWidget = document.createElement('div');
-    clockWidget.className = 'widget-item';
+    clockWidget.className = 'status-widget status-widget-clock';
     clockWidget.innerHTML = `
-      <div id="widget-time" class="widget-time">00:00</div>
-      <div id="widget-date" class="widget-date">01/01/2025</div>
+      <div id="widget-time" class="status-time">00:00</div>
+      <div id="widget-date" class="status-date">01/01/2025</div>
     `;
     
     // Batería
     const batteryWidget = document.createElement('div');
-    batteryWidget.className = 'widget-item';
+    batteryWidget.className = 'status-widget status-widget-battery';
     batteryWidget.innerHTML = `
-      <i class="fas fa-battery-three-quarters widget-icon"></i>
-      <span id="widget-battery">100%</span>
+      <i class="fas fa-battery-three-quarters status-icon"></i>
+      <span id="widget-battery" class="status-battery-level">100%</span>
     `;
     
     // WiFi
     const wifiWidget = document.createElement('div');
-    wifiWidget.className = 'widget-item';
+    wifiWidget.className = 'status-widget status-widget-wifi';
     wifiWidget.innerHTML = `
-      <i class="fas fa-wifi widget-icon"></i>
-      <span id="widget-wifi">Conectado</span>
+      <i class="fas fa-wifi status-icon"></i>
+      <span id="widget-wifi" class="status-wifi-status">Conectado</span>
     `;
     
     // Volumen
     const volumeWidget = document.createElement('div');
-    volumeWidget.className = 'widget-item';
+    volumeWidget.className = 'status-widget status-widget-volume';
     volumeWidget.innerHTML = `
-      <i class="fas fa-volume-up widget-icon"></i>
-      <span id="widget-volume">100%</span>
+      <i class="fas fa-volume-up status-icon"></i>
+      <span id="widget-volume" class="status-volume-level">100%</span>
     `;
     
     // Añadir widgets al contenedor
@@ -120,7 +124,7 @@ class SystemUI {
     blueBar.id = 'blue-bar';
     blueBar.className = 'system-bar';
     
-    // Espacio para botones de aplicaciones
+    // Contenedor para botones de aplicaciones
     const appsContainer = document.createElement('div');
     appsContainer.id = 'apps-container';
     appsContainer.className = 'apps-container';
@@ -188,6 +192,12 @@ class SystemUI {
    * @returns {HTMLVideoElement} Elemento de video
    */
   createVideoBackground() {
+    // Verificar si ya existe un video de fondo
+    const existingVideo = document.querySelector('.video-background');
+    if (existingVideo) {
+      existingVideo.remove();
+    }
+    
     const video = document.createElement('video');
     video.className = 'video-background';
     video.autoplay = true;
@@ -257,7 +267,7 @@ class SystemUI {
         iconClass = 'fa-battery-exclamation';
       }
       
-      iconElement.className = `fas ${iconClass} widget-icon`;
+      iconElement.className = `fas ${iconClass} status-icon`;
     }
     
     batteryElement.textContent = `${level}%`;
@@ -286,7 +296,7 @@ class SystemUI {
         iconClass = 'fa-wifi-3';
       }
       
-      iconElement.className = `fas ${iconClass} widget-icon`;
+      iconElement.className = `fas ${iconClass} status-icon`;
     }
     
     wifiElement.textContent = status;
@@ -315,7 +325,7 @@ class SystemUI {
         iconClass += 'up';
       }
       
-      iconElement.className = `fas ${iconClass} widget-icon`;
+      iconElement.className = `fas ${iconClass} status-icon`;
     }
     
     volumeElement.textContent = muted ? 'Mute' : `${level}%`;
