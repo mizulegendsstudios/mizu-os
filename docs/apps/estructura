@@ -1,0 +1,55 @@
+apps/
+├── core/                    ← El core ahora es una app más
+│   ├── manifest.json
+│   ├── appcore.js
+│   ├── app.css
+│   └── modules/
+│       ├── system.js        ← Funcionalidades del sistema
+│       ├── ui-manager.js    ← Gestión de UI global
+│       └── eventbus.js      ← Sistema de eventos global
+│
+├── diagram/
+│   ├── manifest.json
+│   ├── appcore.js
+│   ├── app.css
+│   └── modules/
+│       ├── nodes.js
+│       ├── drawlines.js
+│       └── nodos-puertos.js
+│
+├── editor/
+│   ├── manifest.json
+│   ├── appcore.js
+│   ├── app.css
+│   └── modules/
+│       ├── editor.js
+│       ├── preview.js
+│       └── console.js
+│
+├── music/
+│   ├── manifest.json
+│   ├── appcore.js
+│   ├── app.css
+│   └── modules/
+│       ├── player.js
+│       ├── playlist.js
+│       └── controls.js
+│
+├── settings/
+│   ├── manifest.json
+│   ├── appcore.js
+│   ├── app.css
+│   └── modules/
+│       ├── visual.js
+│       ├── hologram.js
+│       └── preferences.js
+│
+└── spreadsheet/
+    ├── manifest.json
+    ├── appcore.js
+    ├── app.css
+    └── modules/
+        ├── logic.js
+        ├── ui.js
+        ├── operations.js
+        └── formulas.js
