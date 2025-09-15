@@ -108,7 +108,6 @@ export default class CSSManager {
         background-color: hsla(0, 0%, 0%, 0.01);
         backdrop-filter: blur(10px);
         border-radius: 2rem;
-        border: 1px solid linear-gradient(45deg,hsla(0, 0%, 0%, 0.1),hsla(0, 0%, 100%, 0.5));
         z-index: 2025;
         perspective: 100vh;
       }
@@ -129,7 +128,7 @@ export default class CSSManager {
         position: absolute;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0);
+        background: hsla(0, 0%, 0%, 0);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -152,7 +151,7 @@ export default class CSSManager {
         right: 0;
         bottom: 0;
         background-size: contain;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: hsla(0, 0%, 0%, 0.05);
         border-radius: 0rem;
         padding: 1rem;
         display: flex;
