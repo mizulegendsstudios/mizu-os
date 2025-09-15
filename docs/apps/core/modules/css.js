@@ -67,7 +67,7 @@ export default class CSSManager {
         height: calc(1vh + 2rem);
         top: 0;
         left: 0;
-        background-color: rgba(30, 0, 0, 0.6);
+        background-color: linear-gradient(90deg,hsla(0, 0%, 0%, 0.1),hsl(0, 100%, 0.3));
         z-index: 1160;
         flex-direction: column;
         align-items: center;
@@ -148,8 +148,8 @@ export default class CSSManager {
       
       #black-bar {
         position: absolute;
-        top: calc(1vh + 2rem);
-        left: calc(2vw + 3rem);
+        top: 0;
+        left: 0;
         right: 0;
         bottom: 0;
         background-size: contain;
