@@ -1,4 +1,3 @@
-´´´
 apps/
 └── spreadsheet/
     ├── manifest.json           ← Metadatos de la app
@@ -8,4 +7,3 @@ apps/
         ├── logic.js            ← Lógica de cálculo, fórmulas, selección
         ├── ui.js               ← Creación de tabla, eventos, redimensionamiento
         └── operations.js       ← Botones: añadir/eliminar filas/columnas
-´´´
