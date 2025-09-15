@@ -8,7 +8,47 @@
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
+// apps/core/core.js
+import CSSManager from './modules/css.js';
+import UIBuilder from './modules/ui-builder.js';
 
+class CoreApp {
+  constructor() {
+    console.log('CoreApp: Constructor iniciado');
+  }
+
+  async initializeSystem() {
+    try {
+      console.log('Iniciando Mizu OS v3.0.0...');
+      
+      // 1. Inyectar estilos primero
+      const cssManager = new CSSManager();
+      cssManager.injectStyles();
+      
+      // 2. Esperar un frame para asegurar que los estilos se aplicaron
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      
+      // 3. Construir la interfaz
+      const uiBuilder = new UIBuilder();
+      uiBuilder.buildUI();
+      
+      console.log('Mizu OS inicializado correctamente');
+      
+    } catch (error) {
+      console.error('Error en inicialización:', error);
+    }
+  }
+}
+
+// Inicialización principal
+window.addEventListener('load', async () => {
+  console.log('window.load: Iniciando CoreApp');
+  const coreApp = new CoreApp();
+  await coreApp.initializeSystem();
+  window.MizuOS = coreApp;
+});
+
+/*
 // Importaciones de módulos del core
 import { EventBus } from './modules/eventbus.js';
 import { AppLoader } from './modules/app-loader.js';
@@ -419,3 +459,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.appendChild(errorContainer);
   }
 });
+*/
