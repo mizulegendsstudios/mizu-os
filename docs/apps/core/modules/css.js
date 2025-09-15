@@ -1,8 +1,4 @@
-
-
-# docs/apps/core/modules/css.js - Sistema de carga dinámica de CSS modular
-
-```javascript
+// docs/apps/core/modules/css.js - Sistema de carga dinámica de CSS modular
 /*
  * Mizu OS - CSS Loader Module
  * Copyright (C) 2025 Mizu Legends Studios
@@ -19,6 +15,7 @@ class CoreCSSLoader {
     this.coreStyles = this.getCoreStyles(); // Estilos base del sistema
     this.videoBackgroundUrl = 'https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-board@main/docs/core/assets/bibiye.webm';
   }
+  
   // Inicializar el sistema de estilos
   init() {
     // Cargar estilos base del core
@@ -29,6 +26,7 @@ class CoreCSSLoader {
     
     console.log('Sistema de estilos inicializado');
   }
+  
   // Cargar estilos base del core
   loadCoreStyles() {
     const style = document.createElement('style');
@@ -36,6 +34,7 @@ class CoreCSSLoader {
     style.textContent = this.coreStyles;
     document.head.appendChild(style);
   }
+  
   // Registrar estilos de una aplicación
   registerAppStyles(appName, styles) {
     if (!this.appStyles.has(appName)) {
@@ -56,6 +55,7 @@ class CoreCSSLoader {
     
     console.log(`Estilos para la app ${appName} registrados`);
   }
+  
   // Cargar un módulo CSS específico
   loadModule(moduleName, appName = null) {
     const moduleId = appName ? `${appName}-${moduleName}` : moduleName;
@@ -92,6 +92,7 @@ class CoreCSSLoader {
       resolve();
     });
   }
+  
   // Descargar un módulo CSS
   unloadModule(moduleName, appName = null) {
     const moduleId = appName ? `${appName}-${moduleName}` : moduleName;
@@ -111,6 +112,7 @@ class CoreCSSLoader {
     }
     return false;
   }
+  
   // Descargar todos los estilos de una aplicación
   unloadAppStyles(appName) {
     if (!this.appStyles.has(appName)) return false;
@@ -127,6 +129,7 @@ class CoreCSSLoader {
     console.log(`Estilos de la app ${appName} descargados`);
     return true;
   }
+  
   // Obtener estilos base del sistema
   getCoreStyles() {
     return `
@@ -149,6 +152,8 @@ class CoreCSSLoader {
         background-color: #121212;
         color: #e0e0e0;
         position: relative;
+        margin: 0;
+        padding: 0;
       }
       
       /* Video de fondo corregido */
@@ -162,12 +167,75 @@ class CoreCSSLoader {
         z-index: -1;
       }
       
+      /* Contenedor principal */
+      #app-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+      
       /* Sistema de barras */
       .system-bar {
         position: absolute;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.1);
         z-index: 100;
+      }
+      
+      /* Barra roja (superior) */
+      #red-bar {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 48px;
+        background-color: rgba(136, 14, 14, 0.8);
+        z-index: 1160;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 0 16px;
+      }
+      
+      /* Barra azul (lateral) */
+      #blue-bar {
+        top: 48px;
+        left: 0;
+        width: 64px;
+        height: calc(100% - 48px);
+        background: linear-gradient(270deg, rgba(30, 0, 77, 0.8), rgba(59, 7, 100, 0.8));
+        z-index: 920;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 16px 0;
+        gap: 12px;
+      }
+      
+      /* Barra negra (área de trabajo) */
+      #black-bar {
+        top: 48px;
+        left: 64px;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 8px 0 0 0;
+        z-index: 641;
+        overflow: hidden;
+      }
+      
+      /* Holograma */
+      #yellow-square {
+        top: 8px;
+        left: 8px;
+        width: 32px;
+        height: 32px;
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 50%;
+        z-index: 2025;
+        perspective: 100vh;
       }
       
       /* Clases comunes para apps */
@@ -258,208 +326,33 @@ class CoreCSSLoader {
         to { opacity: 1; }
       }
       
+      @keyframes rotateCube {
+        from { transform: rotateY(0deg); }
+        to { transform: rotateY(360deg); }
+      }
+      
       /* Responsive */
       @media (max-width: 768px) {
-        .system-widget {
-          gap: 10px;
-          font-size: 12px;
+        #blue-bar {
+          width: 48px;
+        }
+        
+        #black-bar {
+          left: 48px;
+        }
+        
+        .app-button {
+          width: 36px;
+          height: 36px;
+          font-size: 16px;
         }
       }
     `;
   }
+  
   // Obtener el CSS para un módulo específico
   getModuleCSS(moduleName) {
     const modules = {
-      'red-bar': `
-        #red-bar {
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 48px;
-          background-color: rgba(136, 14, 14, 0.8);
-          z-index: 1160;
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          padding: 0 16px;
-        }
-        
-        #system-widget {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          height: 100%;
-        }
-        
-        .widget-item {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 14px;
-        }
-        
-        .widget-icon {
-          font-size: 16px;
-        }
-      `,
-      
-      'blue-bar': `
-        #blue-bar {
-          top: 48px;
-          left: 0;
-          width: 64px;
-          height: calc(100% - 48px);
-          background: linear-gradient(270deg, rgba(30, 0, 77, 0.8), rgba(59, 7, 100, 0.8));
-          z-index: 920;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 16px 0;
-          gap: 12px;
-        }
-        
-        .app-button {
-          width: 48px;
-          height: 48px;
-          border-radius: 8px;
-          background-color: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          color: #fff;
-          font-size: 20px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        
-        .app-button:hover {
-          background-color: rgba(255, 255, 255, 0.2);
-          transform: scale(1.05);
-        }
-        
-        .app-button.active {
-          background-color: rgba(187, 134, 252, 0.5);
-          border-color: #bb86fc;
-        }
-        
-        .apps-container {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          flex: 1;
-        }
-        
-        .config-button {
-          position: absolute;
-          bottom: 16px;
-        }
-      `,
-      
-      'yellow-square': `
-        #yellow-square {
-          top: 8px;
-          left: 8px;
-          width: 32px;
-          height: 32px;
-          background-color: rgba(0, 0, 0, 0.2);
-          border-radius: 50%;
-          z-index: 2025;
-          perspective: 100vh;
-        }
-        
-        #cube {
-          width: 100%;
-          height: 100%;
-          position: relative;
-          transform-style: preserve-3d;
-          animation: rotateCube 20s infinite linear;
-        }
-        
-        #hologram {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          background-size: contain;
-          background-image: url('https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-axiscore@main/src/images/png/svgmls.png');
-          background-repeat: no-repeat;
-          background-position: center;
-          transform: rotateY(0deg) translateZ(0px);
-        }
-        
-        @keyframes rotateCube {
-          from { transform: rotateY(0deg); }
-          to { transform: rotateY(360deg); }
-        }
-      `,
-      
-      'black-bar': `
-        #black-bar {
-          top: 48px;
-          left: 64px;
-          right: 0;
-          bottom: 0;
-          background-color: rgba(0, 0, 0, 0.5);
-          border-radius: 8px 0 0 0;
-          z-index: 641;
-          overflow: hidden;
-        }
-        
-        #black-content-wrapper {
-          width: 100%;
-          height: 100%;
-          position: relative;
-        }
-        
-        .app-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: none;
-          padding: 16px;
-        }
-        
-        .app-container.active {
-          display: block;
-        }
-        
-        .workspace {
-          width: 100%;
-          height: 100%;
-          position: relative;
-          overflow: hidden;
-        }
-      `,
-      
-      'loading': `
-        .loading {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          background: #121212;
-          z-index: 9999;
-        }
-        
-        .spinner {
-          width: 50px;
-          height: 50px;
-          border: 5px solid rgba(255, 255, 255, 0.1);
-          border-radius: 50%;
-          border-top-color: #bb86fc;
-          animation: spin 1s ease-in-out infinite;
-        }
-      `,
-      
       'status-widgets': `
         .status-widget-container {
           display: flex;
@@ -494,29 +387,148 @@ class CoreCSSLoader {
           width: 20px;
           text-align: center;
         }
+      `,
+      
+      'app-buttons': `
+        .apps-container {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          flex: 1;
+        }
+        
+        .app-button {
+          width: 48px;
+          height: 48px;
+          border-radius: 8px;
+          background-color: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: #fff;
+          font-size: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .app-button:hover {
+          background-color: rgba(255, 255, 255, 0.2);
+          transform: scale(1.05);
+        }
+        
+        .app-button.active {
+          background-color: rgba(187, 134, 252, 0.5);
+          border-color: #bb86fc;
+        }
+        
+        .config-button {
+          position: absolute;
+          bottom: 16px;
+        }
+      `,
+      
+      'workspace': `
+        #black-content-wrapper {
+          width: 100%;
+          height: 100%;
+          position: relative;
+        }
+        
+        .workspace {
+          width: 100%;
+          height: 100%;
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .app-container {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: none;
+          padding: 16px;
+        }
+        
+        .app-container.active {
+          display: block;
+        }
+      `,
+      
+      'hologram': `
+        #cube {
+          width: 100%;
+          height: 100%;
+          position: relative;
+          transform-style: preserve-3d;
+          animation: rotateCube 20s infinite linear;
+        }
+        
+        #hologram {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background-size: contain;
+          background-image: url('https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-axiscore@main/src/images/png/svgmls.png');
+          background-repeat: no-repeat;
+          background-position: center;
+          transform: rotateY(0deg) translateZ(0px);
+        }
+      `,
+      
+      'loading': `
+        .loading {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background: #121212;
+          z-index: 9999;
+        }
+        
+        .spinner {
+          width: 50px;
+          height: 50px;
+          border: 5px solid rgba(255, 255, 255, 0.1);
+          border-radius: 50%;
+          border-top-color: #bb86fc;
+          animation: spin 1s ease-in-out infinite;
+        }
       `
     };
     
     return modules[moduleName] || null;
   }
+  
   // Cargar todos los módulos principales
   loadAll() {
     const moduleNames = [
-      'red-bar', 'blue-bar', 'yellow-square', 'black-bar', 'loading', 'status-widgets'
+      'status-widgets', 'app-buttons', 'workspace', 'hologram', 'loading'
     ];
     
     const loadPromises = moduleNames.map(module => this.loadModule(module));
     return Promise.all(loadPromises);
   }
+  
   // Cargar módulos esenciales (mínimos para funcionamiento)
   loadEssentials() {
     return Promise.all([
-      this.loadModule('red-bar'),
-      this.loadModule('blue-bar'),
-      this.loadModule('black-bar'),
-      this.loadModule('status-widgets')
+      this.loadModule('status-widgets'),
+      this.loadModule('app-buttons'),
+      this.loadModule('workspace'),
+      this.loadModule('hologram')
     ]);
   }
+  
   // Crear elemento de video de fondo
   createVideoBackground() {
     // Verificar si ya existe un video de fondo
@@ -541,6 +553,7 @@ class CoreCSSLoader {
     
     return video;
   }
+  
   // Crear elementos de UI básicos
   createBasicUI() {
     // Crear barra superior (roja)
@@ -633,6 +646,6 @@ class CoreCSSLoader {
     };
   }
 }
+
 // Crear instancia global
 window.CoreCSS = new CoreCSSLoader();
-```
