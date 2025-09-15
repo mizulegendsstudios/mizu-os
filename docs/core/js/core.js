@@ -3,6 +3,7 @@
     Mizu OS v2.10.21
 */
 console.log(`Cargando sistema...`);
+
 // Importaciones de módulos core
 import { initializeLoadingScreen } from "./loading.js";
 import { initializeBarHiding } from "./monitor_bars.js";
@@ -10,12 +11,14 @@ import { initializeMonitor } from "./monitor_axis.js";
 import { initializeStatusWidget } from "./status.js";
 import { SystemConfig } from "./config.js";
 import { createDiagramButton, createConfigButton, createMusicPlayerButton, createEditorButton, setupHologramConfig } from "./ui-controls.js";
+
 // Importaciones de diagramas
 import { drawLines } from '../../apps/diagram/js/drawlines.js';
 import { initDiagram } from '../../apps/diagram/js/nodos.js';
 import { createContainerWithPorts } from '../../apps/diagram/js/nodos-puertos.js';
-// Importación del editor
-import { EditorApp } from '../apps/editor/js/editor.js';
+
+// Importación del editor - CORREGIDO
+import { EditorApp } from '../../apps/editor/js/editor.js';
 
 // DOM
 console.log(`Iniciando sistema...`);
@@ -25,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeMonitor();
         initializeBarHiding();
         initializeLoadingScreen();
+        
         // Inicializa el widget de estado del sistema
         initializeStatusWidget();
         
@@ -53,5 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Aplicación inicializada — sistemas de nodos, puertos, estado y configuración listos.');
     } catch (error) {
         console.error('Error al inicializar la aplicación:', error);
+        console.error('Detalles del error:', error.stack);
     }
 });
