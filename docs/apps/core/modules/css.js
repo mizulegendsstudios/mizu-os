@@ -67,7 +67,7 @@ export default class CSSManager {
         height: calc(1vh + 2rem);
         top: 0;
         left: 0;
-        background-color: linear-gradient(90deg,hsla(0, 0%, 0%, 0.1),hsl(0, 100%, 0.3));
+        background-color: linear-gradient(180deg,hsla(0, 0%, 0%, 0.1),hsl(0, 100%, 0.3));
         z-index: 1160;
         flex-direction: column;
         align-items: center;
@@ -85,7 +85,7 @@ export default class CSSManager {
         height: 100%;
         top: 0;
         left: 0;
-        background: linear-gradient(270deg,hsla(0, 0%, 0%, 0.5),hsla(0, 0%, 0%, 0));
+        background: linear-gradient(90deg,hsla(0, 0%, 0%, 0.5),hsla(0, 0%, 0%, 0));
         color: white;
         padding: 2px;
         backdrop-filter: blur(10px);
