@@ -1,3 +1,4 @@
+// docs/apps/core/appcore.js - Core App para Mizu OS v3.0.0
 /*
  * Mizu OS - Core App
  * Copyright (C) 2025 Mizu Legends Studios
@@ -31,6 +32,9 @@ class CoreApp {
       
       // Inicializar módulos del sistema
       this.initSystemModules();
+      
+      // Cargar estilos esenciales
+      await this.loadEssentialStyles();
       
       // Crear UI básica del sistema
       this.createBasicUI();
@@ -74,15 +78,19 @@ class CoreApp {
     this.statusWidget = new StatusWidget();
   }
 
+  async loadEssentialStyles() {
+    if (window.CoreCSS) {
+      await window.CoreCSS.loadEssentials();
+      console.log('Estilos esenciales cargados');
+    }
+  }
+
   createBasicUI() {
     // Limpiar contenedor
     this.container.innerHTML = '';
     
     // Crear estructura básica del sistema
     this.systemUI.createSystemStructure(this.container);
-    
-    // Crear video de fondo
-    this.systemUI.createVideoBackground();
     
     console.log('UI básica del sistema creada');
   }
