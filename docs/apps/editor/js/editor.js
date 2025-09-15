@@ -1,4 +1,4 @@
-// apps/editor/js/editor.js - Versión mejorada
+// apps/editor/js/editor.js - Versión con exportación correcta
 
 class EditorApp {
   constructor() {
@@ -322,3 +322,6 @@ class EditorApp {
     }
   }
 }
+
+// EXPORTACIÓN CORRECTA DE LA CLASE
+export { EditorApp };
