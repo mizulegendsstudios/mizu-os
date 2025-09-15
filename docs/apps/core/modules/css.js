@@ -1,4 +1,8 @@
-// docs/apps/core/modules/css.js - Sistema de carga dinámica de CSS modular
+
+
+# docs/apps/core/modules/css.js - Sistema de carga dinámica de CSS modular
+
+```javascript
 /*
  * Mizu OS - CSS Loader Module
  * Copyright (C) 2025 Mizu Legends Studios
@@ -8,7 +12,6 @@
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-
 class CoreCSSLoader {
   constructor() {
     this.loadedModules = new Set();
@@ -16,7 +19,6 @@ class CoreCSSLoader {
     this.coreStyles = this.getCoreStyles(); // Estilos base del sistema
     this.videoBackgroundUrl = 'https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-board@main/docs/core/assets/bibiye.webm';
   }
-
   // Inicializar el sistema de estilos
   init() {
     // Cargar estilos base del core
@@ -27,7 +29,6 @@ class CoreCSSLoader {
     
     console.log('Sistema de estilos inicializado');
   }
-
   // Cargar estilos base del core
   loadCoreStyles() {
     const style = document.createElement('style');
@@ -35,7 +36,6 @@ class CoreCSSLoader {
     style.textContent = this.coreStyles;
     document.head.appendChild(style);
   }
-
   // Registrar estilos de una aplicación
   registerAppStyles(appName, styles) {
     if (!this.appStyles.has(appName)) {
@@ -56,7 +56,6 @@ class CoreCSSLoader {
     
     console.log(`Estilos para la app ${appName} registrados`);
   }
-
   // Cargar un módulo CSS específico
   loadModule(moduleName, appName = null) {
     const moduleId = appName ? `${appName}-${moduleName}` : moduleName;
@@ -93,7 +92,6 @@ class CoreCSSLoader {
       resolve();
     });
   }
-
   // Descargar un módulo CSS
   unloadModule(moduleName, appName = null) {
     const moduleId = appName ? `${appName}-${moduleName}` : moduleName;
@@ -113,7 +111,6 @@ class CoreCSSLoader {
     }
     return false;
   }
-
   // Descargar todos los estilos de una aplicación
   unloadAppStyles(appName) {
     if (!this.appStyles.has(appName)) return false;
@@ -130,7 +127,6 @@ class CoreCSSLoader {
     console.log(`Estilos de la app ${appName} descargados`);
     return true;
   }
-
   // Obtener estilos base del sistema
   getCoreStyles() {
     return `
@@ -145,6 +141,7 @@ class CoreCSSLoader {
         height: 100%;
         width: 100%;
         overflow: hidden;
+        position: relative;
       }
       
       body {
@@ -154,17 +151,15 @@ class CoreCSSLoader {
         position: relative;
       }
       
-      /* Video de fondo */
+      /* Video de fondo corregido */
       .video-background {
         position: fixed;
-        right: 0;
-        bottom: 0;
-        min-width: 100%;
-        min-height: 100%;
-        width: auto;
-        height: auto;
-        z-index: -1;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
         object-fit: cover;
+        z-index: -1;
       }
       
       /* Sistema de barras */
@@ -272,7 +267,6 @@ class CoreCSSLoader {
       }
     `;
   }
-
   // Obtener el CSS para un módulo específico
   getModuleCSS(moduleName) {
     const modules = {
@@ -282,7 +276,7 @@ class CoreCSSLoader {
           left: 0;
           width: 100%;
           height: 48px;
-          background-color: rgba(136, 14, 14, 0.7);
+          background-color: rgba(136, 14, 14, 0.8);
           z-index: 1160;
           display: flex;
           align-items: center;
@@ -311,10 +305,10 @@ class CoreCSSLoader {
       
       'blue-bar': `
         #blue-bar {
-          top: 0;
+          top: 48px;
           left: 0;
           width: 64px;
-          height: 100%;
+          height: calc(100% - 48px);
           background: linear-gradient(270deg, rgba(30, 0, 77, 0.8), rgba(59, 7, 100, 0.8));
           z-index: 920;
           display: flex;
@@ -348,14 +342,26 @@ class CoreCSSLoader {
           background-color: rgba(187, 134, 252, 0.5);
           border-color: #bb86fc;
         }
+        
+        .apps-container {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          flex: 1;
+        }
+        
+        .config-button {
+          position: absolute;
+          bottom: 16px;
+        }
       `,
       
       'yellow-square': `
         #yellow-square {
-          top: 16px;
-          left: 16px;
-          width: 40px;
-          height: 40px;
+          top: 8px;
+          left: 8px;
+          width: 32px;
+          height: 32px;
           background-color: rgba(0, 0, 0, 0.2);
           border-radius: 50%;
           z-index: 2025;
@@ -421,6 +427,13 @@ class CoreCSSLoader {
         .app-container.active {
           display: block;
         }
+        
+        .workspace {
+          width: 100%;
+          height: 100%;
+          position: relative;
+          overflow: hidden;
+        }
       `,
       
       'loading': `
@@ -445,33 +458,73 @@ class CoreCSSLoader {
           border-top-color: #bb86fc;
           animation: spin 1s ease-in-out infinite;
         }
+      `,
+      
+      'status-widgets': `
+        .status-widget-container {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          height: 100%;
+        }
+        
+        .status-widget {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        
+        .status-widget-clock {
+          flex-direction: column;
+          align-items: center;
+        }
+        
+        .status-time {
+          font-size: 16px;
+          font-weight: bold;
+        }
+        
+        .status-date {
+          font-size: 12px;
+          opacity: 0.8;
+        }
+        
+        .status-icon {
+          font-size: 16px;
+          width: 20px;
+          text-align: center;
+        }
       `
     };
     
     return modules[moduleName] || null;
   }
-
   // Cargar todos los módulos principales
   loadAll() {
     const moduleNames = [
-      'red-bar', 'blue-bar', 'yellow-square', 'black-bar', 'loading'
+      'red-bar', 'blue-bar', 'yellow-square', 'black-bar', 'loading', 'status-widgets'
     ];
     
     const loadPromises = moduleNames.map(module => this.loadModule(module));
     return Promise.all(loadPromises);
   }
-
   // Cargar módulos esenciales (mínimos para funcionamiento)
   loadEssentials() {
     return Promise.all([
       this.loadModule('red-bar'),
       this.loadModule('blue-bar'),
-      this.loadModule('black-bar')
+      this.loadModule('black-bar'),
+      this.loadModule('status-widgets')
     ]);
   }
-
   // Crear elemento de video de fondo
   createVideoBackground() {
+    // Verificar si ya existe un video de fondo
+    const existingVideo = document.querySelector('.video-background');
+    if (existingVideo) {
+      existingVideo.remove();
+    }
+    
     const video = document.createElement('video');
     video.className = 'video-background';
     video.autoplay = true;
@@ -484,11 +537,10 @@ class CoreCSSLoader {
     source.type = 'video/webm';
     
     video.appendChild(source);
-    document.body.appendChild(video);
+    document.body.insertBefore(video, document.body.firstChild);
     
     return video;
   }
-
   // Crear elementos de UI básicos
   createBasicUI() {
     // Crear barra superior (roja)
@@ -499,39 +551,54 @@ class CoreCSSLoader {
     // Crear widget de sistema
     const systemWidget = document.createElement('div');
     systemWidget.id = 'system-widget';
+    systemWidget.className = 'status-widget-container';
     
     // Crear elementos del widget
     const timeWidget = document.createElement('div');
-    timeWidget.className = 'widget-item';
+    timeWidget.className = 'status-widget status-widget-clock';
     timeWidget.innerHTML = `
-      <div id="widget-hora" class="widget-time">00:00</div>
-      <div id="widget-fecha" class="widget-date">01/01/2025</div>
+      <div id="widget-hora" class="status-time">00:00</div>
+      <div id="widget-fecha" class="status-date">01/01/2025</div>
     `;
     
     const batteryWidget = document.createElement('div');
-    batteryWidget.className = 'widget-item';
+    batteryWidget.className = 'status-widget status-widget-battery';
     batteryWidget.innerHTML = `
       <i class="widget-icon fas fa-battery-three-quarters"></i>
       <span id="widget-battery">100%</span>
     `;
     
     const wifiWidget = document.createElement('div');
-    wifiWidget.className = 'widget-item';
+    wifiWidget.className = 'status-widget status-widget-wifi';
     wifiWidget.innerHTML = `
       <i class="widget-icon fas fa-wifi"></i>
       <span id="widget-wifi">Conectado</span>
+    `;
+    
+    const volumeWidget = document.createElement('div');
+    volumeWidget.className = 'status-widget status-widget-volume';
+    volumeWidget.innerHTML = `
+      <i class="widget-icon fas fa-volume-up"></i>
+      <span id="widget-volume">100%</span>
     `;
     
     // Añadir widgets al contenedor
     systemWidget.appendChild(timeWidget);
     systemWidget.appendChild(batteryWidget);
     systemWidget.appendChild(wifiWidget);
+    systemWidget.appendChild(volumeWidget);
     redBar.appendChild(systemWidget);
     
     // Crear barra lateral (azul)
     const blueBar = document.createElement('div');
     blueBar.id = 'blue-bar';
     blueBar.className = 'system-bar';
+    
+    // Crear contenedor para botones de aplicaciones
+    const appsContainer = document.createElement('div');
+    appsContainer.id = 'apps-container';
+    appsContainer.className = 'apps-container';
+    blueBar.appendChild(appsContainer);
     
     // Crear barra inferior (negra)
     const blackBar = document.createElement('div');
@@ -566,6 +633,6 @@ class CoreCSSLoader {
     };
   }
 }
-
 // Crear instancia global
 window.CoreCSS = new CoreCSSLoader();
+```
