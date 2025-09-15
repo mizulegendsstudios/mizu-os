@@ -7,7 +7,6 @@
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-
 // Importaciones de módulos del core
 import { EventBus } from './modules/eventbus.js';
 import { AppLoader } from './modules/app-loader.js';
@@ -90,7 +89,7 @@ class CoreApp {
 
   async loadSystemConfig() {
     try {
-      await this.config.load();
+      await this.config.init();
       console.log('Configuración del sistema cargada');
     } catch (error) {
       console.error('Error al cargar configuración:', error);
@@ -118,17 +117,54 @@ class CoreApp {
       'spreadsheet'
     ];
     
+    let discoveredCount = 0;
+    
     // Cargar manifiestos y crear botones para cada app
     for (const appName of availableApps) {
       try {
         const manifest = await window.appLoader.fetchManifest(appName);
         this.registerApp(appName, manifest);
+        discoveredCount++;
       } catch (error) {
-        console.error(`Error al descubrir app ${appName}:`, error);
+        console.warn(`No se pudo cargar la app ${appName}:`, error.message);
+        // Continuar con las demás apps
       }
     }
     
-    console.log(`${this.apps.size} aplicaciones descubiertas`);
+    console.log(`${discoveredCount} aplicaciones descubiertas de ${availableApps.length}`);
+    
+    // Si no se descubrió ninguna app, mostrar mensaje
+    if (discoveredCount === 0) {
+      console.warn('No se pudo descubrir ninguna aplicación');
+      this.showNoAppsWarning();
+    }
+  }
+
+  showNoAppsWarning() {
+    const warning = document.createElement('div');
+    warning.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      z-index: 1000;
+    `;
+    warning.innerHTML = `
+      <h3>⚠️ Advertencia</h3>
+      <p>No se encontraron aplicaciones disponibles.</p>
+      <p>Verifica que los archivos manifest.json existan.</p>
+    `;
+    document.body.appendChild(warning);
+    
+    // Auto-eliminar después de 5 segundos
+    setTimeout(() => {
+      warning.remove();
+    }, 5000);
   }
 
   registerApp(appName, manifest) {
@@ -146,8 +182,12 @@ class CoreApp {
   }
 
   createAppButton(appName, manifest) {
-    const blueBar = document.getElementById('blue-bar');
-    if (!blueBar) return;
+    // Buscar el contenedor de aplicaciones
+    const appsContainer = document.getElementById('apps-container');
+    if (!appsContainer) {
+      console.error('No se encontró el contenedor de aplicaciones');
+      return;
+    }
     
     const button = document.createElement('button');
     button.className = 'app-button';
@@ -159,7 +199,7 @@ class CoreApp {
       this.activateApp(appName);
     });
     
-    blueBar.appendChild(button);
+    appsContainer.appendChild(button);
   }
 
   async activateApp(appName) {
@@ -225,6 +265,14 @@ class CoreApp {
     const hologram = document.getElementById('yellow-square');
     if (hologram) {
       hologram.addEventListener('click', () => {
+        this.activateApp('settings');
+      });
+    }
+    
+    // Configurar evento del botón de configuración
+    const configButton = document.getElementById('config-button');
+    if (configButton) {
+      configButton.addEventListener('click', () => {
         this.activateApp('settings');
       });
     }
