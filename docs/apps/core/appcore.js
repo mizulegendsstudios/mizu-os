@@ -17,7 +17,9 @@ import { StatusWidget } from './modules/status-widget.js';
 
 class CoreApp {
   constructor() {
+    console.log('CoreApp: Constructor iniciado');
     this.container = document.getElementById('app-container');
+    console.log('CoreApp: Contenedor encontrado:', this.container);
     this.apps = new Map();
     this.activeApp = null;
     this.systemUI = null;
@@ -62,37 +64,48 @@ class CoreApp {
   }
 
   initSystemModules() {
+    console.log('CoreApp: Inicializando módulos del sistema');
+    
     // Inicializar EventBus global
     if (!window.eventBus) {
       window.eventBus = new EventBus();
+      console.log('CoreApp: EventBus creado');
     }
     
     // Inicializar AppLoader global
     if (!window.appLoader) {
       window.appLoader = new AppLoader();
+      console.log('CoreApp: AppLoader creado');
     }
     
     // Inicializar módulos del sistema
     this.systemUI = new SystemUI();
     this.config = new SystemConfig();
     this.statusWidget = new StatusWidget();
+    
+    console.log('CoreApp: Módulos del sistema inicializados');
   }
 
   async loadEssentialStyles() {
+    console.log('CoreApp: Cargando estilos esenciales');
     if (window.CoreCSS) {
       await window.CoreCSS.loadEssentials();
-      console.log('Estilos esenciales cargados');
+      console.log('CoreApp: Estilos esenciales cargados');
     }
   }
 
   createBasicUI() {
+    console.log('CoreApp: Creando UI básica');
+    console.log('CoreApp: Contenedor antes de limpiar:', this.container.innerHTML);
+    
     // Limpiar contenedor
     this.container.innerHTML = '';
     
     // Crear estructura básica del sistema
     this.systemUI.createSystemStructure(this.container);
     
-    console.log('UI básica del sistema creada');
+    console.log('CoreApp: Contenedor después de crear estructura:', this.container.innerHTML);
+    console.log('CoreApp: UI básica del sistema creada');
   }
 
   async loadSystemConfig() {
@@ -112,6 +125,8 @@ class CoreApp {
     if (redBar) {
       this.statusWidget.init(redBar);
       console.log('Widget de estado inicializado');
+    } else {
+      console.error('No se encontró la barra roja para inicializar el widget');
     }
   }
 
@@ -208,6 +223,7 @@ class CoreApp {
     });
     
     appsContainer.appendChild(button);
+    console.log(`Botón para app ${appName} creado`);
   }
 
   async activateApp(appName) {
@@ -354,6 +370,8 @@ class CoreApp {
 // Inicializar el sistema cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', async () => {
   try {
+    console.log('DOMContentLoaded: Iniciando CoreApp');
+    
     // Crear instancia del CoreApp
     window.coreApp = new CoreApp();
     
