@@ -8,7 +8,6 @@
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-// apps/core/core.js
 import CSSManager from './modules/css.js';
 import UIBuilder from './modules/ui-builder.js';
 
@@ -36,6 +35,14 @@ class CoreApp {
       
     } catch (error) {
       console.error('Error en inicialización:', error);
+      // Mostrar error en pantalla para depuración
+      document.body.innerHTML = `
+        <div style="padding: 20px; background: #ff0000; color: white;">
+          <h2>Error al iniciar Mizu OS</h2>
+          <p>${error.message}</p>
+          <pre>${error.stack}</pre>
+        </div>
+      `;
     }
   }
 }
