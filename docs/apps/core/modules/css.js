@@ -85,13 +85,11 @@ export default class CSSManager {
         height: 100%;
         top: 0;
         left: 0;
-        background: linear-gradient(270deg,hsla(240, 100%, 6%, 0.6),hsl(250, 95%, 30%));
+        background: linear-gradient(270deg,hsla(0, 0%, 0%, 0.5),hsla(0, 0%, 0%, 0));
         color: white;
         padding: 2px;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 0.5rem;
-        padding: 0.5rem;
+        padding: 2px;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -107,9 +105,10 @@ export default class CSSManager {
         left: 0.2rem;
         width: 2rem;
         height: 2rem;
-        background-color: rgba(0, 0, 0, 0.01);
+        background-color: hsla(0, 0%, 0%, 0.01);
         backdrop-filter: blur(10px);
         border-radius: 2rem;
+        border: 1px solid linear-gradient(45deg,hsla(0, 0%, 0%, 0.1),hsla(0, 0%, 100%, 0.5));
         z-index: 2025;
         perspective: 100vh;
       }
