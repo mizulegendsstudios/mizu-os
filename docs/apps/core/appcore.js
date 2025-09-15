@@ -16,9 +16,6 @@ import { SystemUI } from './modules/system-ui.js';
 import { SystemConfig } from './modules/config.js';
 import { StatusWidget } from './modules/status-widget.js';
 
-// Importación explícita del CSS Loader
-import { CoreCSSLoader } from './modules/css.js';
-
 console.log('appcore.js: Módulos importados correctamente');
 
 class CoreApp {
@@ -40,24 +37,6 @@ class CoreApp {
       
       // Inicializar módulos del sistema
       this.initSystemModules();
-      
-      // Cargar estilos esenciales
-      console.log('CoreApp: Cargando estilos esenciales');
-      
-      // Verificar que CoreCSS esté disponible
-      if (!window.CoreCSS) {
-        console.error('CoreApp: CoreCSS no está disponible, creando instancia manualmente');
-        window.CoreCSS = new CoreCSSLoader();
-      }
-      
-      await window.CoreCSS.loadEssentials();
-      console.log('CoreApp: Estilos esenciales cargados');
-      
-      // Verificar que los estilos se hayan cargado
-      console.log('CoreApp: Verificando estilos cargados. Total de estilos en head:', document.head.querySelectorAll('style').length);
-      document.head.querySelectorAll('style').forEach((style, index) => {
-        console.log(`CoreApp: Estilo ${index}:`, style.id || 'sin id');
-      });
       
       // Crear UI básica del sistema
       this.createBasicUI();
@@ -131,10 +110,6 @@ class CoreApp {
     console.log('CoreApp: blueBar existe:', !!blueBar);
     console.log('CoreApp: blackBar existe:', !!blackBar);
     console.log('CoreApp: yellowSquare existe:', !!yellowSquare);
-    
-    if (redBar) {
-      console.log('CoreApp: redBar computed style:', window.getComputedStyle(redBar));
-    }
   }
 
   async loadSystemConfig() {
@@ -237,4 +212,210 @@ class CoreApp {
     // Buscar el contenedor de aplicaciones
     const appsContainer = document.getElementById('apps-container');
     if (!appsContainer) {
-      console.error('No se encontró el contenedor
+      console.error('No se encontró el contenedor de aplicaciones');
+      return;
+    }
+    
+    const button = document.createElement('button');
+    button.className = 'app-button';
+    button.title = manifest.name;
+    button.innerHTML = manifest.icon || '📱';
+    button.dataset.app = appName;
+    
+    button.addEventListener('click', () => {
+      this.activateApp(appName);
+    });
+    
+    appsContainer.appendChild(button);
+    console.log(`Botón para app ${appName} creado`);
+  }
+
+  async activateApp(appName) {
+    if (!this.apps.has(appName)) {
+      console.error(`App ${appName} no está registrada`);
+      return;
+    }
+    
+    const appData = this.apps.get(appName);
+    
+    // Desactivar app actual
+    if (this.activeApp && this.activeApp !== appName) {
+      const currentApp = this.apps.get(this.activeApp);
+      if (currentApp && currentApp.instance) {
+        currentApp.instance.hide();
+      }
+      
+      // Actualizar estado de botones
+      document.querySelectorAll('.app-button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+    }
+    
+    // Cargar la app si no está cargada
+    if (!appData.loaded) {
+      try {
+        appData.instance = await window.appLoader.loadApp(appName);
+        appData.loaded = true;
+      } catch (error) {
+        console.error(`Error al cargar app ${appName}:`, error);
+        return;
+      }
+    }
+    
+    // Activar la app
+    if (appData.instance) {
+      appData.instance.show();
+      this.activeApp = appName;
+      
+      // Actualizar estado del botón
+      const button = document.querySelector(`.app-button[data-app="${appName}"]`);
+      if (button) {
+        button.classList.add('active');
+      }
+      
+      // Notificar al sistema
+      window.eventBus.emit('appActivated', { appName });
+    }
+  }
+
+  setupEventListeners() {
+    // Escuchar eventos globales
+    window.eventBus.on('systemError', (data) => {
+      console.error('Error del sistema:', data.error);
+      this.showError(data.error);
+    });
+    
+    window.eventBus.on('appLoaded', (data) => {
+      console.log(`App ${data.appName} cargada correctamente`);
+    });
+    
+    // Configurar evento del holograma
+    const hologram = document.getElementById('yellow-square');
+    if (hologram) {
+      hologram.addEventListener('click', () => {
+        this.activateApp('settings');
+      });
+    }
+    
+    // Configurar evento del botón de configuración
+    const configButton = document.getElementById('config-button');
+    if (configButton) {
+      configButton.addEventListener('click', () => {
+        this.activateApp('settings');
+      });
+    }
+  }
+
+  hideLoadingScreen() {
+    const loading = document.getElementById('loading');
+    if (loading) {
+      loading.style.opacity = '0';
+      setTimeout(() => {
+        loading.style.display = 'none';
+      }, 500);
+    }
+    
+    // Hacer visible el HTML
+    document.body.classList.add('loaded');
+  }
+
+  showError(error) {
+    console.error('Mostrando error:', error);
+    
+    // Crear contenedor de error
+    const errorContainer = document.createElement('div');
+    errorContainer.className = 'error-container';
+    errorContainer.style.position = 'fixed';
+    errorContainer.style.top = '0';
+    errorContainer.style.left = '0';
+    errorContainer.style.width = '100%';
+    errorContainer.style.height = '100%';
+    errorContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    errorContainer.style.display = 'flex';
+    errorContainer.style.flexDirection = 'column';
+    errorContainer.style.justifyContent = 'center';
+    errorContainer.style.alignItems = 'center';
+    errorContainer.style.zIndex = '10000';
+    errorContainer.style.color = 'white';
+    errorContainer.style.padding = '20px';
+    errorContainer.style.textAlign = 'center';
+    
+    errorContainer.innerHTML = `
+      <h2 style="color: #bb86fc; margin-bottom: 20px;">Error al iniciar Mizu OS</h2>
+      <p style="margin-bottom: 20px; max-width: 600px;">${error.message || 'Error desconocido'}</p>
+      <button id="retry-button" class="btn">Reintentar</button>
+    `;
+    
+    document.body.appendChild(errorContainer);
+    
+    // Configurar botón de reintentar
+    const retryButton = document.getElementById('retry-button');
+    if (retryButton) {
+      retryButton.addEventListener('click', () => {
+        location.reload();
+      });
+    }
+  }
+
+  // Métodos públicos
+  getApp(appName) {
+    return this.apps.get(appName);
+  }
+
+  getActiveApp() {
+    return this.activeApp;
+  }
+
+  getConfig() {
+    return this.config;
+  }
+}
+
+// Inicializar el sistema cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    console.log('DOMContentLoaded: Iniciando CoreApp');
+    
+    // Crear instancia del CoreApp
+    window.coreApp = new CoreApp();
+    
+    // Exportar para depuración
+    window.MizuOS = {
+      version: window.MIZU_VERSION,
+      coreApp: window.coreApp,
+      eventBus: window.eventBus,
+      appLoader: window.appLoader,
+      config: window.coreApp.getConfig()
+    };
+    
+    console.log('Mizu OS Core App inicializado');
+  } catch (error) {
+    console.error('Error crítico al inicializar Mizu OS:', error);
+    
+    // Mostrar error crítico
+    const errorContainer = document.createElement('div');
+    errorContainer.style.position = 'fixed';
+    errorContainer.style.top = '0';
+    errorContainer.style.left = '0';
+    errorContainer.style.width = '100%';
+    errorContainer.style.height = '100%';
+    errorContainer.style.backgroundColor = '#121212';
+    errorContainer.style.color = '#e0e0e0';
+    errorContainer.style.display = 'flex';
+    errorContainer.style.flexDirection = 'column';
+    errorContainer.style.justifyContent = 'center';
+    errorContainer.style.alignItems = 'center';
+    errorContainer.style.zIndex = '10000';
+    errorContainer.style.padding = '20px';
+    errorContainer.style.textAlign = 'center';
+    
+    errorContainer.innerHTML = `
+      <h1 style="color: #ff5252; margin-bottom: 20px;">Error Crítico</h1>
+      <p style="margin-bottom: 20px; max-width: 600px;">No se pudo iniciar Mizu OS. Por favor, recarga la página.</p>
+      <pre style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; overflow: auto; max-width: 80%;">${error.stack}</pre>
+      <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #bb86fc; border: none; border-radius: 4px; color: white; cursor: pointer;">Recargar</button>
+    `;
+    
+    document.body.appendChild(errorContainer);
+  }
+});
