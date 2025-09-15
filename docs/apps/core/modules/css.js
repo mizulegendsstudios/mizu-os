@@ -65,8 +65,9 @@ export default class CSSManager {
         position: absolute;
         width: 100%;
         height: calc(1vh + 2rem);
-        top: 0;
-        left: 0;
+        top: 2px;
+        left: 2px;
+        right: 2px;
         background-color: linear-gradient(180deg,hsla(0, 0%, 0%, 0.1),hsl(0, 100%, 0.3));
         z-index: 1160;
         flex-direction: column;
@@ -77,6 +78,7 @@ export default class CSSManager {
         padding: 2px;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.1);
+border-radius: 2rem;
       }
       
       #blue-bar {
