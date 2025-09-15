@@ -1,0 +1,6 @@
+{
+  "name": "Spreadsheet",
+  "entry": "appcore.js",
+  "icon": "📊",
+  "description": "Hoja de cálculo con fórmulas y redimensionamiento"
+}
