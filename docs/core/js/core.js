@@ -1,6 +1,6 @@
 /*
     Archivo principal que orquesta la lógica de la aplicación.
-    Mizu OS v2.10.21
+    Mizu OS v3.0.0
 */
 console.log(`Cargando sistema...`);
 
