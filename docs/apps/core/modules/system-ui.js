@@ -29,12 +29,47 @@ class SystemUI {
   }
 
   /**
+   * Crea el video de fondo
+   * @returns {HTMLVideoElement} Elemento de video
+   */
+  createVideoBackground() {
+    // Verificar si ya existe un video de fondo
+    const existingVideo = document.querySelector('.video-background');
+    if (existingVideo) {
+      existingVideo.remove();
+    }
+    
+    const video = document.createElement('video');
+    video.className = 'video-background';
+    video.autoplay = true;
+    video.loop = true;
+    video.muted = true;
+    video.playsInline = true;
+    
+    const source = document.createElement('source');
+    source.src = this.videoBackgroundUrl;
+    source.type = 'video/webm';
+    
+    video.appendChild(source);
+    document.body.appendChild(video);
+    
+    console.log('Video de fondo creado');
+    
+    return video;
+  }
+
+  /**
    * Crea la estructura básica del sistema en el contenedor especificado
    * @param {HTMLElement} container - Contenedor donde se creará la UI
    */
   createSystemStructure(container) {
+    console.log('Creando estructura del sistema en:', container);
+    
     // Limpiar contenedor
     container.innerHTML = '';
+    
+    // Crear video de fondo primero
+    this.createVideoBackground();
     
     // Crear barra superior (roja)
     this.elements.redBar = this.createRedBar();
@@ -53,6 +88,12 @@ class SystemUI {
     container.appendChild(this.elements.yellowSquare);
     
     console.log('Estructura básica del sistema creada');
+    console.log('Elementos creados:', {
+      redBar: this.elements.redBar,
+      blueBar: this.elements.blueBar,
+      blackBar: this.elements.blackBar,
+      yellowSquare: this.elements.yellowSquare
+    });
   }
 
   /**
