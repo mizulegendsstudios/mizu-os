@@ -17,7 +17,7 @@ import { drawLines } from '../../apps/diagram/js/drawlines.js';
 import { initDiagram } from '../../apps/diagram/js/nodos.js';
 import { createContainerWithPorts } from '../../apps/diagram/js/nodos-puertos.js';
 
-// Importación del editor - CORREGIDO
+// Importación del editor - RUTA CORRECTA
 import { EditorApp } from '../../apps/editor/js/editor.js';
 
 // DOM
