@@ -19,7 +19,7 @@
 
 /**
  * Sistema de creación de interfaz de usuario para Mizu OS
- * Gestiona la creación dinámica de todos los elementos visuales del sistema
+ * Gestiona la creación dinámica de todos los elementos visuales del sistema.
  */
 class SystemUI {
   constructor() {
