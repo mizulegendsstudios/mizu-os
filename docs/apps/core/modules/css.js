@@ -61,24 +61,10 @@ export default class CSSManager {
         object-fit: cover;
       }
       
-      #mouse-monitor {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        background-color: rgba(30, 0, 0, 0.6);
-        color: #ff0000;
-        padding: 0.5rem;
-        border-radius: 0.375rem;
-        font-size: 0.875rem;
-        white-space: nowrap;
-        backdrop-filter: blur(10px);
-        z-index: 5000;
-      }
-      
       #red-bar {
         position: absolute;
         width: 100%;
-        height: 3rem;
+        height: calc(1% + 2rem);
         top: 0;
         left: 0;
         background-color: rgba(30, 0, 0, 0.6);
@@ -95,7 +81,7 @@ export default class CSSManager {
       
       #blue-bar {
         position: absolute;
-        width: 5rem;
+        width: calc(1% + 4rem);
         height: 100%;
         top: 0;
         left: 0;
@@ -114,27 +100,7 @@ export default class CSSManager {
         z-index: 920;
         transition: transform 0.5s ease, opacity 0.5s ease;
       }
-      
-      #blue-bar .square {
-        width: 4rem;
-        height: 4rem;
-        border-radius: 0.5rem;
-      }
-      #blue-bar .square:nth-child(1) { background-color: rgba(255, 255, 255, 0.5);}
-      #blue-bar .square:nth-child(2) { background-color: rgba(156, 163, 175, 0.5);}
-      #blue-bar .square:nth-child(3) { background-color: rgba(31, 41, 55, 0.5);}
-      
-      #blue-bar .foot-square {
-        position: absolute;
-        bottom: 1rem;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 4rem;
-        height: 4rem;
-        background-color: rgba(168, 85, 247, 0.5);
-        border-radius: 0.5rem;
-      }
-      
+          
       #yellow-square {
         position: absolute;
         top: 0.2rem;
@@ -198,40 +164,6 @@ export default class CSSManager {
         cursor: grab;
       }
       
-      #black-content-wrapper {
-        transform: translate(0, 0) scale(1);
-        transition: transform 0.2s ease-out;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        gap: 1rem;
-        padding: 1rem;
-        position: relative;
-      }
-      
-      #panel-white {
-        flex: 1 1 0%;
-        height: 100%;
-        background-color: rgba(255, 255, 255, 0.5);
-        border-radius: 0.5rem;
-        z-index: 642;
-        color: white;
-        padding: 15px;
-        backdrop-filter: blur(5px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      
-      #panel-purple {
-        flex: 1 1 0%;
-        height: 100%;
-        background-color: rgba(168, 85, 247, 0.5);
-        border-radius: 0.5rem;
-        z-index: 643;
-        color: white;
-        padding: 15px;
-        backdrop-filter: blur(5px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
     `;
 
     this.styleElement.innerHTML = styles;
