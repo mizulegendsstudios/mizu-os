@@ -19,7 +19,7 @@
 
 /**
  * Sistema de creación de interfaz de usuario para Mizu OS
- * Gestiona la creación dinámica de todos los elementos visuales del sistema.
+ * Gestiona la creación dinámica de todos los elementos visuales del sistema
  */
 class SystemUI {
   constructor() {
@@ -51,7 +51,14 @@ class SystemUI {
     source.type = 'video/webm';
     
     video.appendChild(source);
-    document.body.appendChild(video);
+    
+    // Agregar al body antes de cualquier otro elemento
+    document.body.insertBefore(video, document.body.firstChild);
+    
+    // Forzar la reproducción
+    video.play().catch(error => {
+      console.log('Error al reproducir video:', error);
+    });
     
     console.log('Video de fondo creado');
     
