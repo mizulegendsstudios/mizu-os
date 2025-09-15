@@ -1,0 +1,18 @@
+// apps/editor/manifest.json
+{
+  "name": "Editor de Texto y Código",
+  "version": "1.0.0",
+  "description": "Editor de código con vista previa",
+  "icon": "📝",
+  "entry": "appcore.js",
+  "styles": ["app.css"],
+  "scripts": [
+    "modules/editor.js",
+    "modules/preview.js",
+    "modules/console.js"
+  ],
+  "permissions": ["storage", "network"],
+  "dependencies": [],
+  "author": "Mizu Legends Studios",
+  "license": "GNU AGPL-3.0"
+}aaaaaaaaaaaaaa
