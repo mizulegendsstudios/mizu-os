@@ -1,0 +1,18 @@
+// apps/diagram/manifest.json
+{
+  "name": "Mizu Diagramas",
+  "version": "1.0.0",
+  "description": "Editor de diagramas interactivos",
+  "icon": "📊",
+  "entry": "appcore.js",
+  "styles": ["app.css"],
+  "scripts": [
+    "modules/nodes.js",
+    "modules/drawlines.js",
+    "modules/nodos-puertos.js"
+  ],
+  "permissions": ["canvas", "storage"],
+  "dependencies": [],
+  "author": "Mizu Legends Studios",
+  "license": "GNU AGPL-3.0"
+}
