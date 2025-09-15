@@ -2,7 +2,7 @@
 
     “Sistema operativo web nativo construido con JavaScript puro, HTML5 y CSS3. Diseñado para ejecutar aplicaciones productivas directamente en el navegador, sin frameworks, sin dependencias, 100% en la nube".
 
-![Versión](https://img.shields.io/badge/versión-2.10.20-green)
+![Versión](https://img.shields.io/badge/versión-3.0.0-green)
 ![Licencia](https://img.shields.io/badge/licencia-AGPL--3.0-blue)
 ![Tecnología](https://img.shields.io/badge/tecnología-Vanilla_JS_CSS_HTML-purple)
 ![Estado](https://img.shields.io/badge/status/alpha-orange)
@@ -26,11 +26,11 @@ Mizu OS es un sistema operativo web modular diseñado con prioridad absoluta en 
 | App         | Estado   | Notas clave                                                     |
 | ----------- | -------- | --------------------------------------------------------------- |
 | 📊 Diagramas   | ✅ Alpha  | Nodos + puertos anclados, líneas sin SVG, conexiones divisibles |
-| 📋 Texto       | 🚧 Plan  | Procesador de texto con formato plano, Markdown, WYSIWYG.                       |
-| 📈 Tablas      | 🚧 Plan  | Tablas dinámicas + fórmulas matematicas, export CSV              |
-| 🎧 Reproductor | 🚧 Plan  | Audio + listas + visualizador de onda en tiempo real                       |
-| 🎨 Gráficos 2D | 🚧 Plan  | Manipulación de imágenes y vectores por capas, PNG/SVG export                       |
-| 🧊 Editor 3D   | 🚧 Plan  | modelado básico, rotación, iluminación, exportación OBJ                      |
+| 📋 Texto       | ✅ Alpha  | Procesador de texto con formato plano, Markdown, WYSIWYG.       |
+| 📈 Tablas      | ✅ Alpha  | Tablas dinámicas + fórmulas matematicas, export CSV             |
+| 🎧 Reproductor | ✅ Alpha  | Audio + listas + visualizador de onda en tiempo real            |
+| 🎨 Gráficos 2D | 🚧 Plan  | Manipulación de imágenes y vectores por capas, PNG/SVG export    |
+| 🧊 Editor 3D   | 🚧 Plan  | modelado básico, rotación, iluminación, exportación OBJ          |
 
 ---
 
@@ -59,38 +59,37 @@ main/
 ├─ LICENSE                         # GNU AGPL-3.0
 │  ├─ docs/
 │  ├─ index.html                   # Entry-point
-│  ├─ core/                        # Motor
-│  │  ├─ assets/                   # video, imágenes
-│  │  ├─ js/
-│  │  │   ├── js/core.js           # Orquestador
-│  │  │   ├── js/loading.js        # Pantalla carga
-│  │  │   ├── js/monitor_axis.js   # Mouse/viewport
-│  │  │   ├── js/monitor_bars.js   # Auto-hide barras
-│  │  ├─ css/
-│  │  │   │   └── css/core.css     # Layout fijo (5 rem barras)
-│  │  └─ json/
 │  ├─ apps/                        # Módulos
-│  │  ├─ diagram/
-│  │  │   ├── js/
-│  │  │   │   ├── nodos.js         # Nodos tradicionales
-│  │  │   │   ├── nodos-puertos.js # Contenedores + 4 puertos
-│  │  │   │   └── drawlines.js     # Dibuja líneas con <div>
-│  │  │   └── css/
-│  │  │       └── nodos.css        # Estilos nodos y conexiones
+│  │  ├─ core/                        # Motor
+│  │  │  ├─ assets/                   # video, imágenes
+│  │  │  ├─ js/
+│  │  │  │   ├── js/core.js           # Orquestador
+│  │  │  │   ├── js/loading.js        # Pantalla carga
+│  │  │  │   ├── js/monitor_axis.js   # Mouse/viewport
+│  │  │  │   ├── js/monitor_bars.js   # Auto-hide barras
+│  │  │  ├─ css/
+│  │  │  │   │   └── css/core.css     # Layout fijo (5 rem barras)
+│  │  │  └─ json/│  │  ├─ diagram/
+│  │  │  │   ├── js/
+│  │  │  │   │   ├── nodos.js         # Nodos tradicionales
+│  │  │  │   │   ├── nodos-puertos.js # Contenedores + 4 puertos
+│  │  │  │   │   └── drawlines.js     # Dibuja líneas con <div>
+│  │  │  │   └── css/
+│  │  │  │       └── nodos.css        # Estilos nodos y conexiones
 │  │  ├─ text/                     # (Próximo) Plantilla app
 │  │  ├─ table/                    # (Próximo) Plantilla app
+│  ├─ .nojekyll                       # -
 │  ├─ readme.md                    # -
 │  ├─ favicon.ico                  # -
 │  ├─ contribution.md              # Guía de contribución
 │  ├─ contribution.md              # Guía de contribución
 │  └─ architecture.md              # Documentación técnica
-├─ .nojekyll                       # -
 └─ .gitignore                      # -
 ```
 
 ---
 
-## 🎯 Características técnicas actuales (v2.10.20)
+## 🎯 Características técnicas actuales (v3.0.0)
 ### ✅ Implementado
 
 **CORE**
