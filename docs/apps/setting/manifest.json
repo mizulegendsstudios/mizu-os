@@ -3,11 +3,5 @@
   "version": "1.0.0",
   "description": "Configuración del sistema",
   "icon": "⚙️",
-  "entry": "appcore.js",
-  "styles": [],
-  "scripts": [],
-  "permissions": ["storage"],
-  "dependencies": [],
-  "author": "Mizu Legends Studios",
-  "license": "GNU AGPL-3.0"
+  "entry": "appcore.js"
 }
