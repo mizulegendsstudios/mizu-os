@@ -90,8 +90,6 @@ export default class CSSManager {
         background: linear-gradient(90deg,hsla(0, 0%, 0%, 0.5),hsla(0, 0%, 0%, 0));
         color: white;
         padding: 2px;
-        backdrop-filter: blur(10px);
-        padding: 2px;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -154,8 +152,6 @@ export default class CSSManager {
         bottom: 0;
         background-size: contain;
         background-color: hsla(0, 0%, 0%, 0.2);
-        border-radius: 0rem;
-        backdrop-filter: blur(5px);
         padding: 1rem;
         display: flex;
         gap: 0.5rem;
