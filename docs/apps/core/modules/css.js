@@ -3,7 +3,7 @@ export default class CSSManager {
   constructor() {
     this.styleElement = null;
   }
-
+  
   init() {
     console.log('CSSManager: Inicializando gestor de estilos');
     this.styleElement = document.createElement('style');
@@ -11,14 +11,14 @@ export default class CSSManager {
     document.head.appendChild(this.styleElement);
     return true;
   }
-
+  
   injectStyles() {
     console.log('CSSManager: Inyectando estilos...');
     
     if (!this.styleElement) {
       this.init();
     }
-
+    
     const styles = `
       * {
         box-sizing: border-box;
@@ -68,7 +68,7 @@ export default class CSSManager {
         top: 2px;
         left: 2px;
         right: 2px;
-        background-color: linear-gradient(180deg,hsla(0, 0%, 0%, 0.1),hsl(0, 100%, 0.3));
+        background: linear-gradient(180deg,hsla(0, 0%, 0%, 0.1),hsl(0, 100%, 0.3));
         z-index: 1160;
         flex-direction: column;
         align-items: center;
@@ -79,6 +79,8 @@ export default class CSSManager {
         backdrop-filter: blur(10px);
         border: 1px solid hsla(255, 100%, 100%, 0.2);
         border-radius: 2rem;
+        display: flex;
+        align-items: center;
       }
       
       #blue-bar {
@@ -161,8 +163,27 @@ export default class CSSManager {
         cursor: grab;
       }
       
+      /* Estilos para los widgets de estado */
+      .status-widget {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.9rem;
+        color: white;
+      }
+      
+      .status-widget i {
+        font-size: 1rem;
+      }
+      
+      .status-widgets-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-left: auto;
+      }
     `;
-
+    
     this.styleElement.innerHTML = styles;
     console.log('Estilos inyectados correctamente');
   }
