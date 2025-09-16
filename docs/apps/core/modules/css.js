@@ -1,4 +1,5 @@
 // apps/core/modules/css.js
+//Le falta Copying
 export default class CSSManager {
   constructor() {
     this.styleElement = null;
@@ -70,17 +71,77 @@ export default class CSSManager {
         right: 2px;
         background: linear-gradient(180deg,hsla(0, 0%, 0%, 0.1),hsl(0, 100%, 0.3));
         z-index: 1160;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
         transition: transform 0.5s ease, opacity 0.5s ease;
         color: white;
-        padding: 2px;
         backdrop-filter: blur(10px);
         border: 1px solid hsla(255, 100%, 100%, 0.2);
         border-radius: 2rem;
         display: flex;
+        overflow: hidden;
+      }
+      
+      /* Contenedor para los controles de música */
+      .music-controls-container {
+        display: flex;
         align-items: center;
+        height: 100%;
+        gap: 5px;
+      }
+      
+      /* Botones individuales del reproductor */
+      .music-control-button {
+        width: 24px !important;
+        height: 24px !important;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 0;
+      }
+      
+      .music-control-button i {
+        font-size: 12px !important;
+      }
+      
+      /* Contenedor para los widgets de estado */
+      .status-widgets-container {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        gap: 10px;
+        margin-left: auto;
+        margin-right: 0;
+      }
+      
+      /* Widgets individuales */
+      .status-widget {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        gap: 5px;
+        font-size: 0.8rem;
+        color: white;
+      }
+      
+      .status-widget i {
+        font-size: 0.8rem;
+      }
+      
+      /* Separador */
+      #separator-widget {
+        width: 1px;
+        height: 16px;
+        background-color: rgba(255, 255, 255, 0.5);
+        margin: 0 5px;
+        align-self: center;
       }
       
       #blue-bar {
@@ -91,7 +152,6 @@ export default class CSSManager {
         left: 0;
         background: linear-gradient(90deg,hsla(0, 0%, 0%, 0.8),hsla(0, 0%, 0%, 0));
         color: white;
-        padding: 2px;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -161,26 +221,6 @@ export default class CSSManager {
         transition: top 0.5s ease, left 0.5s ease, right 0.5s ease, bottom 0.5s ease;
         overflow: hidden;
         cursor: grab;
-      }
-      
-      /* Estilos para los widgets de estado */
-      .status-widget {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 0.9rem;
-        color: white;
-      }
-      
-      .status-widget i {
-        font-size: 1rem;
-      }
-      
-      .status-widgets-container {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-left: auto;
       }
     `;
     
