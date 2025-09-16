@@ -25,6 +25,7 @@ export default class SystemUI {
     this.eventBus = eventBus;
     this.statusWidget = statusWidget;
     this.elements = {};
+    this.currentActiveApp = null; // Para rastrear la aplicación activa actual
   }
 
   init() {
@@ -37,8 +38,41 @@ export default class SystemUI {
     this.createYellowSquare();
     this.createBlackBar();
     
+    // Suscribirse a eventos de aplicaciones
+    this.subscribeToAppEvents();
+    
     console.log('SystemUI: Interfaz de usuario inicializada correctamente');
     return true;
+  }
+
+  subscribeToAppEvents() {
+    // Suscribirse a eventos de activación y desactivación de aplicaciones
+    this.eventBus.on('app:activated', (data) => {
+      console.log(`SystemUI: Aplicación activada: ${data.appId}`);
+      this.currentActiveApp = data.appId;
+      this.updateAppButtonsState();
+    });
+    
+    this.eventBus.on('app:deactivated', (data) => {
+      console.log(`SystemUI: Aplicación desactivada: ${data.appId}`);
+      if (this.currentActiveApp === data.appId) {
+        this.currentActiveApp = null;
+      }
+      this.updateAppButtonsState();
+    });
+  }
+
+  updateAppButtonsState() {
+    // Actualizar el estado visual de los botones de aplicaciones
+    const appButtons = document.querySelectorAll('.app-button');
+    appButtons.forEach(button => {
+      const appId = button.dataset.appId;
+      if (appId === this.currentActiveApp) {
+        button.classList.add('active');
+      } else {
+        button.classList.remove('active');
+      }
+    });
   }
 
   createVideoBackground() {
@@ -164,7 +198,7 @@ export default class SystemUI {
     
     button.appendChild(icon);
     
-    // Añadir evento de clic para activar la aplicación
+    // Añadir evento de clic para activar/desactivar la aplicación
     button.addEventListener('click', () => {
       console.log(`[DEBUG] Botón de aplicación ${appId} presionado`);
       console.log(`[DEBUG] EventBus disponible:`, !!this.eventBus);
@@ -172,15 +206,23 @@ export default class SystemUI {
       
       // Verificar que el EventBus esté disponible
       if (this.eventBus) {
-        console.log(`[DEBUG] Preparando para emitir evento app:activate para ${appId}`);
-        const eventData = { appId };
-        console.log(`[DEBUG] Datos del evento:`, eventData);
+        console.log(`[DEBUG] Preparando para manejar clic en aplicación ${appId}`);
         
-        try {
-          this.eventBus.emit('app:activate', eventData);
-          console.log(`[DEBUG] Evento app:activate emitido correctamente para ${appId}`);
-        } catch (error) {
-          console.error(`[ERROR] Error al emitir evento:`, error);
+        // Verificar si esta aplicación ya está activa
+        if (this.currentActiveApp === appId) {
+          console.log(`[DEBUG] La aplicación ${appId} ya está activa, se va a desactivar`);
+          // Si es la misma aplicación, desactivarla
+          this.eventBus.emit('app:deactivate', { appId });
+        } else {
+          console.log(`[DEBUG] La aplicación ${appId} no está activa, se va a activar`);
+          // Si hay una aplicación activa diferente, desactivarla primero
+          if (this.currentActiveApp) {
+            console.log(`[DEBUG] Desactivando aplicación actual: ${this.currentActiveApp}`);
+            this.eventBus.emit('app:deactivate', { appId: this.currentActiveApp });
+          }
+          
+          // Activar la nueva aplicación
+          this.eventBus.emit('app:activate', { appId });
         }
       } else {
         console.error('[ERROR] EventBus no disponible en SystemUI');
