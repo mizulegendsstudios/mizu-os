@@ -76,6 +76,7 @@ export default class CSSManager {
         justify-content: space-between;
         transition: transform 0.5s ease, opacity 0.5s ease;
         color: white;
+        padding: 0 8px;
         backdrop-filter: blur(10px);
         border: 1px solid hsla(255, 100%, 100%, 0.2);
         border-radius: 2rem;
@@ -89,6 +90,7 @@ export default class CSSManager {
         align-items: center;
         height: 100%;
         gap: 5px;
+        max-width: 50%; /* Limitar ancho para no ocupar demasiado espacio */
       }
       
       /* Botones individuales del reproductor */
@@ -105,6 +107,7 @@ export default class CSSManager {
         cursor: pointer;
         transition: all 0.2s ease;
         padding: 0;
+        flex-shrink: 0; /* Evitar que se encojan */
       }
       
       .music-control-button i {
@@ -119,6 +122,7 @@ export default class CSSManager {
         gap: 10px;
         margin-left: auto;
         margin-right: 0;
+        flex-shrink: 0; /* Evitar que se encojan */
       }
       
       /* Widgets individuales */
@@ -129,6 +133,7 @@ export default class CSSManager {
         gap: 5px;
         font-size: 0.8rem;
         color: white;
+        white-space: nowrap; /* Evitar que el texto se divida */
       }
       
       .status-widget i {
@@ -152,6 +157,7 @@ export default class CSSManager {
         left: 0;
         background: linear-gradient(90deg,hsla(0, 0%, 0%, 0.8),hsla(0, 0%, 0%, 0));
         color: white;
+        padding: 2px;
         display: flex;
         flex-direction: column;
         justify-content: center;
