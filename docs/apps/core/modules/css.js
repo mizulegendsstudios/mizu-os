@@ -155,6 +155,7 @@ export default class CSSManager {
         background-size: contain;
         background-color: hsla(0, 0%, 0%, 0.2);
         border-radius: 0rem;
+        backdrop-filter: blur(5px);
         padding: 1rem;
         display: flex;
         gap: 0.5rem;
