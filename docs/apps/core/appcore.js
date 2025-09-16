@@ -8,6 +8,7 @@
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
+// apps/core/appcore.js
 import CSSManager from './modules/css.js';
 import UIBuilder from './modules/ui-builder.js';
 
