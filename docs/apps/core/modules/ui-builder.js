@@ -6,7 +6,7 @@ export default class UIBuilder {
     this.body = document.body;
     this.statusWidget = new StatusWidget();
   }
-
+  
   buildUI() {
     console.log('UIBuilder: Construyendo interfaz de usuario');
     
@@ -24,7 +24,11 @@ export default class UIBuilder {
     // Barra roja superior
     const redBar = document.createElement('div');
     redBar.id = 'red-bar';
-       
+    
+    // Añadir controles del reproductor
+    const musicControls = this.statusWidget.createMusicControls();
+    redBar.appendChild(musicControls);
+    
     // Añadir widgets de estado
     const widgetsContainer = this.statusWidget.createAllWidgets();
     redBar.appendChild(widgetsContainer);
@@ -35,6 +39,10 @@ export default class UIBuilder {
     const blueBar = document.createElement('div');
     blueBar.id = 'blue-bar';
     this.body.appendChild(blueBar);
+    
+    // Botón para abrir la aplicación de música
+    const musicAppButton = this.createMusicAppButton();
+    blueBar.appendChild(musicAppButton);
     
     // Cuadrado amarillo con holograma
     const yellowSquare = document.createElement('div');
@@ -55,5 +63,21 @@ export default class UIBuilder {
     this.body.appendChild(blackBar);
     
     console.log('UIBuilder: Interfaz construida correctamente');
+  }
+  
+  createMusicAppButton() {
+    const button = document.createElement('button');
+    button.className = 'app-button';
+    button.title = 'Reproductor de Música';
+    button.innerHTML = '<i class="fas fa-music"></i>';
+    
+    button.addEventListener('click', () => {
+      // Emitir evento para activar la aplicación de música
+      if (window.MizuOS && window.MizuOS.eventBus) {
+        window.MizuOS.eventBus.emit('app:activate', 'music');
+      }
+    });
+    
+    return button;
   }
 }
