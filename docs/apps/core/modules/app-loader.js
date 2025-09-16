@@ -132,7 +132,98 @@ export default class AppLoader {
       console.log(`[DEBUG] AppLoader: Respuesta del manifiesto:`, manifestResponse.status);
       
       if (!manifestResponse.ok) {
-        throw new Error(`No se pudo cargar el manifiesto de ${appId}`);
+        // Para depuración: intentar cargar un manifiesto alternativo
+        console.log(`[ERROR] AppLoader: No se pudo cargar el manifiesto desde ${manifestPath}`);
+        
+        // Si es la aplicación de settings, intentar con un manifiesto integrado
+        if (appId === 'settings') {
+          console.log(`[DEBUG] AppLoader: Intentando cargar manifiesto integrado para settings`);
+          const manifest = {
+            name: "Configuración",
+            version: "1.0.0",
+            description: "Configuración del sistema",
+            icon: "⚙️",
+            entry: "appcore.js"
+          };
+          console.log(`[DEBUG] AppLoader: Manifiesto integrado para settings:`, manifest);
+          
+          // Continuar con la carga usando el manifiesto integrado
+          const scriptPath = `./apps/${appId}/${manifest.entry}`;
+          console.log(`[DEBUG] AppLoader: Cargando script desde ${scriptPath}`);
+          
+          const scriptResponse = await fetch(scriptPath);
+          console.log(`[DEBUG] AppLoader: Respuesta del script:`, scriptResponse.status);
+          
+          if (!scriptResponse.ok) {
+            throw new Error(`No se pudo cargar el script de ${appId}`);
+          }
+          
+          const scriptContent = await scriptResponse.text();
+          console.log(`[DEBUG] AppLoader: Script de ${appId} cargado, longitud:`, scriptContent.length);
+          
+          // Crear una promesa para cargar el módulo dinámicamente
+          const loadModule = new Promise((resolve, reject) => {
+            // Crear un elemento de script para cargar el módulo
+            const script = document.createElement('script');
+            script.type = 'module';
+            
+            // Crear una variable global para almacenar la clase de la aplicación
+            const tempGlobalVar = `__temp_${appId}_app`;
+            
+            // Crear el código que importará el módulo y lo asignará a una variable global
+            script.textContent = `
+              import('${scriptPath}')
+                .then(module => {
+                  window.${tempGlobalVar} = module.default;
+                  window.${tempGlobalVar}_loaded = true;
+                })
+                .catch(error => {
+                  console.error('Error loading module:', error);
+                  window.${tempGlobalVar}_error = error;
+                });
+            `;
+            
+            // Añadir el script al documento
+            document.head.appendChild(script);
+            
+            // Esperar a que el módulo se cargue
+            const checkInterval = setInterval(() => {
+              if (window[`${tempGlobalVar}_loaded`]) {
+                clearInterval(checkInterval);
+                resolve(window[tempGlobalVar]);
+                // Limpiar variables temporales
+                delete window[tempGlobalVar];
+                delete window[`${tempGlobalVar}_loaded`];
+                document.head.removeChild(script);
+              } else if (window[`${tempGlobalVar}_error`]) {
+                clearInterval(checkInterval);
+                reject(window[`${tempGlobalVar}_error`]);
+                // Limpiar variables temporales
+                delete window[`${tempGlobalVar}_error`];
+                document.head.removeChild(script);
+              }
+            }, 50);
+          });
+          
+          // Esperar a que el módulo se cargue
+          const AppClass = await loadModule;
+          console.log(`[DEBUG] AppLoader: Clase de aplicación obtenida:`, typeof AppClass);
+          
+          // Crear una instancia de la aplicación
+          const appInstance = new AppClass(this.eventBus);
+          console.log(`[DEBUG] AppLoader: Instancia de aplicación creada:`, typeof appInstance);
+          
+          // Guardar la aplicación cargada
+          this.loadedApps.set(appId, {
+            instance: appInstance,
+            manifest: manifest
+          });
+          
+          console.log(`[DEBUG] AppLoader: Aplicación ${appId} cargada correctamente`);
+          return this.loadedApps.get(appId);
+        } else {
+          throw new Error(`No se pudo cargar el manifiesto de ${appId}`);
+        }
       }
       
       const manifest = await manifestResponse.json();
