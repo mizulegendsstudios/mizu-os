@@ -133,11 +133,11 @@ export default class SystemUI {
     const redBar = document.createElement('div');
     redBar.id = 'red-bar';
     
-    // Añadir controles de música
+    // Añadir controles de música (centrados)
     const musicControls = this.statusWidget.createMusicControls();
     redBar.appendChild(musicControls);
     
-    // Añadir widgets de estado
+    // Añadir widgets de estado (a la derecha)
     const statusWidgets = this.statusWidget.createAllWidgets();
     redBar.appendChild(statusWidgets);
     
