@@ -1,5 +1,5 @@
 // apps/core/modules/css.js
-//Le falta Copying
+// Le falta Copying, agregarlo
 export default class CSSManager {
   constructor() {
     this.styleElement = null;
@@ -168,6 +168,33 @@ export default class CSSManager {
         transition: transform 0.5s ease, opacity 0.5s ease;
       }
           
+      /* Botones de aplicaciones */
+      .app-button {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 0;
+      }
+      
+      .app-button:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.1);
+      }
+      
+      .app-button.active {
+        background: rgba(99, 102, 241, 0.5);
+        border-color: rgba(99, 102, 241, 0.8);
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+      }
+      
       #yellow-square {
         position: absolute;
         top: 0.2rem;
