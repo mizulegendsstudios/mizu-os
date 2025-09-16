@@ -72,7 +72,7 @@ export default class Core {
       console.log('[DEBUG] Core: Exponiendo EventBus globalmente');
       window.MizuOS = {
         eventBus: this.modules.eventBus,
-        version: '3.0.1',
+        version: '3.0.0',
         architecture: 'hybrid-decentralized'
       };
       console.log('[DEBUG] Core: window.MizuOS creado:', window.MizuOS);
@@ -82,15 +82,15 @@ export default class Core {
       console.log('[DEBUG] Core: Inicializando StatusWidget');
       this.modules.statusWidget = new StatusWidget();
       
-      // Inicializar cargador de aplicaciones
-      console.log('[DEBUG] Core: Inicializando AppLoader');
-      this.modules.appLoader = new AppLoader(this.modules.eventBus);
-      this.modules.appLoader.init();
-      
-      // Inicializar interfaz de usuario
+      // Inicializar interfaz de usuario ANTES que el cargador de aplicaciones
       console.log('[DEBUG] Core: Inicializando SystemUI');
       this.modules.systemUI = new SystemUI(this.modules.eventBus, this.modules.statusWidget);
       this.modules.systemUI.init();
+      
+      // Inicializar cargador de aplicaciones DESPUÉS de la interfaz de usuario
+      console.log('[DEBUG] Core: Inicializando AppLoader');
+      this.modules.appLoader = new AppLoader(this.modules.eventBus);
+      this.modules.appLoader.init();
       
       this.initialized = true;
       console.log('[DEBUG] Core: Sistema inicializado correctamente');
