@@ -1,4 +1,4 @@
-// apps/core/appcore.js
+// apps/core/core.js
 /*
  * Mizu OS - Core System
  * Copyright (C) 2025 Mizu Legends Studios
@@ -55,7 +55,13 @@ export default class Core {
       console.log('[DEBUG] Core: Inicializando CSS Manager');
       this.modules.css = new CSSManager();
       this.modules.css.init();
+      
+      // Inyectar estilos y esperar a que se apliquen
+      console.log('[DEBUG] Core: Inyectando estilos');
       this.modules.css.injectStyles();
+      
+      // Esperar un momento para asegurar que los estilos se apliquen
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Inicializar EventBus
       console.log('[DEBUG] Core: Inicializando EventBus');
