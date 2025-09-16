@@ -85,13 +85,17 @@ export default class CSSManager {
         overflow: hidden;
       }
       
-      /* Contenedor para los controles de música */
+      /* Contenedor para los controles de música - MODIFICADO PARA CENTRAR */
       .music-controls-container {
         display: flex;
         align-items: center;
+        justify-content: center; /* CENTRAR HORIZONTALMENTE */
         height: 100%;
         gap: 5px;
-        max-width: 50%; /* Limitar ancho para no ocupar demasiado espacio */
+        width: 100%; /* OCUPAR TODO EL ANCHO DISPONIBLE */
+        position: absolute; /* POSICIÓN ABSOLUTA PARA CENTRAR */
+        left: 0;
+        right: 0;
       }
       
       /* Botones individuales del reproductor */
@@ -124,6 +128,7 @@ export default class CSSManager {
         margin-left: auto;
         margin-right: 0;
         flex-shrink: 0; /* Evitar que se encojan */
+        z-index: 1; /* ASEGURAR QUE LOS WIDGETS ESTÉN ENCIMA */
       }
       
       /* Widgets individuales */
