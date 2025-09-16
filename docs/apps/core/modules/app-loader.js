@@ -197,7 +197,7 @@ export default class AppLoader {
                 document.head.removeChild(script);
               } else if (window[`${tempGlobalVar}_error`]) {
                 clearInterval(checkInterval);
-                reject(window[`${tempGlobalVar}_error`);
+                reject(window[`${tempGlobalVar}_error`]); // CORREGIDO: Se añadió el cierre del template literal
                 // Limpiar variables temporales
                 delete window[`${tempGlobalVar}_error`];
                 document.head.removeChild(script);
@@ -274,7 +274,7 @@ export default class AppLoader {
             document.head.removeChild(script);
           } else if (window[`${tempGlobalVar}_error`]) {
             clearInterval(checkInterval);
-            reject(window[`${tempGlobalVar}_error`);
+            reject(window[`${tempGlobalVar}_error`]); // CORREGIDO: Se añadió el cierre del template literal
             // Limpiar variables temporales
             delete window[`${tempGlobalVar}_error`];
             document.head.removeChild(script);
