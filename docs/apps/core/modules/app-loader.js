@@ -52,25 +52,29 @@ export default class AppLoader {
 
   ensureAppsContainer() {
     // Verificar si el contenedor ya existe
-    this.appsContainer = document.getElementById('black-content-wrapper');
+    this.appsContainer = document.getElementById('black-bar');
     
     if (!this.appsContainer) {
       console.log('AppLoader: Creando contenedor de aplicaciones');
       
       // Crear el contenedor si no existe
       this.appsContainer = document.createElement('div');
-      this.appsContainer.id = 'black-content-wrapper';
+      this.appsContainer.id = 'black-bar';
       this.appsContainer.style.cssText = `
         position: absolute;
-        top: calc(2vh + 1rem + 10px);
-        left: calc(2vw + 2rem + 10px);
-        right: 10px;
-        bottom: 10px;
-        background-color: hsla(0, 0%, 0%, 0.7);
-        border-radius: 1rem;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-size: contain;
+        background-color: hsla(0, 0%, 0%, 0.2);
+        padding: 1rem;
+        display: flex;
+        gap: 0.5rem;
+        z-index: 641;
+        transition: top 0.5s ease, left 0.5s ease, right 0.5s ease, bottom 0.5s ease;
         overflow: hidden;
-        z-index: 500;
-        display: none;
+        cursor: grab;
       `;
       
       // Añadir el contenedor al body
@@ -158,8 +162,8 @@ export default class AppLoader {
       // Asegurarse de que el contenedor de aplicaciones exista
       this.ensureAppsContainer();
       
-      // Mostrar el contenedor de aplicaciones
-      this.appsContainer.style.display = 'block';
+      // Limpiar el contenedor antes de renderizar
+      this.appsContainer.innerHTML = '';
       
       // Inicializar la aplicación
       if (typeof appData.instance.init === 'function') {
@@ -168,12 +172,10 @@ export default class AppLoader {
       
       // Renderizar la aplicación
       if (typeof appData.instance.render === 'function') {
-        // Limpiar el contenedor antes de renderizar
-        this.appsContainer.innerHTML = '';
-        
         // Renderizar la aplicación
         const appElement = appData.instance.render();
         this.appsContainer.appendChild(appElement);
+        console.log(`AppLoader: Aplicación ${appId} renderizada en el contenedor`);
       }
       
       // Guardar la aplicación activa
@@ -208,10 +210,8 @@ export default class AppLoader {
       // Eliminar la aplicación de las aplicaciones activas
       this.activeApps.delete(appId);
       
-      // Ocultar el contenedor si no hay aplicaciones activas
-      if (this.activeApps.size === 0) {
-        this.appsContainer.style.display = 'none';
-      }
+      // Limpiar el contenedor
+      this.appsContainer.innerHTML = '';
       
       // Emitir evento de aplicación desactivada
       this.eventBus.emit('app:deactivated', { appId });
