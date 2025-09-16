@@ -105,15 +105,7 @@ export default class UIBuilder {
     cube.appendChild(hologram);
     console.log('UIBuilder: Holograma creado y añadido');
     
-    // Barra negra principal
-    console.log('UIBuilder: Creando barra negra');
-    const blackBar = document.createElement('div');
-    blackBar.id = 'black-bar';
-    this.body.appendChild(blackBar);
-    console.log('UIBuilder: Barra negra añadida al DOM');
-    
-    console.log('UIBuilder: Interfaz construida correctamente');
-    console.log('UIBuilder: Total de elementos en body:', this.body.children.length);
+   
     
     // Listar todos los elementos en el body para depuración
     console.log('UIBuilder: Elementos en body:');
