@@ -23,7 +23,7 @@
 export default class Config {
   constructor() {
     this.config = {
-      version: '3.0.0',
+      version: '3.0.1',
       architecture: 'hybrid-decentralized',
       debug: true,
       theme: 'dark',
