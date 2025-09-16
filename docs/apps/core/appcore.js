@@ -72,7 +72,7 @@ export default class Core {
       console.log('[DEBUG] Core: Exponiendo EventBus globalmente');
       window.MizuOS = {
         eventBus: this.modules.eventBus,
-        version: '3.0.0',
+        version: '3.0.1',
         architecture: 'hybrid-decentralized'
       };
       console.log('[DEBUG] Core: window.MizuOS creado:', window.MizuOS);
