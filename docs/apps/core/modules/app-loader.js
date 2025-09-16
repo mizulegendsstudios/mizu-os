@@ -29,7 +29,7 @@ export default class AppLoader {
     
     console.log('[DEBUG] AppLoader: Constructor llamado con EventBus:', !!eventBus);
   }
-
+  
   init() {
     console.log('AppLoader: Inicializando cargador de aplicaciones');
     
@@ -55,7 +55,7 @@ export default class AppLoader {
     console.log('AppLoader: Cargador de aplicaciones inicializado correctamente');
     return true;
   }
-
+  
   ensureAppsContainer() {
     console.log('[DEBUG] AppLoader: Verificando contenedor de aplicaciones');
     
@@ -95,7 +95,7 @@ export default class AppLoader {
     
     return this.appsContainer;
   }
-
+  
   async loadApp(appId) {
     console.log(`[DEBUG] AppLoader: Cargando aplicación ${appId}`);
     console.log(`[DEBUG] AppLoader: ¿Aplicación ya cargada?`, this.loadedApps.has(appId));
@@ -121,8 +121,13 @@ export default class AppLoader {
       const manifest = await manifestResponse.json();
       console.log(`[DEBUG] AppLoader: Manifiesto de ${appId} cargado:`, manifest);
       
-      // Cargar el script principal de la aplicación
-      const scriptPath = `./apps/${appId}/${manifest.main}`;
+      // Compatibilidad con ambos formatos: "entry" y "main"
+      const entryPoint = manifest.entry || manifest.main;
+      if (!entryPoint) {
+        throw new Error(`El manifiesto de ${appId} no especifica un punto de entrada (entry o main)`);
+      }
+      
+      const scriptPath = `./apps/${appId}/${entryPoint}`;
       console.log(`[DEBUG] AppLoader: Cargando script desde ${scriptPath}`);
       
       const scriptResponse = await fetch(scriptPath);
@@ -159,7 +164,7 @@ export default class AppLoader {
       return null;
     }
   }
-
+  
   async activateApp(appId) {
     console.log(`[DEBUG] AppLoader: Activando aplicación ${appId}`);
     
@@ -218,7 +223,7 @@ export default class AppLoader {
       console.error(`[ERROR] AppLoader: Error al activar la aplicación ${appId}:`, error);
     }
   }
-
+  
   deactivateApp(appId) {
     console.log(`AppLoader: Desactivando aplicación ${appId}`);
     
