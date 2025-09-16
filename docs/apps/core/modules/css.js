@@ -87,7 +87,7 @@ export default class CSSManager {
         height: 100%;
         top: 0;
         left: 0;
-        background: linear-gradient(90deg,hsla(0, 0%, 0%, 0.5),hsla(0, 0%, 0%, 0));
+        background: linear-gradient(90deg,hsla(0, 0%, 0%, 0.8),hsla(0, 0%, 0%, 0));
         color: white;
         padding: 2px;
         display: flex;
