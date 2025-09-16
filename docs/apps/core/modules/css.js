@@ -31,7 +31,7 @@ export default class CSSManager {
       }
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #f3f4f6;
+        background-color: hsla(0, 0%, 0%, 0.1);
         min-height: 100vh;
         display: flex;
         align-items: center;
@@ -45,7 +45,7 @@ export default class CSSManager {
         content: "";
         position: absolute;
         inset: 0;
-        background-color: rgba(34, 197, 94, 0.5);
+        background-color: hsla(0, 0%, 0%, 0.1);
         z-index: 0;
       }
       
@@ -77,13 +77,13 @@ export default class CSSManager {
         color: white;
         padding: 2px;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-border-radius: 2rem;
+        border: 1px solid hsla(255, 100%, 100%, 0.2);
+        border-radius: 2rem;
       }
       
       #blue-bar {
         position: absolute;
-        width: calc(2vw + 3rem);
+        width: calc(2vw + 2rem);
         height: 100%;
         top: 0;
         left: 0;
@@ -153,7 +153,7 @@ border-radius: 2rem;
         right: 0;
         bottom: 0;
         background-size: contain;
-        background-color: hsla(0, 0%, 0%, 0.05);
+        background-color: hsla(0, 0%, 0%, 0.2);
         border-radius: 0rem;
         padding: 1rem;
         display: flex;
