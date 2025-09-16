@@ -1,4 +1,4 @@
-// apps/core/core.js
+// apps/core/appcore.js
 /*
  * Mizu OS - Core System
  * Copyright (C) 2025 Mizu Legends Studios
