@@ -157,12 +157,12 @@ export default class MusicApp {
       margin-bottom: 20px;
     `;
     
-    // Botones de control
-    const prevBtn = this.createControlButton('fa-backward', 'Anterior', () => this.playPrev());
-    const playPauseBtn = this.createControlButton('fa-play', 'Reproducir', () => this.togglePlayPause());
-    const stopBtn = this.createControlButton('fa-stop', 'Detener', () => this.stop());
-    const nextBtn = this.createControlButton('fa-forward', 'Siguiente', () => this.playNext());
-    const openLinkBtn = this.createControlButton('fa-up-right-from-square', 'Abrir', () => this.openInNewTab());
+    // Botones de control - CORREGIDO: usando bind para mantener el contexto
+    const prevBtn = this.createControlButton('fa-backward', 'Anterior');
+    const playPauseBtn = this.createControlButton('fa-play', 'Reproducir');
+    const stopBtn = this.createControlButton('fa-stop', 'Detener');
+    const nextBtn = this.createControlButton('fa-forward', 'Siguiente');
+    const openLinkBtn = this.createControlButton('fa-up-right-from-square', 'Abrir');
     
     controlsContainer.appendChild(prevBtn);
     controlsContainer.appendChild(playPauseBtn);
@@ -219,13 +219,6 @@ export default class MusicApp {
       cursor: pointer;
       font-weight: bold;
     `;
-    addBtn.addEventListener('click', () => {
-      const url = urlInput.value.trim();
-      if (url) {
-        this.addTrack(url);
-        urlInput.value = '';
-      }
-    });
     
     urlInputContainer.appendChild(urlInput);
     urlInputContainer.appendChild(addBtn);
@@ -242,12 +235,6 @@ export default class MusicApp {
     fileInput.type = 'file';
     fileInput.accept = 'audio/*';
     fileInput.style.display = 'none';
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        this.addLocalTrack(file);
-      }
-    });
     
     const loadFileBtn = document.createElement('button');
     loadFileBtn.textContent = 'Cargar archivo local';
@@ -260,9 +247,6 @@ export default class MusicApp {
       cursor: pointer;
       font-size: 14px;
     `;
-    loadFileBtn.addEventListener('click', () => {
-      fileInput.click();
-    });
     
     loadFileContainer.appendChild(loadFileBtn);
     loadFileContainer.appendChild(fileInput);
@@ -323,14 +307,40 @@ export default class MusicApp {
     panel.appendChild(playlistSection);
     panel.appendChild(this.audioElement);
     
-    // Guardar referencias a elementos importantes - CORREGIDO
+    // Guardar referencias a elementos importantes
     this.panel = panel;
-    this.currentTrackTitleEl = currentTrackTitle;  // Referencia directa
-    this.currentTrackSourceEl = currentTrackSource;  // Referencia directa
-    this.playlistContainerEl = playlistContainer;  // Referencia directa
+    this.currentTrackTitleEl = currentTrackTitle;
+    this.currentTrackSourceEl = currentTrackSource;
+    this.playlistContainerEl = playlistContainer;
     this.playPauseBtnEl = playPauseBtn;
     this.mediaPlayerContainerEl = mediaPlayerContainer;
     this.dynamicPlayerEl = dynamicPlayer;
+    
+    // Adjuntar eventos después de crear todos los elementos - CORREGIDO
+    prevBtn.addEventListener('click', () => this.playPrev());
+    playPauseBtn.addEventListener('click', () => this.togglePlayPause());
+    stopBtn.addEventListener('click', () => this.stop());
+    nextBtn.addEventListener('click', () => this.playNext());
+    openLinkBtn.addEventListener('click', () => this.openInNewTab());
+    
+    addBtn.addEventListener('click', () => {
+      const url = urlInput.value.trim();
+      if (url) {
+        this.addTrack(url);
+        urlInput.value = '';
+      }
+    });
+    
+    loadFileBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        this.addLocalTrack(file);
+      }
+    });
     
     return panel;
   }
@@ -344,8 +354,8 @@ export default class MusicApp {
     }
   }
   
-  // Crear botón de control
-  createControlButton(iconClass, title, clickHandler) {
+  // Crear botón de control - CORREGIDO: sin manejador de eventos aquí
+  createControlButton(iconClass, title) {
     const button = document.createElement('button');
     button.style.cssText = `
       width: 50px;
@@ -359,6 +369,7 @@ export default class MusicApp {
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s ease;
+      pointer-events: auto;
     `;
     
     const icon = document.createElement('i');
@@ -367,7 +378,6 @@ export default class MusicApp {
     
     button.appendChild(icon);
     button.title = title;
-    button.addEventListener('click', clickHandler);
     
     return button;
   }
@@ -479,6 +489,7 @@ export default class MusicApp {
         align-items: center;
         cursor: pointer;
         transition: background 0.2s ease;
+        pointer-events: auto;
       `;
       
       if (index === this.currentTrackIndex) {
@@ -501,17 +512,20 @@ export default class MusicApp {
         padding: 5px;
         border-radius: 50%;
         transition: all 0.2s ease;
+        pointer-events: auto;
       `;
-      deleteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.removeTrack(index);
-      });
       
       item.appendChild(info);
       item.appendChild(deleteBtn);
       
+      // Adjuntar eventos después de crear los elementos
       item.addEventListener('click', () => {
         this.playTrack(index);
+      });
+      
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.removeTrack(index);
       });
       
       this.playlistContainerEl.appendChild(item);
@@ -634,6 +648,8 @@ export default class MusicApp {
   
   // Alternar play/pause
   togglePlayPause() {
+    console.log('MusicApp: togglePlayPause llamado');
+    
     if (this.currentTrackIndex === -1) {
       if (this.playlist.length > 0) {
         this.playTrack(0);
@@ -662,6 +678,7 @@ export default class MusicApp {
   
   // Detener reproducción
   stop() {
+    console.log('MusicApp: stop llamado');
     this.stopAllMedia();
     this.isPlaying = false;
     this.updatePlayPauseButton();
@@ -682,6 +699,7 @@ export default class MusicApp {
   
   // Reproducir siguiente pista
   playNext() {
+    console.log('MusicApp: playNext llamado');
     if (this.playlist.length > 0) {
       this.currentTrackIndex = (this.currentTrackIndex + 1) % this.playlist.length;
       this.playTrack(this.currentTrackIndex);
@@ -690,6 +708,7 @@ export default class MusicApp {
   
   // Reproducir pista anterior
   playPrev() {
+    console.log('MusicApp: playPrev llamado');
     if (this.playlist.length > 0) {
       this.currentTrackIndex = (this.currentTrackIndex - 1 + this.playlist.length) % this.playlist.length;
       this.playTrack(this.currentTrackIndex);
@@ -698,18 +717,21 @@ export default class MusicApp {
   
   // Alternar modo de repetición
   toggleRepeat() {
+    console.log('MusicApp: toggleRepeat llamado');
     // Implementar lógica de repetición aquí
     this.showNotification('Modo de repetición alternado');
   }
   
   // Alternar control de volumen
   toggleVolume() {
+    console.log('MusicApp: toggleVolume llamado');
     // Implementar control de volumen aquí
     this.showNotification('Control de volumen alternado');
   }
   
   // Abrir en nueva pestaña
   openInNewTab() {
+    console.log('MusicApp: openInNewTab llamado');
     if (this.currentTrackIndex !== -1) {
       const track = this.playlist[this.currentTrackIndex];
       window.open(track.url, '_blank');
