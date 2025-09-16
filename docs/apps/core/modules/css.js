@@ -32,7 +32,7 @@ export default class CSSManager {
       }
       body {
         font-family: 'Inter', sans-serif;
-        background-color: hsla(0, 0%, 0%, 0.1);
+        background-color: hsla(0, 0%, 0%, 1);
         min-height: 100vh;
         display: flex;
         align-items: center;
@@ -40,6 +40,7 @@ export default class CSSManager {
         padding: 1rem;
         position: relative;
         overflow: hidden;
+        color: black;
       }
       
       body::before {
