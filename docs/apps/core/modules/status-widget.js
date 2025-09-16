@@ -21,6 +21,7 @@
  * Sistema de widgets de estado para Mizu OS
  * Gestiona la visualización de información del sistema (hora, batería, WiFi, volumen)
  */
+// apps/core/modules/status-widget.js
 export default class StatusWidget {
   constructor() {
     this.widgets = {};
@@ -35,15 +36,15 @@ export default class StatusWidget {
       const now = new Date();
       const hours = now.getHours().toString().padStart(2, '0');
       const minutes = now.getMinutes().toString().padStart(2, '0');
-      const seconds = now.getSeconds().toString().padStart(2, '0');
-      clock.textContent = `${hours}:${minutes}:${seconds}`;
+      // Solo mostrar horas y minutos, sin segundos
+      clock.innerHTML = `<i class="far fa-clock"></i> ${hours}:${minutes}`;
     };
     
     // Actualizar inmediatamente
     updateClock();
     
-    // Actualizar cada segundo
-    setInterval(updateClock, 1000);
+    // Actualizar cada minuto en lugar de cada segundo
+    setInterval(updateClock, 60000);
     
     this.widgets.clock = clock;
     return clock;
@@ -57,10 +58,8 @@ export default class StatusWidget {
     // Simular nivel de batería (en una implementación real se usaría la API de batería)
     const batteryLevel = Math.floor(Math.random() * 100);
     
-    battery.innerHTML = `
-      <i class="fas fa-battery-three-quarters"></i>
-      <span>${batteryLevel}%</span>
-    `;
+    // Solo el icono, sin texto
+    battery.innerHTML = `<i class="fas fa-battery-three-quarters"></i>`;
     
     this.widgets.battery = battery;
     return battery;
@@ -74,10 +73,8 @@ export default class StatusWidget {
     // Simular estado de conexión (en una implementación real se usaría la API de conexión)
     const isConnected = Math.random() > 0.3;
     
-    wifi.innerHTML = `
-      <i class="fas fa-wifi"></i>
-      <span>${isConnected ? 'Conectado' : 'Desconectado'}</span>
-    `;
+    // Solo el icono, sin texto
+    wifi.innerHTML = `<i class="fas fa-wifi"></i>`;
     
     this.widgets.wifi = wifi;
     return wifi;
@@ -91,10 +88,8 @@ export default class StatusWidget {
     // Simular nivel de volumen
     const volumeLevel = Math.floor(Math.random() * 100);
     
-    volume.innerHTML = `
-      <i class="fas fa-volume-up"></i>
-      <span>${volumeLevel}%</span>
-    `;
+    // Solo el icono, sin texto
+    volume.innerHTML = `<i class="fas fa-volume-up"></i>`;
     
     this.widgets.volume = volume;
     return volume;
@@ -110,11 +105,11 @@ export default class StatusWidget {
     container.style.gap = '15px';
     container.style.marginLeft = 'auto';
     
-    // Crear y añadir widgets
-    container.appendChild(this.createClock());
-    container.appendChild(this.createBattery());
-    container.appendChild(this.createWiFi());
+    // Nuevo orden: WiFi, Volumen, Batería, Reloj
     container.appendChild(this.createVolume());
+    container.appendChild(this.createWiFi());
+    container.appendChild(this.createBattery());
+    container.appendChild(this.createClock());
     
     console.log('StatusWidget: Widgets creados correctamente');
     return container;
