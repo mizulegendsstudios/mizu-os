@@ -22,7 +22,6 @@
  * Gestiona la visualización de información del sistema (hora, batería, WiFi, volumen)
  */
 // apps/core/modules/status-widget.js
-// apps/core/modules/status-widget.js
 export default class StatusWidget {
   constructor() {
     this.widgets = {};
@@ -41,9 +40,9 @@ export default class StatusWidget {
       this.emitMusicEvent('togglePlayPause');
     });
     
-    // Botón de detener
-    const stopBtn = this.createMusicControlButton('fa-stop', 'Detener', () => {
-      this.emitMusicEvent('stop');
+    // Botón de repetir
+    const repeatBtn = this.createMusicControlButton('fa-redo', 'Repetir', () => {
+      this.emitMusicEvent('toggleRepeat');
     });
     
     // Botón anterior
@@ -63,8 +62,8 @@ export default class StatusWidget {
     
     container.appendChild(prevBtn);
     container.appendChild(playPauseBtn);
-    container.appendChild(stopBtn);
     container.appendChild(nextBtn);
+    container.appendChild(repeatBtn);
     container.appendChild(volumeBtn);
     
     return container;
