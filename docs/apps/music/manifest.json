@@ -1,16 +1,11 @@
-// apps/music/manifest.json
 {
   "name": "Reproductor de Música",
   "version": "1.0.0",
   "description": "Reproductor de música streaming",
   "icon": "🎵",
   "entry": "appcore.js",
-  "styles": ["app.css"],
-  "scripts": [
-    "modules/player.js",
-    "modules/playlist.js",
-    "modules/controls.js"
-  ],
+  "styles": [],
+  "scripts": [],
   "permissions": ["network", "storage"],
   "dependencies": [],
   "author": "Mizu Legends Studios",
