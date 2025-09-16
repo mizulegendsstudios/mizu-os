@@ -936,4 +936,274 @@ export default class MusicApp {
         if (this.playlist.length <= 1) return;
         
         if (this.isShuffled) {
-            this.playlist = [...this
+            this.playlist = [...this.originalPlaylist];
+            this.isShuffled = false;
+            this.showNotification('Playlist restaurada a su orden original');
+        } else {
+            this.originalPlaylist = [...this.playlist];
+            for (let i = this.playlist.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [this.playlist[i], this.playlist[j]] = [this.playlist[j], this.playlist[i]];
+            }
+            this.isShuffled = true;
+            this.showNotification('Playlist mezclada de forma aleatoria');
+        }
+        
+        this.renderPlaylist();
+        this.updateUI();
+    }
+    
+    // Alternar modo de repetición
+    toggleRepeatMode() {
+        if (this.repeatMode === 'no-repeat') {
+            this.repeatMode = 'repeat-all';
+            this.showNotification('Repetir toda la playlist');
+        } else if (this.repeatMode === 'repeat-all') {
+            this.repeatMode = 'repeat-one';
+            this.showNotification('Repetir la canción actual');
+        } else {
+            this.repeatMode = 'no-repeat';
+            this.showNotification('Modo de repetición desactivado');
+        }
+        
+        this.updateUI();
+    }
+    
+    // Detener toda la reproducción de medios
+    stopAllMedia() {
+        if (!this.audioElement.paused) {
+            this.audioElement.pause();
+            this.audioElement.removeAttribute('src');
+        }
+        
+        if (this.youtubePlayer && typeof this.youtubePlayer.stopVideo === 'function') {
+            this.youtubePlayer.stopVideo();
+            this.youtubePlayer.destroy();
+            this.youtubePlayer = null;
+        }
+        
+        // Limpia el reproductor dinámico
+        this.dynamicPlayerEl.innerHTML = '';
+        this.progressBarEl.value = 0;
+        this.currentTimeEl.textContent = "0:00";
+        this.durationEl.textContent = "0:00";
+        this.updateProgressBarBg();
+    }
+    
+    // Reproducir una pista específica
+    playTrack(index) {
+        if (index >= 0 && index < this.playlist.length) {
+            this.stopAllMedia();
+            this.currentTrackIndex = index;
+            const track = this.playlist[this.currentTrackIndex];
+            
+            // Ocultar el reproductor de iframes por defecto
+            this.mediaPlayerContainerEl.style.display = 'none';
+            
+            if (track.source === 'YouTube' && track.videoId) {
+                if (this.isYouTubeApiReady) {
+                    this.mediaPlayerContainerEl.style.display = 'block';
+                    
+                    if (this.youtubePlayer) {
+                        this.youtubePlayer.loadVideoById(track.videoId);
+                    } else {
+                        this.youtubePlayer = new YT.Player('dynamic-player', {
+                            height: '200',
+                            width: '100%',
+                            videoId: track.videoId,
+                            playerVars: { 'playsinline': 1 },
+                            events: {
+                                'onReady': (event) => {
+                                    event.target.playVideo();
+                                },
+                                'onStateChange': (event) => {
+                                    if (event.data === YT.PlayerState.ENDED) {
+                                        this.playNext();
+                                    }
+                                    if (event.data === YT.PlayerState.PLAYING) {
+                                        if (window.updateProgressInterval) clearInterval(window.updateProgressInterval);
+                                        window.updateProgressInterval = setInterval(() => {
+                                            if (this.youtubePlayer && typeof this.youtubePlayer.getCurrentTime === 'function' && this.youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+                                                const current = this.youtubePlayer.getCurrentTime();
+                                                const duration = this.youtubePlayer.getDuration();
+                                                if (duration > 0) {
+                                                    this.progressBarEl.value = (current / duration) * 100;
+                                                    this.currentTimeEl.textContent = this.formatTime(current);
+                                                    this.durationEl.textContent = this.formatTime(duration);
+                                                    this.updateProgressBarBg();
+                                                }
+                                            }
+                                        }, 1000);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    this.isPlaying = true;
+                } else {
+                    this.showNotification("Error: La API de YouTube no está lista. Inténtalo de nuevo en unos segundos.");
+                    this.isPlaying = false;
+                }
+            } else if (track.source === 'SoundCloud' && track.embedHtml) {
+                this.mediaPlayerContainerEl.style.display = 'block';
+                this.dynamicPlayerEl.innerHTML = track.embedHtml;
+                this.isPlaying = true;
+            } else if (track.source === 'Mixcloud' && track.embedHtml) {
+                this.mediaPlayerContainerEl.style.display = 'block';
+                this.dynamicPlayerEl.innerHTML = track.embedHtml;
+                this.isPlaying = true;
+            } else if (track.source === 'Local' && track.file) {
+                const fileUrl = URL.createObjectURL(track.file);
+                this.audioElement.src = fileUrl;
+                this.audioElement.play();
+                this.isPlaying = true;
+            } else {
+                this.showNotification("Error: No se pudo reproducir este track. La fuente no es compatible o le falta el ID/código.");
+                this.isPlaying = false;
+            }
+            
+            this.updateUI();
+        }
+    }
+    
+    // Alternar play/pausa
+    togglePlayPause() {
+        if (this.currentTrackIndex === -1) {
+            if (this.playlist.length > 0) {
+                this.playTrack(0);
+            }
+            return;
+        }
+        
+        const track = this.playlist[this.currentTrackIndex];
+        if (track.source === 'YouTube' && this.youtubePlayer) {
+            if (this.isPlaying) {
+                this.youtubePlayer.pauseVideo();
+            } else {
+                this.youtubePlayer.playVideo();
+            }
+        } else if (track.source === 'Local') {
+            if (this.isPlaying) {
+                this.audioElement.pause();
+            } else {
+                this.audioElement.play();
+            }
+        } else if (track.source === 'SoundCloud' || track.source === 'Mixcloud') {
+            this.showNotification("Controlar la reproducción de reproductores incrustados no es posible desde la interfaz principal");
+            return;
+        }
+        
+        this.isPlaying = !this.isPlaying;
+        this.updateUI();
+    }
+    
+    // Detener reproducción
+    stop() {
+        this.stopAllMedia();
+        this.isPlaying = false;
+        this.updateUI();
+    }
+    
+    // Reproducir siguiente pista
+    playNext() {
+        if (this.playlist.length === 0) return;
+        
+        if (this.repeatMode === 'repeat-one') {
+            this.playTrack(this.currentTrackIndex);
+            return;
+        }
+        
+        if (this.currentTrackIndex === this.playlist.length - 1 && this.repeatMode === 'no-repeat') {
+            this.stopAllMedia();
+            this.isPlaying = false;
+            this.currentTrackIndex = -1;
+            this.updateUI();
+            return;
+        }
+        
+        this.currentTrackIndex = (this.currentTrackIndex + 1) % this.playlist.length;
+        this.playTrack(this.currentTrackIndex);
+    }
+    
+    // Reproducir pista anterior
+    playPrev() {
+        if (this.playlist.length === 0) return;
+        this.currentTrackIndex = (this.currentTrackIndex - 1 + this.playlist.length) % this.playlist.length;
+        this.playTrack(this.currentTrackIndex);
+    }
+    
+    // Actualizar UI
+    updateUI() {
+        // Actualizar botón de play/pausa
+        const icon = this.playPauseBtnEl.querySelector('i');
+        if (icon) {
+            if (this.isPlaying) {
+                icon.className = 'fas fa-pause';
+            } else {
+                icon.className = 'fas fa-play';
+            }
+        }
+        
+        // Actualizar botón de mezclar
+        this.shuffleBtnEl.classList.toggle('text-white', this.isShuffled);
+        this.shuffleBtnEl.classList.toggle('text-gray-400', !this.isShuffled);
+        
+        // Actualizar botón de repetir
+        const repeatIcon = this.repeatBtnEl.querySelector('i');
+        if (repeatIcon) {
+            this.repeatBtnEl.classList.remove('text-white');
+            this.repeatBtnEl.classList.add('text-gray-400');
+            
+            if (this.repeatMode === 'repeat-all') {
+                repeatIcon.className = 'fas fa-redo';
+                this.repeatBtnEl.classList.add('text-white');
+            } else if (this.repeatMode === 'repeat-one') {
+                repeatIcon.className = 'fas fa-redo-alt';
+                this.repeatBtnEl.classList.add('text-white');
+            } else {
+                repeatIcon.className = 'fas fa-redo';
+            }
+        }
+        
+        // Actualizar información de la pista actual
+        if (this.currentTrackIndex !== -1) {
+            const track = this.playlist[this.currentTrackIndex];
+            this.currentTrackTitleEl.textContent = track.title || "Título Desconocido";
+            this.currentTrackSourceEl.textContent = `Fuente: ${track.source || "Desconocida"}`;
+        } else {
+            this.currentTrackTitleEl.textContent = "No hay música reproduciéndose";
+            this.currentTrackSourceEl.textContent = "";
+        }
+        
+        // Actualizar playlist
+        document.querySelectorAll('.playlist-item').forEach((item, index) => {
+            item.classList.toggle('active-track', index === this.currentTrackIndex);
+        });
+    }
+    
+    // Mostrar notificación
+    showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'config-notification';
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+}
