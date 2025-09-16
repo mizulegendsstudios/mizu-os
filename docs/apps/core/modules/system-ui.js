@@ -99,6 +99,8 @@ export default class SystemUI {
   }
 
   createAppButton(appId, title, iconClass) {
+    console.log(`SystemUI: Creando botón para aplicación ${appId}`);
+    
     const button = document.createElement('button');
     button.className = 'app-button';
     button.title = title;
@@ -111,17 +113,30 @@ export default class SystemUI {
     
     // Añadir evento de clic para activar la aplicación
     button.addEventListener('click', () => {
-      console.log(`SystemUI: Botón de aplicación ${appId} presionado`);
+      console.log(`[DEBUG] Botón de aplicación ${appId} presionado`);
+      console.log(`[DEBUG] EventBus disponible:`, !!this.eventBus);
+      console.log(`[DEBUG] Tipo de EventBus:`, typeof this.eventBus);
       
       // Verificar que el EventBus esté disponible
       if (this.eventBus) {
-        console.log(`SystemUI: Emitiendo evento app:activate para ${appId}`);
-        this.eventBus.emit('app:activate', { appId });
+        console.log(`[DEBUG] Preparando para emitir evento app:activate para ${appId}`);
+        const eventData = { appId };
+        console.log(`[DEBUG] Datos del evento:`, eventData);
+        
+        try {
+          this.eventBus.emit('app:activate', eventData);
+          console.log(`[DEBUG] Evento app:activate emitido correctamente para ${appId}`);
+        } catch (error) {
+          console.error(`[ERROR] Error al emitir evento:`, error);
+        }
       } else {
-        console.error('SystemUI: EventBus no disponible');
+        console.error('[ERROR] EventBus no disponible en SystemUI');
+        console.log('[DEBUG] window.MizuOS:', window.MizuOS);
+        console.log('[DEBUG] window.MizuOS.eventBus:', window.MizuOS ? window.MizuOS.eventBus : 'undefined');
       }
     });
     
+    console.log(`[DEBUG] Botón para aplicación ${appId} creado correctamente`);
     return button;
   }
 
