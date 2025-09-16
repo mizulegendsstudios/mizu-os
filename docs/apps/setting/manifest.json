@@ -4,12 +4,8 @@
   "description": "Configuración del sistema",
   "icon": "⚙️",
   "entry": "appcore.js",
-  "styles": ["app.css"],
-  "scripts": [
-    "modules/visual.js",
-    "modules/hologram.js",
-    "modules/preferences.js"
-  ],
+  "styles": [],
+  "scripts": [],
   "permissions": ["storage"],
   "dependencies": [],
   "author": "Mizu Legends Studios",
