@@ -8,7 +8,6 @@
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-// apps/music/appcore.js
 export default class MusicApp {
     constructor(eventBus, config) {
         this.eventBus = eventBus;
@@ -23,12 +22,37 @@ export default class MusicApp {
         
         // Cargar el script de la API de YouTube Iframe
         this.loadYouTubeAPI();
+        
+        // Suscribirse a eventos de control
+        this.subscribeToControlEvents();
+    }
+    
+    // Suscribirse a eventos de control
+    subscribeToControlEvents() {
+        this.eventBus.on('music:togglePlayPause', () => {
+            this.togglePlayPause();
+        });
+        
+        this.eventBus.on('music:stop', () => {
+            this.stop();
+        });
+        
+        this.eventBus.on('music:playPrev', () => {
+            this.playPrev();
+        });
+        
+        this.eventBus.on('music:playNext', () => {
+            this.playNext();
+        });
+        
+        this.eventBus.on('music:toggleVolume', () => {
+            this.toggleVolume();
+        });
     }
     
     // Método init: se llama cuando se carga la aplicación
     async init() {
         console.log('MusicApp: Inicializando aplicación de música');
-        // Aquí podríamos cargar configuraciones previas, etc.
     }
     
     // Método activate: se llama cuando se activa la aplicación
@@ -47,6 +71,30 @@ export default class MusicApp {
         }
     }
     
+    // Toggle volume (método nuevo)
+    toggleVolume() {
+        if (this.audioElement) {
+            if (this.audioElement.volume > 0) {
+                this.audioElement.volume = 0;
+                this.showNotification('Silenciado');
+            } else {
+                this.audioElement.volume = 1;
+                this.showNotification('Volumen restaurado');
+            }
+        }
+        
+        if (this.youtubePlayer) {
+            if (this.youtubePlayer.isMuted()) {
+                this.youtubePlayer.unMute();
+                this.showNotification('Volumen restaurado');
+            } else {
+                this.youtubePlayer.mute();
+                this.showNotification('Silenciado');
+            }
+        }
+    }
+    
+    // ... (mantener el resto de los métodos existentes)
     // Cargar el script de la API de YouTube Iframe
     loadYouTubeAPI() {
         const tag = document.createElement('script');
