@@ -17,17 +17,21 @@
  */
 /**
  * Aplicación de hoja de cálculo para Mizu OS
- * Soporta fórmulas básicas y redimensionamiento
+ * Soporta fórmulas y redimensionamiento
  */
 export default class SpreadsheetApp {
   constructor(eventBus) {
     this.eventBus = eventBus;
     this.container = null;
-    this.isLoaded = false;
-    this.table = null;
-    this.currentCell = null;
+    this.tableBody = null;
+    this.tableHead = null;
     this.formulaInput = null;
-    this.data = {}; // Almacenará los datos de las celdas
+    this.rows = 10;
+    this.cols = 8;
+    this.selectedCells = new Set();
+    this.isDragging = false;
+    this.startCellId = null;
+    this.cellValues = {}; // Objeto para almacenar valores y fórmulas
   }
   
   // Método init requerido por el AppLoader
@@ -54,6 +58,8 @@ export default class SpreadsheetApp {
       display: flex;
       flex-direction: column;
       overflow-y: auto;
+      color: white;
+      font-family: 'Inter', sans-serif;
     `;
     
     // Título de la aplicación
@@ -64,6 +70,8 @@ export default class SpreadsheetApp {
       color: white;
       margin-bottom: 20px;
       text-align: center;
+      font-size: 24px;
+      font-weight: bold;
     `;
     
     // Controles de fórmula
@@ -113,12 +121,13 @@ export default class SpreadsheetApp {
       gap: 10px;
       margin-bottom: 15px;
       flex-wrap: wrap;
+      justify-content: center;
     `;
     
-    const addRowBtn = this.createOperationButton('Añadir Fila');
-    const addColBtn = this.createOperationButton('Añadir Columna');
-    const delRowBtn = this.createOperationButton('Eliminar Fila');
-    const delColBtn = this.createOperationButton('Eliminar Columna');
+    const addRowBtn = this.createOperationButton('Añadir Fila', '#10b981');
+    const addColBtn = this.createOperationButton('Añadir Columna', '#10b981');
+    const delRowBtn = this.createOperationButton('Eliminar Fila', '#ef4444');
+    const delColBtn = this.createOperationButton('Eliminar Columna', '#ef4444');
     
     operations.appendChild(addRowBtn);
     operations.appendChild(addColBtn);
@@ -133,106 +142,70 @@ export default class SpreadsheetApp {
       overflow: auto;
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 5px;
+      background: rgba(255, 255, 255, 0.05);
     `;
     
     // Crear tabla
-    this.table = document.createElement('table');
-    this.table.id = 'data-table';
-    this.table.style.cssText = `
+    const table = document.createElement('table');
+    table.id = 'data-table';
+    table.style.cssText = `
+      border-collapse: separate;
+      border-spacing: 0;
       width: 100%;
-      border-collapse: collapse;
-      color: white;
+      background-color: rgba(255, 255, 255, 0.05);
     `;
     
     // Crear encabezado
     const thead = document.createElement('thead');
-    const headerRow = document.createElement('tr');
+    this.tableHead = document.createElement('tr');
     
     // Celda vacía en la esquina superior izquierda
     const cornerCell = document.createElement('th');
-    cornerCell.className = 'col-header';
+    cornerCell.className = 'col-header sticky-cell-header';
     cornerCell.style.cssText = `
-      background: rgba(0, 0, 0, 0.3);
+      background-color: rgba(0, 0, 0, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.1);
       padding: 8px;
       min-width: 50px;
       text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     `;
-    headerRow.appendChild(cornerCell);
+    this.tableHead.appendChild(cornerCell);
     
     // Añadir encabezados de columna (A, B, C, ...)
-    for (let col = 0; col < 5; col++) {
+    for (let j = 0; j < this.cols; j++) {
       const th = document.createElement('th');
-      th.textContent = String.fromCharCode(65 + col); // A, B, C, ...
       th.className = 'col-header';
+      th.textContent = this.getColLetter(j);
       th.style.cssText = `
-        background: rgba(0, 0, 0, 0.3);
+        background-color: rgba(0, 0, 0, 0.3);
         border: 1px solid rgba(255, 255, 255, 0.1);
         padding: 8px;
-        min-width: 100px;
+        min-width: 80px;
         text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 10;
         user-select: none;
       `;
-      headerRow.appendChild(th);
+      this.tableHead.appendChild(th);
     }
     
-    thead.appendChild(headerRow);
-    this.table.appendChild(thead);
+    thead.appendChild(this.tableHead);
+    table.appendChild(thead);
     
     // Crear cuerpo de la tabla
-    const tbody = document.createElement('tbody');
+    this.tableBody = document.createElement('tbody');
     
     // Añadir filas iniciales
-    for (let row = 0; row < 10; row++) {
-      const tr = document.createElement('tr');
-      
-      // Encabezado de fila (1, 2, 3, ...)
-      const rowHeader = document.createElement('th');
-      rowHeader.textContent = row + 1;
-      rowHeader.className = 'row-header';
-      rowHeader.style.cssText = `
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 8px;
-        min-width: 50px;
-        text-align: center;
-        user-select: none;
-      `;
-      tr.appendChild(rowHeader);
-      
-      // Celdas de datos
-      for (let col = 0; col < 5; col++) {
-        const cellId = `${String.fromCharCode(65 + col)}${row + 1}`;
-        const td = document.createElement('td');
-        td.className = 'data-cell';
-        td.dataset.cellId = cellId;
-        td.style.cssText = `
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          padding: 8px;
-          min-width: 100px;
-          min-height: 30px;
-          background: rgba(255, 255, 255, 0.05);
-        `;
-        
-        // Contenido editable de la celda
-        const cellContent = document.createElement('div');
-        cellContent.className = 'cell-content';
-        cellContent.contentEditable = true;
-        cellContent.textContent = '';
-        cellContent.style.cssText = `
-          outline: none;
-          min-height: 20px;
-        `;
-        
-        td.appendChild(cellContent);
-        tr.appendChild(td);
-      }
-      
-      tbody.appendChild(tr);
+    for (let i = 0; i < this.rows; i++) {
+      this.createRow(i);
     }
     
-    this.table.appendChild(tbody);
-    tableContainer.appendChild(this.table);
+    table.appendChild(this.tableBody);
+    tableContainer.appendChild(table);
     
     // Ensamblar todo
     container.appendChild(title);
@@ -246,6 +219,9 @@ export default class SpreadsheetApp {
     // Adjuntar eventos después de crear todos los elementos
     this.attachEvents(applyBtn, addRowBtn, addColBtn, delRowBtn, delColBtn);
     
+    // Añadir redimensionadores
+    this.addResizers();
+    
     return container;
   }
   
@@ -257,19 +233,89 @@ export default class SpreadsheetApp {
     }
   }
   
+  // Crear una fila
+  createRow(rowIndex) {
+    const tr = document.createElement('tr');
+    
+    // Encabezado de fila (1, 2, 3, ...)
+    const rowHeader = document.createElement('td');
+    rowHeader.className = 'row-header';
+    rowHeader.textContent = rowIndex + 1;
+    rowHeader.style.cssText = `
+      background-color: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px;
+      min-width: 50px;
+      text-align: center;
+      user-select: none;
+    `;
+    tr.appendChild(rowHeader);
+    
+    // Celdas de datos
+    for (let j = 0; j < this.cols; j++) {
+      const cellId = this.getCellId(rowIndex, j);
+      const td = document.createElement('td');
+      td.dataset.cellId = cellId;
+      td.style.cssText = `
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0;
+        position: relative;
+        min-width: 80px;
+        height: 32px;
+        font-size: 14px;
+        text-align: center;
+      `;
+      
+      // Contenido editable de la celda
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'cell';
+      input.placeholder = cellId;
+      input.dataset.cellId = cellId;
+      input.style.cssText = `
+        padding: 8px;
+        width: 100%;
+        height: 100%;
+        border: none;
+        outline: none;
+        box-sizing: border-box;
+        background-color: transparent;
+        text-align: left;
+        color: white;
+      `;
+      
+      // Si existe un valor o fórmula guardada, la usamos
+      const formula = this.cellValues[cellId] || '';
+      input.value = this.evaluateFormula(formula);
+      input.dataset.formula = formula;
+      
+      td.appendChild(input);
+      tr.appendChild(td);
+    }
+    
+    this.tableBody.appendChild(tr);
+  }
+  
   // Crear botón de operación
-  createOperationButton(text) {
+  createOperationButton(text, bgColor) {
     const button = document.createElement('button');
     button.textContent = text;
     button.style.cssText = `
       padding: 8px 12px;
       border-radius: 5px;
       border: none;
-      background: rgba(255, 255, 255, 0.1);
+      background: ${bgColor};
       color: white;
       cursor: pointer;
       font-size: 14px;
+      transition: transform 0.1s ease-in-out;
     `;
+    button.addEventListener('mouseenter', () => {
+      button.style.transform = 'scale(1.05)';
+    });
+    button.addEventListener('mouseleave', () => {
+      button.style.transform = 'scale(1)';
+    });
     return button;
   }
   
@@ -277,7 +323,7 @@ export default class SpreadsheetApp {
   attachEvents(applyBtn, addRowBtn, addColBtn, delRowBtn, delColBtn) {
     // Evento para aplicar fórmula
     applyBtn.addEventListener('click', () => {
-      this.applyFormula();
+      this.handleApplyFormula();
     });
     
     // Eventos para operaciones de tabla
@@ -297,348 +343,544 @@ export default class SpreadsheetApp {
       this.deleteColumn();
     });
     
-    // Eventos para celdas
-    const cells = this.table.querySelectorAll('.data-cell');
-    cells.forEach(cell => {
-      cell.addEventListener('click', () => {
-        this.selectCell(cell);
-      });
-      
-      const cellContent = cell.querySelector('.cell-content');
-      cellContent.addEventListener('input', () => {
-        this.updateCellData(cell);
-      });
-      
-      cellContent.addEventListener('blur', () => {
-        this.processCellFormulas(cell);
-      });
+    // Eventos del ratón para selección
+    this.container.addEventListener('mousedown', (e) => {
+      this.handleMouseDown(e);
+    });
+    
+    this.container.addEventListener('mousemove', (e) => {
+      this.handleMouseMove(e);
+    });
+    
+    this.container.addEventListener('mouseup', () => {
+      this.handleMouseUp();
+    });
+    
+    // Eventos de teclado para navegación
+    this.container.addEventListener('keydown', (e) => {
+      this.handleKeyDown(e);
+    });
+    
+    // Evento para clic en celdas
+    this.container.addEventListener('click', (e) => {
+      this.handleCellClick(e);
     });
   }
   
-  // Seleccionar una celda
-  selectCell(cell) {
-    // Deseleccionar celda anterior
-    if (this.currentCell) {
-      this.currentCell.style.background = 'rgba(255, 255, 255, 0.05)';
+  // Funciones de utilidad
+  getColLetter(colIndex) {
+    let letter = '';
+    while (colIndex >= 0) {
+      letter = String.fromCharCode(65 + (colIndex % 26)) + letter;
+      colIndex = Math.floor(colIndex / 26) - 1;
     }
-    
-    // Seleccionar nueva celda
-    this.currentCell = cell;
-    cell.style.background = 'rgba(99, 102, 241, 0.3)';
-    
-    // Actualizar input de fórmula
-    const cellId = cell.dataset.cellId;
-    const cellContent = cell.querySelector('.cell-content').textContent;
-    
-    if (this.data[cellId] && this.data[cellId].formula) {
-      this.formulaInput.value = this.data[cellId].formula;
-    } else {
-      this.formulaInput.value = cellContent;
-    }
+    return letter;
   }
   
-  // Actualizar datos de una celda
-  updateCellData(cell) {
-    const cellId = cell.dataset.cellId;
-    const cellContent = cell.querySelector('.cell-content').textContent;
-    
-    if (!this.data[cellId]) {
-      this.data[cellId] = {};
-    }
-    
-    this.data[cellId].value = cellContent;
-    this.data[cellId].displayValue = cellContent;
+  getCellId(rowIndex, colIndex) {
+    return `${this.getColLetter(colIndex)}${rowIndex + 1}`;
   }
   
-  // Procesar fórmulas de una celda
-  processCellFormulas(cell) {
-    const cellId = cell.dataset.cellId;
-    const cellContent = cell.querySelector('.cell-content');
-    
-    if (this.data[cellId] && this.data[cellId].formula) {
-      // Evaluar fórmula
-      const result = this.evaluateFormula(this.data[cellId].formula);
-      cellContent.textContent = result;
-      this.data[cellId].displayValue = result;
+  getCellPosition(cellId) {
+    const match = cellId.match(/^([A-Z]+)(\d+)$/i);
+    if (!match) return null;
+    const colLetter = match[1].toUpperCase();
+    const rowIndex = parseInt(match[2], 10) - 1;
+    let colIndex = 0;
+    for (let i = 0; i < colLetter.length; i++) {
+      colIndex = colIndex * 26 + (colLetter.charCodeAt(i) - 64);
     }
+    return { rowIndex, colIndex: colIndex - 1 };
   }
   
-  // Aplicar fórmula a la celda seleccionada
-  applyFormula() {
-    if (!this.currentCell) {
-      this.showNotification('Por favor, selecciona una celda primero');
-      return;
-    }
-    
-    const formula = this.formulaInput.value.trim();
-    if (!formula) {
-      this.showNotification('Por favor, introduce una fórmula');
-      return;
-    }
-    
-    const cellId = this.currentCell.dataset.cellId;
-    const cellContent = this.currentCell.querySelector('.cell-content');
-    
-    // Guardar fórmula
-    if (!this.data[cellId]) {
-      this.data[cellId] = {};
-    }
-    
-    this.data[cellId].formula = formula;
-    
-    // Evaluar fórmula
-    const result = this.evaluateFormula(formula);
-    cellContent.textContent = result;
-    this.data[cellId].displayValue = result;
-    
-    this.showNotification('Fórmula aplicada correctamente');
+  getCellValue(cellId) {
+    const formula = this.cellValues[cellId] || '';
+    const displayValue = this.evaluateFormula(formula);
+    return displayValue;
   }
   
-  // Evaluar una fórmula simple
-  evaluateFormula(formula) {
-    if (!formula.startsWith('=')) {
-      return formula; // No es una fórmula, devolver el texto tal cual
-    }
-    
-    // Eliminar el signo =
-    const formulaBody = formula.substring(1);
-    
-    // Fórmula SUMA simple
-    if (formulaBody.toUpperCase().startsWith('SUMA(')) {
-      const range = formulaBody.substring(5, formulaBody.length - 1);
-      return this.sumRange(range);
-    }
-    
-    // Fórmula PROMEDIO simple
-    if (formulaBody.toUpperCase().startsWith('PROMEDIO(')) {
-      const range = formulaBody.substring(9, formulaBody.length - 1);
-      const sum = this.sumRange(range);
-      const count = this.countRange(range);
-      return count > 0 ? (sum / count).toFixed(2) : 0;
-    }
-    
-    // Si no es una fórmula reconocida, devolver el texto original
-    return formula;
-  }
-  
-  // Sumar un rango de celdas
-  sumRange(range) {
-    const cells = this.parseRange(range);
-    let sum = 0;
-    
-    cells.forEach(cellId => {
-      if (this.data[cellId] && this.data[cellId].value) {
-        const value = parseFloat(this.data[cellId].value);
-        if (!isNaN(value)) {
-          sum += value;
-        }
-      }
-    });
-    
-    return sum;
-  }
-  
-  // Contar celdas en un rango
-  countRange(range) {
-    return this.parseRange(range).length;
-  }
-  
-  // Parsear un rango de celdas (ej: A1:B2)
-  parseRange(range) {
+  getCellRange(start, end) {
+    const startPos = this.getCellPosition(start);
+    const endPos = this.getCellPosition(end);
+    if (!startPos || !endPos) return [];
+    const startRow = Math.min(startPos.rowIndex, endPos.rowIndex);
+    const endRow = Math.max(startPos.rowIndex, endPos.rowIndex);
+    const startCol = Math.min(startPos.colIndex, endPos.colIndex);
+    const endCol = Math.max(startPos.colIndex, endPos.colIndex);
     const cells = [];
-    
-    if (range.includes(':')) {
-      // Es un rango
-      const [start, end] = range.split(':');
-      
-      const startCol = start.charCodeAt(0) - 65; // A = 0, B = 1, etc.
-      const startRow = parseInt(start.substring(1)) - 1;
-      
-      const endCol = end.charCodeAt(0) - 65;
-      const endRow = parseInt(end.substring(1)) - 1;
-      
-      for (let row = startRow; row <= endRow; row++) {
-        for (let col = startCol; col <= endCol; col++) {
-          cells.push(`${String.fromCharCode(65 + col)}${row + 1}`);
-        }
+    for (let i = startRow; i <= endRow; i++) {
+      for (let j = startCol; j <= endCol; j++) {
+        cells.push(this.getCellId(i, j));
       }
-    } else {
-      // Es una sola celda
-      cells.push(range);
     }
-    
     return cells;
   }
   
-  // Añadir una fila
-  addRow() {
-    const tbody = this.table.querySelector('tbody');
-    const rowCount = tbody.rows.length;
-    
-    const tr = document.createElement('tr');
-    
-    // Encabezado de fila
-    const rowHeader = document.createElement('th');
-    rowHeader.textContent = rowCount + 1;
-    rowHeader.className = 'row-header';
-    rowHeader.style.cssText = `
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 8px;
-      min-width: 50px;
-      text-align: center;
-      user-select: none;
-    `;
-    tr.appendChild(rowHeader);
-    
-    // Celdas de datos
-    const colCount = tbody.rows[0].cells.length - 1; // -1 por el encabezado de fila
-    
-    for (let col = 0; col < colCount; col++) {
-      const cellId = `${String.fromCharCode(65 + col)}${rowCount + 1}`;
-      const td = document.createElement('td');
-      td.className = 'data-cell';
-      td.dataset.cellId = cellId;
-      td.style.cssText = `
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 8px;
-        min-width: 100px;
-        min-height: 30px;
-        background: rgba(255, 255, 255, 0.05);
-      `;
-      
-      // Contenido editable de la celda
-      const cellContent = document.createElement('div');
-      cellContent.className = 'cell-content';
-      cellContent.contentEditable = true;
-      cellContent.textContent = '';
-      cellContent.style.cssText = `
-        outline: none;
-        min-height: 20px;
-      `;
-      
-      td.appendChild(cellContent);
-      tr.appendChild(td);
-      
-      // Adjuntar eventos
-      td.addEventListener('click', () => {
-        this.selectCell(td);
+  // Lógica de la hoja de cálculo
+  evaluateFormula(formula) {
+    if (formula.startsWith('=')) {
+      // Intenta primero con fórmulas de función (ej. =SUMA(A1,B1))
+      const funcRegex = /=(\w+)\((.*)\)/i;
+      const match = formula.match(funcRegex);
+      if (match) {
+        const funcName = match[1].toUpperCase();
+        let args = match[2];
+        try {
+          const isRange = args.includes(':');
+          let values = [];
+          if (isRange) {
+            const [startCell, endCell] = args.split(':');
+            const range = this.getCellRange(startCell.trim(), endCell.trim());
+            values = range.map(id => parseFloat(this.getCellValue(id))).filter(val => !isNaN(val));
+          } else {
+            values = args.split(',').map(arg => {
+              const trimmedArg = arg.trim();
+              const pos = this.getCellPosition(trimmedArg);
+              if (pos) {
+                return parseFloat(this.getCellValue(trimmedArg));
+              }
+              return parseFloat(trimmedArg);
+            }).filter(val => !isNaN(val));
+          }
+          switch (funcName) {
+            case 'SUMA':
+              return values.reduce((acc, val) => acc + val, 0);
+            case 'RESTA':
+              if (values.length < 2) return '#ERROR!';
+              return values.slice(1).reduce((acc, val) => acc - val, values[0]);
+            case 'MULTIPLICACION':
+              if (values.length === 0) return 0;
+              return values.reduce((acc, val) => acc * val, 1);
+            case 'DIVISION':
+              if (values.length < 2 || values[1] === 0) return '#DIV/0!';
+              return values[0] / values[1];
+            case 'PROMEDIO':
+              if (values.length === 0) return 0;
+              return values.reduce((acc, val) => acc + val, 0) / values.length;
+            case 'MIN':
+              return Math.min(...values);
+            case 'MAX':
+              return Math.max(...values);
+            case 'CONTAR':
+              const nonNumericCount = args.split(',').map(arg => {
+                const trimmedArg = arg.trim();
+                const pos = this.getCellPosition(trimmedArg);
+                if (pos) {
+                  return this.getCellValue(trimmedArg);
+                }
+                return trimmedArg;
+              }).filter(val => val !== '').length;
+              return nonNumericCount;
+            case 'SI':
+              const ifArgs = args.split(',').map(arg => arg.trim());
+              const condition = this.evaluateLogical(ifArgs[0]);
+              if (condition) {
+                return ifArgs[1].startsWith('=') ? this.evaluateFormula(ifArgs[1]) : ifArgs[1];
+              } else {
+                return ifArgs[2].startsWith('=') ? this.evaluateFormula(ifArgs[2]) : ifArgs[2];
+              }
+            case 'Y':
+              const andArgs = args.split(',').map(arg => this.evaluateLogical(arg.trim()));
+              return andArgs.every(Boolean);
+            case 'O':
+              const orArgs = args.split(',').map(arg => this.evaluateLogical(arg.trim()));
+              return orArgs.some(Boolean);
+            default:
+              return '#NOMBRE?';
+          }
+        } catch (e) {
+          return '#ERROR!';
+        }
+      } else {
+        // Si no es una función, intenta evaluarlo como una expresión matemática simple
+        let expression = formula.substring(1); // Elimina el '=' inicial
+        const cellRegex = /([A-Z]+\d+)/gi; // Expresión regular para encontrar referencias de celdas
+        let evalExpression = expression.replace(cellRegex, (match) => {
+          const cellId = match.toUpperCase();
+          const value = parseFloat(this.getCellValue(cellId));
+          return isNaN(value) ? 0 : value;
+        });
+        try {
+          // Evalúa la expresión usando la función de JavaScript
+          return eval(evalExpression);
+        } catch (e) {
+          return '#ERROR!';
+        }
+      }
+    } else if (formula.startsWith('+')) {
+      // Si la fórmula comienza con '+', la trata como una expresión
+      let expression = formula.substring(1); // Elimina el '+' inicial
+      const cellRegex = /([A-Z]+\d+)/gi;
+      let evalExpression = expression.replace(cellRegex, (match) => {
+        const cellId = match.toUpperCase();
+        const value = parseFloat(this.getCellValue(cellId));
+        return isNaN(value) ? 0 : value;
       });
-      
-      cellContent.addEventListener('input', () => {
-        this.updateCellData(td);
-      });
-      
-      cellContent.addEventListener('blur', () => {
-        this.processCellFormulas(td);
-      });
+      try {
+        return eval(evalExpression);
+      } catch (e) {
+        return '#ERROR!';
+      }
     }
+    return formula;
+  }
+  
+  evaluateLogical(expr) {
+    // Simple logical evaluation for now (e.g., A1 > 10, A1 = B1)
+    const comparisonRegex = /^([A-Z]+\d+)\s*([<>=!]+)\s*([A-Z]+\d+|\d+)$/i;
+    const match = expr.match(comparisonRegex);
+    if (match) {
+      const cellId = match[1];
+      const op = match[2];
+      const val2 = match[3];
+      
+      const val1 = parseFloat(this.getCellValue(cellId));
+      let numericVal2 = parseFloat(val2);
+      if (isNaN(val1)) return false;
+      if (isNaN(numericVal2)) {
+        const cellPos = this.getCellPosition(val2);
+        if (cellPos) {
+          numericVal2 = parseFloat(this.getCellValue(val2));
+        } else {
+          return false; // No es un número ni una celda válida
+        }
+      }
+      switch (op) {
+        case '>': return val1 > numericVal2;
+        case '<': return val1 < numericVal2;
+        case '=': return val1 === numericVal2;
+        case '>=': return val1 >= numericVal2;
+        case '<=': return val1 <= numericVal2;
+        case '!=': return val1 !== numericVal2;
+        default: return false;
+      }
+    }
+    return false;
+  }
+  
+  updateCellContent(cellInput) {
+    const cellId = cellInput.dataset.cellId;
+    const formula = cellInput.value;
+    this.cellValues[cellId] = formula;
+    const displayValue = this.evaluateFormula(formula);
     
-    tbody.appendChild(tr);
+    cellInput.value = displayValue;
+    cellInput.dataset.formula = formula; 
+    
+    // Forzar la reevaluación de las fórmulas que dependen de esta celda
+    Object.keys(this.cellValues).forEach(id => {
+      const formulaToReevaluate = this.cellValues[id];
+      if (formulaToReevaluate.includes(cellId.toUpperCase())) {
+        const dependentCellInput = this.container.querySelector(`input[data-cell-id='${id}']`);
+        if(dependentCellInput) {
+          dependentCellInput.value = this.evaluateFormula(formulaToReevaluate);
+        }
+      }
+    });
+  }
+  
+  // Manejadores de eventos
+  handleMouseDown(e) {
+    const cell = e.target.closest('td[data-cell-id]');
+    if (!cell) return;
+    this.startCellId = cell.dataset.cellId;
+    this.isDragging = true;
+    
+    if (!e.ctrlKey && !e.metaKey) {
+      this.updateSelection(this.startCellId);
+    } else {
+      this.selectedCells.add(this.startCellId);
+      cell.classList.add('selected');
+    }
+  }
+  
+  handleMouseMove(e) {
+    if (!this.isDragging) return;
+    const cell = e.target.closest('td[data-cell-id]');
+    if (!cell) return;
+    this.container.querySelectorAll('.selected').forEach(c => {
+      const cellId = c.dataset.cellId;
+      if (cellId && !this.selectedCells.has(cellId)) {
+        c.classList.remove('selected');
+      }
+    });
+    const range = this.getCellRange(this.startCellId, cell.dataset.cellId);
+    range.forEach(id => {
+      const el = this.container.querySelector(`td[data-cell-id='${id}']`);
+      if (el) {
+        el.classList.add('selected');
+        this.selectedCells.add(id);
+      }
+    });
+  }
+  
+  handleMouseUp() {
+    this.isDragging = false;
+  }
+  
+  handleKeyDown(e) {
+    const activeElement = document.activeElement;
+    if (!activeElement || !activeElement.classList.contains('cell')) return;
+    const cellInput = activeElement;
+    const cellId = cellInput.dataset.cellId;
+    const pos = this.getCellPosition(cellId);
+    let nextPos = null;
+    switch (e.key) {
+      case 'Enter':
+      case 'ArrowDown':
+        e.preventDefault();
+        this.updateCellContent(cellInput);
+        nextPos = { rowIndex: pos.rowIndex + 1, colIndex: pos.colIndex };
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        this.updateCellContent(cellInput);
+        nextPos = { rowIndex: pos.rowIndex - 1, colIndex: pos.colIndex };
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        this.updateCellContent(cellInput);
+        nextPos = { rowIndex: pos.rowIndex, colIndex: pos.colIndex - 1 };
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        this.updateCellContent(cellInput);
+        nextPos = { rowIndex: pos.rowIndex, colIndex: pos.colIndex + 1 };
+        break;
+    }
+    if (nextPos) {
+      const nextCellId = this.getCellId(nextPos.rowIndex, nextPos.colIndex);
+      const nextCellInput = this.container.querySelector(`input[data-cell-id='${nextCellId}']`);
+      if (nextCellInput) {
+        nextCellInput.focus();
+        this.formulaInput.value = nextCellInput.dataset.formula;
+        this.updateSelection(nextCellId); // Actualiza la selección
+      }
+    }
+  }
+  
+  handleCellClick(e) {
+    const cell = e.target.closest('td[data-cell-id]');
+    if (!cell) return;
+    const cellInput = cell.querySelector('.cell');
+    if (!cellInput) return;
+    if (!e.ctrlKey && !e.metaKey) {
+      this.updateSelection(cell.dataset.cellId);
+    } else {
+      this.selectedCells.add(cell.dataset.cellId);
+      cell.classList.add('selected');
+    }
+    this.formulaInput.value = cellInput.dataset.formula;
+  }
+  
+  handleApplyFormula() {
+    const formula = this.formulaInput.value;
+    if (!formula || this.selectedCells.size === 0) return;
+    this.selectedCells.forEach(cellId => {
+      const cellInput = this.container.querySelector(`input[data-cell-id='${cellId}']`);
+      if (cellInput) {
+        cellInput.value = formula;
+        this.updateCellContent(cellInput);
+      }
+    });
+  }
+  
+  // Función para actualizar la selección
+  updateSelection(cellId) {
+    // Limpia la selección anterior
+    this.selectedCells.clear();
+    this.container.querySelectorAll('.selected').forEach(c => c.classList.remove('selected'));
+    
+    // Añade la celda actual y la marca
+    this.selectedCells.add(cellId);
+    const cell = this.container.querySelector(`td[data-cell-id='${cellId}']`);
+    if(cell) {
+      cell.classList.add('selected');
+    }
+  }
+  
+  // Redimensionamiento de celdas
+  addResizers() {
+    let resizer = null;
+    let startX, startY, startWidth, startHeight;
+    
+    const onMouseDown = (e) => {
+      resizer = e.target;
+      startX = e.clientX;
+      startY = e.clientY;
+      const cell = resizer.parentElement;
+      startWidth = cell.offsetWidth;
+      startHeight = cell.offsetHeight;
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    };
+    
+    const onMouseMove = (e) => {
+      if (!resizer) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      
+      if (resizer.classList.contains('col-resizer')) {
+        const cellIndex = Array.from(resizer.parentElement.parentNode.children).indexOf(resizer.parentElement);
+        const allCells = this.container.querySelectorAll(`table tr td:nth-child(${cellIndex + 1})`);
+        allCells.forEach(cell => {
+          cell.style.width = `${startWidth + dx}px`;
+        });
+      } else if (resizer.classList.contains('row-resizer')) {
+        resizer.parentElement.style.height = `${startHeight + dy}px`;
+      }
+    };
+    
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      resizer = null;
+    };
+    
+    this.container.querySelectorAll('th').forEach(cell => {
+      if (cell.classList.contains('col-header')) {
+        const colResizer = document.createElement('div');
+        colResizer.className = 'col-resizer';
+        colResizer.style.cssText = `
+          right: -4px;
+          top: 0;
+          width: 8px;
+          height: 100%;
+          cursor: col-resize;
+          border-radius: 0;
+          background-color: transparent;
+        `;
+        cell.appendChild(colResizer);
+        colResizer.addEventListener('mousedown', onMouseDown);
+      }
+    });
+    
+    this.container.querySelectorAll('.row-header').forEach(cell => {
+      const rowResizer = document.createElement('div');
+      rowResizer.className = 'row-resizer';
+      rowResizer.style.cssText = `
+        bottom: -4px;
+        left: 0;
+        height: 8px;
+        width: 100%;
+        cursor: row-resize;
+        border-radius: 0;
+        background-color: transparent;
+      `;
+      cell.appendChild(rowResizer);
+      rowResizer.addEventListener('mousedown', onMouseDown);
+    });
+  }
+  
+  // Añadir/Eliminar filas y columnas
+  addRow() {
+    this.rows++;
+    this.createRow(this.rows - 1);
+    this.addResizers();
     this.showNotification('Fila añadida correctamente');
   }
   
-  // Añadir una columna
   addColumn() {
-    const thead = this.table.querySelector('thead tr');
-    const tbody = this.table.querySelector('tbody');
-    
-    const colCount = thead.cells.length - 1; // -1 por la celda de la esquina
-    const colLetter = String.fromCharCode(65 + colCount);
+    this.cols++;
     
     // Añadir encabezado de columna
     const th = document.createElement('th');
-    th.textContent = colLetter;
     th.className = 'col-header';
+    th.textContent = this.getColLetter(this.cols - 1);
     th.style.cssText = `
-      background: rgba(0, 0, 0, 0.3);
+      background-color: rgba(0, 0, 0, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.1);
       padding: 8px;
-      min-width: 100px;
+      min-width: 80px;
       text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
       user-select: none;
     `;
-    thead.appendChild(th);
+    this.tableHead.appendChild(th);
     
-    // Añadir celdas a cada fila
-    for (let row = 0; row < tbody.rows.length; row++) {
-      const tr = tbody.rows[row];
-      const cellId = `${colLetter}${row + 1}`;
-      
+    // Añadir celda a cada fila
+    const rows = this.tableBody.querySelectorAll('tr');
+    rows.forEach((row, i) => {
+      const cellId = this.getCellId(i, this.cols - 1);
       const td = document.createElement('td');
-      td.className = 'data-cell';
       td.dataset.cellId = cellId;
       td.style.cssText = `
         border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 8px;
-        min-width: 100px;
-        min-height: 30px;
-        background: rgba(255, 255, 255, 0.05);
+        padding: 0;
+        position: relative;
+        min-width: 80px;
+        height: 32px;
+        font-size: 14px;
+        text-align: center;
       `;
       
       // Contenido editable de la celda
-      const cellContent = document.createElement('div');
-      cellContent.className = 'cell-content';
-      cellContent.contentEditable = true;
-      cellContent.textContent = '';
-      cellContent.style.cssText = `
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'cell';
+      input.placeholder = cellId;
+      input.dataset.cellId = cellId;
+      input.style.cssText = `
+        padding: 8px;
+        width: 100%;
+        height: 100%;
+        border: none;
         outline: none;
-        min-height: 20px;
+        box-sizing: border-box;
+        background-color: transparent;
+        text-align: left;
+        color: white;
       `;
       
-      td.appendChild(cellContent);
-      tr.appendChild(td);
-      
-      // Adjuntar eventos
-      td.addEventListener('click', () => {
-        this.selectCell(td);
-      });
-      
-      cellContent.addEventListener('input', () => {
-        this.updateCellData(td);
-      });
-      
-      cellContent.addEventListener('blur', () => {
-        this.processCellFormulas(td);
-      });
-    }
+      td.appendChild(input);
+      row.appendChild(td);
+    });
     
+    this.addResizers();
     this.showNotification('Columna añadida correctamente');
   }
   
-  // Eliminar la última fila
   deleteRow() {
-    const tbody = this.table.querySelector('tbody');
-    
-    if (tbody.rows.length <= 1) {
+    if (this.rows > 1) {
+      // Eliminar la última fila
+      this.tableBody.removeChild(this.tableBody.lastChild);
+      this.rows--;
+      
+      // Ajustar cellValues para las filas restantes
+      const newCellValues = {};
+      for (let i = 0; i < this.rows; i++) {
+        for (let j = 0; j < this.cols; j++) {
+          const oldId = this.getCellId(i + 1, j);
+          const newId = this.getCellId(i, j);
+          newCellValues[newId] = this.cellValues[oldId];
+        }
+      }
+      this.cellValues = newCellValues;
+      
+      this.showNotification('Fila eliminada correctamente');
+    } else {
       this.showNotification('No se pueden eliminar más filas');
-      return;
     }
-    
-    tbody.removeChild(tbody.lastChild);
-    this.showNotification('Fila eliminada correctamente');
   }
   
-  // Eliminar la última columna
   deleteColumn() {
-    const thead = this.table.querySelector('thead tr');
-    const tbody = this.table.querySelector('tbody');
-    
-    if (thead.cells.length <= 2) { // +1 por la celda de la esquina
+    if (this.cols > 1) {
+      // Eliminar el último encabezado de columna
+      this.tableHead.removeChild(this.tableHead.lastChild);
+      
+      // Eliminar la última celda de cada fila
+      const rows = this.tableBody.querySelectorAll('tr');
+      rows.forEach(row => {
+        row.removeChild(row.lastChild);
+      });
+      
+      this.cols--;
+      this.showNotification('Columna eliminada correctamente');
+    } else {
       this.showNotification('No se pueden eliminar más columnas');
-      return;
     }
-    
-    // Eliminar encabezado de columna
-    thead.removeChild(thead.lastChild);
-    
-    // Eliminar celda de cada fila
-    for (let row = 0; row < tbody.rows.length; row++) {
-      const tr = tbody.rows[row];
-      tr.removeChild(tr.lastChild);
-    }
-    
-    this.showNotification('Columna eliminada correctamente');
   }
   
   // Mostrar notificación
