@@ -2,7 +2,7 @@
 
     “Sistema operativo web nativo construido con JavaScript puro, HTML5 y CSS3. Diseñado para ejecutar aplicaciones productivas directamente en el navegador, sin frameworks, sin dependencias, 100% en la nube".
 
-![Versión](https://img.shields.io/badge/versión-3.0.0-green)
+![Versión](https://img.shields.io/badge/versión-3.0.1-green)
 ![Licencia](https://img.shields.io/badge/licencia-AGPL--3.0-blue)
 ![Tecnología](https://img.shields.io/badge/tecnología-Vanilla_JS_CSS_HTML-purple)
 ![Estado](https://img.shields.io/badge/status/alpha-orange)
@@ -89,7 +89,7 @@ main/
 
 ---
 
-## 🎯 Características técnicas actuales (v3.0.0)
+## 🎯 Características técnicas actuales (v3.0.1)
 ### ✅ Implementado
 
 **CORE**
