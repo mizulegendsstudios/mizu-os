@@ -130,21 +130,52 @@ export default class AppLoader {
       const scriptPath = `./apps/${appId}/${entryPoint}`;
       console.log(`[DEBUG] AppLoader: Cargando script desde ${scriptPath}`);
       
-      const scriptResponse = await fetch(scriptPath);
-      console.log(`[DEBUG] AppLoader: Respuesta del script:`, scriptResponse.status);
+      // Crear una promesa para cargar el módulo dinámicamente
+      const loadModule = new Promise((resolve, reject) => {
+        // Crear un elemento de script para cargar el módulo
+        const script = document.createElement('script');
+        script.type = 'module';
+        
+        // Crear una variable global para almacenar la clase de la aplicación
+        const tempGlobalVar = `__temp_${appId}_app`;
+        
+        // Crear el código que importará el módulo y lo asignará a una variable global
+        script.textContent = `
+          import('${scriptPath}')
+            .then(module => {
+              window.${tempGlobalVar} = module.default;
+              window.${tempGlobalVar}_loaded = true;
+            })
+            .catch(error => {
+              console.error('Error loading module:', error);
+              window.${tempGlobalVar}_error = error;
+            });
+        `;
+        
+        // Añadir el script al documento
+        document.head.appendChild(script);
+        
+        // Esperar a que el módulo se cargue
+        const checkInterval = setInterval(() => {
+          if (window[`${tempGlobalVar}_loaded`]) {
+            clearInterval(checkInterval);
+            resolve(window[tempGlobalVar]);
+            // Limpiar variables temporales
+            delete window[tempGlobalVar];
+            delete window[`${tempGlobalVar}_loaded`];
+            document.head.removeChild(script);
+          } else if (window[`${tempGlobalVar}_error`]) {
+            clearInterval(checkInterval);
+            reject(window[`${tempGlobalVar}_error`]);
+            // Limpiar variables temporales
+            delete window[`${tempGlobalVar}_error`];
+            document.head.removeChild(script);
+          }
+        }, 50);
+      });
       
-      if (!scriptResponse.ok) {
-        throw new Error(`No se pudo cargar el script de ${appId}`);
-      }
-      
-      const scriptContent = await scriptResponse.text();
-      console.log(`[DEBUG] AppLoader: Script de ${appId} cargado, longitud:`, scriptContent.length);
-      
-      // Crear una función para ejecutar el script
-      const appFunction = new Function(scriptContent);
-      
-      // Ejecutar el script y obtener la clase de la aplicación
-      const AppClass = appFunction();
+      // Esperar a que el módulo se cargue
+      const AppClass = await loadModule;
       console.log(`[DEBUG] AppLoader: Clase de aplicación obtenida:`, typeof AppClass);
       
       // Crear una instancia de la aplicación
