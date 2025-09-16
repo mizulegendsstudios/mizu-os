@@ -30,7 +30,8 @@ export default class SystemUI {
   init() {
     console.log('SystemUI: Inicializando interfaz de usuario');
     
-    // Crear elementos de la interfaz
+    // Crear elementos de la interfaz en orden correcto
+    this.createVideoBackground();  // PRIMERO: Video de fondo
     this.createRedBar();
     this.createBlueBar();
     this.createYellowSquare();
@@ -38,6 +39,58 @@ export default class SystemUI {
     
     console.log('SystemUI: Interfaz de usuario inicializada correctamente');
     return true;
+  }
+
+  createVideoBackground() {
+    console.log('SystemUI: Creando video de fondo');
+    
+    // Video de fondo
+    const video = document.createElement('video');
+    video.className = 'video-background';
+    video.autoplay = true;
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    
+    // URL actualizada del video
+    video.src = 'https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-board@main/docs/assets/bibiye.webm';
+    
+    // Añadir manejadores de eventos para depuración
+    video.onloadeddata = () => {
+      console.log('SystemUI: Video cargado correctamente');
+      console.log('SystemUI: Elemento de video:', video);
+      console.log('SystemUI: Video tiene src:', video.src);
+      console.log('SystemUI: Video está en el DOM:', document.body.contains(video));
+    };
+    
+    video.onerror = () => {
+      console.error('SystemUI: Error al cargar el video de fondo');
+      console.error('SystemUI: URL del video:', video.src);
+    };
+    
+    // Añadir al body
+    document.body.appendChild(video);
+    
+    // Guardar referencia al elemento
+    this.elements.videoBackground = video;
+    
+    console.log('SystemUI: Video de fondo creado correctamente');
+    
+    // Verificar que el video se añadió correctamente
+    setTimeout(() => {
+      const videoElement = document.querySelector('.video-background');
+      console.log('SystemUI: Verificación posterior - Video encontrado en DOM:', !!videoElement);
+      if (videoElement) {
+        console.log('SystemUI: Estado del video:', {
+          readyState: videoElement.readyState,
+          networkState: videoElement.networkState,
+          paused: videoElement.paused,
+          ended: videoElement.ended,
+          currentTime: videoElement.currentTime,
+          duration: videoElement.duration
+        });
+      }
+    }, 1000);
   }
 
   createRedBar() {
