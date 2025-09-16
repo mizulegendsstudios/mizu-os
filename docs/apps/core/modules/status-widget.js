@@ -21,9 +21,87 @@
  * Sistema de widgets de estado para Mizu OS
  * Gestiona la visualización de información del sistema (hora, batería, WiFi, volumen)
  */
+// apps/core/modules/status-widget.js
+// apps/core/modules/status-widget.js
 export default class StatusWidget {
   constructor() {
     this.widgets = {};
+  }
+
+  createMusicControls() {
+    const container = document.createElement('div');
+    container.className = 'music-controls-container';
+    container.style.display = 'flex';
+    container.style.alignItems = 'center';
+    container.style.gap = '8px';
+    container.style.marginRight = '15px';
+    
+    // Botón de reproducción/pausa
+    const playPauseBtn = this.createMusicControlButton('fa-play', 'Reproducir/Pausar', () => {
+      this.emitMusicEvent('togglePlayPause');
+    });
+    
+    // Botón de detener
+    const stopBtn = this.createMusicControlButton('fa-stop', 'Detener', () => {
+      this.emitMusicEvent('stop');
+    });
+    
+    // Botón anterior
+    const prevBtn = this.createMusicControlButton('fa-backward', 'Anterior', () => {
+      this.emitMusicEvent('playPrev');
+    });
+    
+    // Botón siguiente
+    const nextBtn = this.createMusicControlButton('fa-forward', 'Siguiente', () => {
+      this.emitMusicEvent('playNext');
+    });
+    
+    // Botón de volumen
+    const volumeBtn = this.createMusicControlButton('fa-volume-up', 'Volumen', () => {
+      this.emitMusicEvent('toggleVolume');
+    });
+    
+    container.appendChild(prevBtn);
+    container.appendChild(playPauseBtn);
+    container.appendChild(stopBtn);
+    container.appendChild(nextBtn);
+    container.appendChild(volumeBtn);
+    
+    return container;
+  }
+  
+  createMusicControlButton(iconClass, title, clickHandler) {
+    const button = document.createElement('button');
+    button.className = 'music-control-button';
+    button.style.cssText = `
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    `;
+    
+    const icon = document.createElement('i');
+    icon.className = `fa-solid ${iconClass}`;
+    icon.style.cssText = 'font-size: 14px;';
+    
+    button.appendChild(icon);
+    button.title = title;
+    button.addEventListener('click', clickHandler);
+    
+    return button;
+  }
+  
+  emitMusicEvent(eventName) {
+    if (window.MizuOS && window.MizuOS.eventBus) {
+      window.MizuOS.eventBus.emit(`music:${eventName}`);
+    }
   }
 
   createSeparator() {
@@ -151,12 +229,11 @@ export default class StatusWidget {
     container.className = 'status-widgets-container';
     container.style.display = 'flex';
     container.style.alignItems = 'center';
-    container.style.gap = '12px'; // Reducir espacio entre widgets
+    container.style.gap = '12px';
     container.style.marginLeft = 'auto';
-    container.style.marginRight = '10px'; // Añadir margen derecho para separar del borde
+    container.style.marginRight = '10px';
     
-    // Nuevo orden: separador, volumen, batería, wifi, mes, día, hora, minutos, am/pm
-    container.appendChild(this.createSeparator());
+    // Nuevo orden: volumen, batería, wifi, mes, día, hora, minutos, am/pm
     container.appendChild(this.createVolume());
     container.appendChild(this.createBattery());
     container.appendChild(this.createWiFi());
