@@ -91,6 +91,23 @@ export default class AppLoader {
       console.log('AppLoader: Contenedor de aplicaciones creado correctamente');
     } else {
       console.log('AppLoader: Contenedor de aplicaciones ya existe');
+      
+      // CORREGIDO: Si el contenedor ya existe, asegurar que tenga el z-index correcto
+      // para no bloquear la interacción con otros elementos
+      this.appsContainer.style.zIndex = '641';
+      this.appsContainer.style.cursor = 'grab';
+      
+      // CORREGIDO: Eliminar cualquier otro black-bar duplicado
+      const allBlackBars = document.querySelectorAll('#black-bar');
+      if (allBlackBars.length > 1) {
+        console.log(`AppLoader: Se encontraron ${allBlackBars.length} elementos black-bar, eliminando duplicados`);
+        for (let i = 1; i < allBlackBars.length; i++) {
+          if (allBlackBars[i] !== this.appsContainer) {
+            allBlackBars[i].parentNode.removeChild(allBlackBars[i]);
+            console.log('AppLoader: Elemento black-bar duplicado eliminado');
+          }
+        }
+      }
     }
     
     return this.appsContainer;
