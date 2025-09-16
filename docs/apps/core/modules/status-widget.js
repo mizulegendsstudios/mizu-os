@@ -1,4 +1,3 @@
-//docs/apps/core/modules/status-widget.js
 /*
  * Mizu OS - Status Widget Module
  * Copyright (C) 2025 Mizu Legends Studios
@@ -16,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Sistema de widgets de estado para Mizu OS
  * Gestiona la visualización de información del sistema (hora, batería, WiFi, volumen)
@@ -26,14 +24,10 @@ export default class StatusWidget {
   constructor() {
     this.widgets = {};
   }
-
+  
   createMusicControls() {
     const container = document.createElement('div');
     container.className = 'music-controls-container';
-    container.style.display = 'flex';
-    container.style.alignItems = 'center';
-    container.style.gap = '8px';
-    container.style.marginRight = '15px';
     
     // Botón de reproducción/pausa
     const playPauseBtn = this.createMusicControlButton('fa-play', 'Reproducir/Pausar', () => {
@@ -72,23 +66,9 @@ export default class StatusWidget {
   createMusicControlButton(iconClass, title, clickHandler) {
     const button = document.createElement('button');
     button.className = 'music-control-button';
-    button.style.cssText = `
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    `;
     
     const icon = document.createElement('i');
     icon.className = `fa-solid ${iconClass}`;
-    icon.style.cssText = 'font-size: 14px;';
     
     button.appendChild(icon);
     button.title = title;
@@ -102,20 +82,16 @@ export default class StatusWidget {
       window.MizuOS.eventBus.emit(`music:${eventName}`);
     }
   }
-
+  
   createSeparator() {
     const separator = document.createElement('div');
     separator.className = 'status-widget';
     separator.id = 'separator-widget';
-    separator.style.width = '1px';
-    separator.style.height = '20px';
-    separator.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-    separator.style.margin = '0 10px';
     
     this.widgets.separator = separator;
     return separator;
   }
-
+  
   createVolume() {
     const volume = document.createElement('div');
     volume.className = 'status-widget';
@@ -130,7 +106,7 @@ export default class StatusWidget {
     this.widgets.volume = volume;
     return volume;
   }
-
+  
   createBattery() {
     const battery = document.createElement('div');
     battery.className = 'status-widget';
@@ -145,7 +121,7 @@ export default class StatusWidget {
     this.widgets.battery = battery;
     return battery;
   }
-
+  
   createWiFi() {
     const wifi = document.createElement('div');
     wifi.className = 'status-widget';
@@ -160,7 +136,7 @@ export default class StatusWidget {
     this.widgets.wifi = wifi;
     return wifi;
   }
-
+  
   createMonth() {
     const month = document.createElement('div');
     month.className = 'status-widget';
@@ -177,7 +153,7 @@ export default class StatusWidget {
     this.widgets.month = month;
     return month;
   }
-
+  
   createDay() {
     const day = document.createElement('div');
     day.className = 'status-widget';
@@ -193,7 +169,7 @@ export default class StatusWidget {
     this.widgets.day = day;
     return day;
   }
-
+  
   createClock() {
     const clock = document.createElement('div');
     clock.className = 'status-widget';
@@ -220,17 +196,12 @@ export default class StatusWidget {
     this.widgets.clock = clock;
     return clock;
   }
-
+  
   createAllWidgets() {
     console.log('StatusWidget: Creando todos los widgets');
     
     const container = document.createElement('div');
     container.className = 'status-widgets-container';
-    container.style.display = 'flex';
-    container.style.alignItems = 'center';
-    container.style.gap = '12px';
-    container.style.marginLeft = 'auto';
-    container.style.marginRight = '10px';
     
     // Nuevo orden: volumen, batería, wifi, mes, día, hora, minutos, am/pm
     container.appendChild(this.createVolume());
