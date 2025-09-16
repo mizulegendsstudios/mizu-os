@@ -1,4 +1,3 @@
-// docs/apps/core/modules/system-ui.js - Sistema de creación de interfaz de usuario para Mizu OS v3.0.0
 /*
  * Mizu OS - System UI Module
  * Copyright (C) 2025 Mizu Legends Studios
@@ -16,207 +15,119 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
- * Sistema de creación de interfaz de usuario para Mizu OS
- * Gestiona la creación dinámica de todos los elementos visuales del sistema
+ * Sistema de interfaz de usuario para Mizu OS
+ * Gestiona la creación y manipulación de elementos de la interfaz
  */
-class SystemUI {
-  constructor() {
+// apps/core/modules/system-ui.js
+export default class SystemUI {
+  constructor(eventBus, statusWidget) {
+    this.eventBus = eventBus;
+    this.statusWidget = statusWidget;
     this.elements = {};
-    this.videoBackgroundUrl = 'https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-board@main/docs/core/assets/bibiye.webm';
-    this.hologramImageUrl = 'https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-axiscore@main/src/images/png/svgmls.png';
   }
 
-  /**
-   * Crea el video de fondo
-   * @returns {HTMLVideoElement} Elemento de video
-   */
-  createVideoBackground() {
-    // Verificar si ya existe un video de fondo
-    const existingVideo = document.querySelector('.video-background');
-    if (existingVideo) {
-      existingVideo.remove();
-    }
+  init() {
+    console.log('SystemUI: Inicializando interfaz de usuario');
     
-    const video = document.createElement('video');
-    video.className = 'video-background';
-    video.autoplay = true;
-    video.loop = true;
-    video.muted = true;
-    video.playsInline = true;
+    // Crear elementos de la interfaz
+    this.createRedBar();
+    this.createBlueBar();
+    this.createYellowSquare();
+    this.createBlackBar();
     
-    const source = document.createElement('source');
-    source.src = this.videoBackgroundUrl;
-    source.type = 'video/webm';
-    
-    video.appendChild(source);
-    
-    // Agregar al body antes de cualquier otro elemento
-    document.body.insertBefore(video, document.body.firstChild);
-    
-    // Forzar la reproducción
-    video.play().catch(error => {
-      console.log('Error al reproducir video:', error);
-    });
-    
-    console.log('Video de fondo creado');
-    
-    return video;
+    console.log('SystemUI: Interfaz de usuario inicializada correctamente');
+    return true;
   }
 
-  /**
-   * Crea la estructura básica del sistema en el contenedor especificado
-   * @param {HTMLElement} container - Contenedor donde se creará la UI
-   */
-  createSystemStructure(container) {
-    console.log('Creando estructura del sistema en:', container);
-    
-    // Limpiar contenedor
-    container.innerHTML = '';
-    
-    // Crear video de fondo primero
-    this.createVideoBackground();
-    
-    // Crear barra superior (roja)
-    this.elements.redBar = this.createRedBar();
-    container.appendChild(this.elements.redBar);
-    
-    // Crear barra lateral (azul)
-    this.elements.blueBar = this.createBlueBar();
-    container.appendChild(this.elements.blueBar);
-    
-    // Crear área de trabajo principal (negra)
-    this.elements.blackBar = this.createBlackBar();
-    container.appendChild(this.elements.blackBar);
-    
-    // Crear holograma
-    this.elements.yellowSquare = this.createHologram();
-    container.appendChild(this.elements.yellowSquare);
-    
-    console.log('Estructura básica del sistema creada');
-    console.log('Elementos creados:', {
-      redBar: this.elements.redBar,
-      blueBar: this.elements.blueBar,
-      blackBar: this.elements.blackBar,
-      yellowSquare: this.elements.yellowSquare
-    });
-  }
-
-  /**
-   * Crea la barra superior del sistema (roja)
-   * @returns {HTMLElement} Elemento de la barra roja
-   */
   createRedBar() {
+    console.log('SystemUI: Creando barra roja');
+    
     const redBar = document.createElement('div');
     redBar.id = 'red-bar';
-    redBar.className = 'system-bar';
     
-    // Widget de estado del sistema
-    const systemWidget = document.createElement('div');
-    systemWidget.id = 'system-widget';
-    systemWidget.className = 'status-widget-container';
+    // Añadir controles de música
+    const musicControls = this.statusWidget.createMusicControls();
+    redBar.appendChild(musicControls);
     
-    // Reloj
-    const clockWidget = document.createElement('div');
-    clockWidget.className = 'status-widget status-widget-clock';
-    clockWidget.innerHTML = `
-      <div id="widget-time" class="status-time">00:00</div>
-      <div id="widget-date" class="status-date">01/01/2025</div>
-    `;
+    // Añadir widgets de estado
+    const statusWidgets = this.statusWidget.createAllWidgets();
+    redBar.appendChild(statusWidgets);
     
-    // Batería
-    const batteryWidget = document.createElement('div');
-    batteryWidget.className = 'status-widget status-widget-battery';
-    batteryWidget.innerHTML = `
-      <i class="fas fa-battery-three-quarters status-icon"></i>
-      <span id="widget-battery" class="status-battery-level">100%</span>
-    `;
+    // Guardar referencia al elemento
+    this.elements.redBar = redBar;
     
-    // WiFi
-    const wifiWidget = document.createElement('div');
-    wifiWidget.className = 'status-widget status-widget-wifi';
-    wifiWidget.innerHTML = `
-      <i class="fas fa-wifi status-icon"></i>
-      <span id="widget-wifi" class="status-wifi-status">Conectado</span>
-    `;
+    // Añadir al body
+    document.body.appendChild(redBar);
     
-    // Volumen
-    const volumeWidget = document.createElement('div');
-    volumeWidget.className = 'status-widget status-widget-volume';
-    volumeWidget.innerHTML = `
-      <i class="fas fa-volume-up status-icon"></i>
-      <span id="widget-volume" class="status-volume-level">100%</span>
-    `;
-    
-    // Añadir widgets al contenedor
-    systemWidget.appendChild(clockWidget);
-    systemWidget.appendChild(batteryWidget);
-    systemWidget.appendChild(wifiWidget);
-    systemWidget.appendChild(volumeWidget);
-    
-    redBar.appendChild(systemWidget);
-    
-    return redBar;
+    console.log('SystemUI: Barra roja creada correctamente');
   }
 
-  /**
-   * Crea la barra lateral del sistema (azul)
-   * @returns {HTMLElement} Elemento de la barra azul
-   */
   createBlueBar() {
+    console.log('SystemUI: Creando barra azul');
+    
     const blueBar = document.createElement('div');
     blueBar.id = 'blue-bar';
-    blueBar.className = 'system-bar';
     
-    // Contenedor para botones de aplicaciones
-    const appsContainer = document.createElement('div');
-    appsContainer.id = 'apps-container';
-    appsContainer.className = 'apps-container';
+    // Crear botón para la aplicación de música
+    const musicAppButton = this.createAppButton('music', 'Música', 'fa-music');
+    blueBar.appendChild(musicAppButton);
     
-    blueBar.appendChild(appsContainer);
+    // Crear botón para la aplicación de diagram
+    const diagramAppButton = this.createAppButton('diagram', 'Diagrama', 'fa-project-diagram');
+    blueBar.appendChild(diagramAppButton);
     
-    // Botón de configuración en la parte inferior
-    const configButton = document.createElement('button');
-    configButton.id = 'config-button';
-    configButton.className = 'app-button config-button';
-    configButton.innerHTML = '<i class="fas fa-cog"></i>';
-    configButton.title = 'Configuración';
+    // Crear botón para la aplicación de editor
+    const editorAppButton = this.createAppButton('editor', 'Editor', 'fa-edit');
+    blueBar.appendChild(editorAppButton);
     
-    blueBar.appendChild(configButton);
+    // Crear botón para la aplicación de settings
+    const settingsAppButton = this.createAppButton('settings', 'Configuración', 'fa-cog');
+    blueBar.appendChild(settingsAppButton);
     
-    return blueBar;
+    // Crear botón para la aplicación de spreadsheet
+    const spreadsheetAppButton = this.createAppButton('spreadsheet', 'Hoja de cálculo', 'fa-table');
+    blueBar.appendChild(spreadsheetAppButton);
+    
+    // Guardar referencia al elemento
+    this.elements.blueBar = blueBar;
+    
+    // Añadir al body
+    document.body.appendChild(blueBar);
+    
+    console.log('SystemUI: Barra azul creada correctamente');
   }
 
-  /**
-   * Crea el área de trabajo principal (negra)
-   * @returns {HTMLElement} Elemento del área de trabajo
-   */
-  createBlackBar() {
-    const blackBar = document.createElement('div');
-    blackBar.id = 'black-bar';
+  createAppButton(appId, title, iconClass) {
+    const button = document.createElement('button');
+    button.className = 'app-button';
+    button.title = title;
+    button.dataset.appId = appId;
     
-    // Contenedor para el contenido de las aplicaciones
-    const contentWrapper = document.createElement('div');
-    contentWrapper.id = 'black-content-wrapper';
-    contentWrapper.className = 'content-wrapper';
+    const icon = document.createElement('i');
+    icon.className = `fas ${iconClass}`;
     
-    // Área de trabajo para aplicaciones
-    const workspace = document.createElement('div');
-    workspace.id = 'workspace';
-    workspace.className = 'workspace';
+    button.appendChild(icon);
     
-    contentWrapper.appendChild(workspace);
-    blackBar.appendChild(contentWrapper);
+    // Añadir evento de clic para activar la aplicación
+    button.addEventListener('click', () => {
+      console.log(`SystemUI: Botón de aplicación ${appId} presionado`);
+      
+      // Verificar que el EventBus esté disponible
+      if (this.eventBus) {
+        console.log(`SystemUI: Emitiendo evento app:activate para ${appId}`);
+        this.eventBus.emit('app:activate', { appId });
+      } else {
+        console.error('SystemUI: EventBus no disponible');
+      }
+    });
     
-    return blackBar;
+    return button;
   }
 
-  /**
-   * Crea el holograma del sistema
-   * @returns {HTMLElement} Elemento del holograma
-   */
-  createHologram() {
+  createYellowSquare() {
+    console.log('SystemUI: Creando cuadrado amarillo');
+    
     const yellowSquare = document.createElement('div');
     yellowSquare.id = 'yellow-square';
     
@@ -229,239 +140,32 @@ class SystemUI {
     cube.appendChild(hologram);
     yellowSquare.appendChild(cube);
     
-    return yellowSquare;
+    // Guardar referencia al elemento
+    this.elements.yellowSquare = yellowSquare;
+    
+    // Añadir al body
+    document.body.appendChild(yellowSquare);
+    
+    console.log('SystemUI: Cuadrado amarillo creado correctamente');
   }
 
-  /**
-   * Actualiza la hora y fecha en el widget
-   */
-  updateClock() {
-    const now = new Date();
-    const timeElement = document.getElementById('widget-time');
-    const dateElement = document.getElementById('widget-date');
+  createBlackBar() {
+    console.log('SystemUI: Creando barra negra');
     
-    if (timeElement) {
-      const hours = now.getHours().toString().padStart(2, '0');
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      timeElement.textContent = `${hours}:${minutes}`;
-    }
+    const blackBar = document.createElement('div');
+    blackBar.id = 'black-bar';
     
-    if (dateElement) {
-      const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-      
-      const dayName = days[now.getDay()];
-      const day = now.getDate();
-      const month = months[now.getMonth()];
-      const year = now.getFullYear();
-      
-      dateElement.textContent = `${dayName}, ${day} ${month} ${year}`;
-    }
+    // Guardar referencia al elemento
+    this.elements.blackBar = blackBar;
+    
+    // Añadir al body
+    document.body.appendChild(blackBar);
+    
+    console.log('SystemUI: Barra negra creada correctamente');
   }
 
-  /**
-   * Actualiza el estado de la batería
-   * @param {number} level - Nivel de batería (0-100)
-   * @param {boolean} charging - Si está cargando
-   */
-  updateBattery(level, charging = false) {
-    const batteryElement = document.getElementById('widget-battery');
-    if (!batteryElement) return;
-    
-    const iconElement = batteryElement.previousElementSibling;
-    if (iconElement && iconElement.classList.contains('fa-battery-three-quarters')) {
-      // Determinar el icono según el nivel
-      let iconClass = 'fa-battery-';
-      if (charging) {
-        iconClass += 'charging';
-      } else if (level > 75) {
-        iconClass += 'full';
-      } else if (level > 50) {
-        iconClass += 'three-quarters';
-      } else if (level > 25) {
-        iconClass += 'half';
-      } else {
-        iconClass = 'fa-battery-exclamation';
-      }
-      
-      iconElement.className = `fas ${iconClass} status-icon`;
-    }
-    
-    batteryElement.textContent = `${level}%`;
-  }
-
-  /**
-   * Actualiza el estado de la conexión WiFi
-   * @param {string} status - Estado de la conexión
-   * @param {number} strength - Intensidad de la señal (0-4)
-   */
-  updateWiFi(status, strength = 4) {
-    const wifiElement = document.getElementById('widget-wifi');
-    if (!wifiElement) return;
-    
-    const iconElement = wifiElement.previousElementSibling;
-    if (iconElement && iconElement.classList.contains('fa-wifi')) {
-      // Determinar el icono según la intensidad
-      let iconClass = 'fa-wifi';
-      if (strength <= 0) {
-        iconClass = 'fa-wifi-slash';
-      } else if (strength < 2) {
-        iconClass = 'fa-wifi-1';
-      } else if (strength < 3) {
-        iconClass = 'fa-wifi-2';
-      } else if (strength < 4) {
-        iconClass = 'fa-wifi-3';
-      }
-      
-      iconElement.className = `fas ${iconClass} status-icon`;
-    }
-    
-    wifiElement.textContent = status;
-  }
-
-  /**
-   * Actualiza el estado del volumen
-   * @param {number} level - Nivel de volumen (0-100)
-   * @param {boolean} muted - Si está silenciado
-   */
-  updateVolume(level, muted = false) {
-    const volumeElement = document.getElementById('widget-volume');
-    if (!volumeElement) return;
-    
-    const iconElement = volumeElement.previousElementSibling;
-    if (iconElement && iconElement.classList.contains('fa-volume-up')) {
-      // Determinar el icono según el nivel
-      let iconClass = 'fa-volume-';
-      if (muted || level === 0) {
-        iconClass += 'mute';
-      } else if (level < 33) {
-        iconClass += 'down';
-      } else if (level < 66) {
-        iconClass += 'up';
-      } else {
-        iconClass += 'up';
-      }
-      
-      iconElement.className = `fas ${iconClass} status-icon`;
-    }
-    
-    volumeElement.textContent = muted ? 'Mute' : `${level}%`;
-  }
-
-  /**
-   * Añade un botón de aplicación a la barra lateral
-   * @param {string} appId - ID de la aplicación
-   * @param {string} icon - Icono de la aplicación
-   * @param {string} title - Título de la aplicación
-   * @param {Function} onClick - Función a ejecutar al hacer clic
-   * @returns {HTMLButtonElement} Botón creado
-   */
-  addAppButton(appId, icon, title, onClick) {
-    const appsContainer = document.getElementById('apps-container');
-    if (!appsContainer) return null;
-    
-    const button = document.createElement('button');
-    button.id = `app-button-${appId}`;
-    button.className = 'app-button';
-    button.innerHTML = icon;
-    button.title = title;
-    button.dataset.appId = appId;
-    
-    if (typeof onClick === 'function') {
-      button.addEventListener('click', onClick);
-    }
-    
-    appsContainer.appendChild(button);
-    
-    return button;
-  }
-
-  /**
-   * Activa o desactiva un botón de aplicación
-   * @param {string} appId - ID de la aplicación
-   * @param {boolean} active - Estado de activación
-   */
-  setAppButtonActive(appId, active) {
-    const button = document.getElementById(`app-button-${appId}`);
-    if (button) {
-      if (active) {
-        button.classList.add('active');
-      } else {
-        button.classList.remove('active');
-      }
-    }
-  }
-
-  /**
-   * Obtiene el contenedor de contenido de las aplicaciones
-   * @returns {HTMLElement} Contenedor de contenido
-   */
-  getContentWrapper() {
-    return document.getElementById('black-content-wrapper');
-  }
-
-  /**
-   * Obtiene el área de trabajo
-   * @returns {HTMLElement} Área de trabajo
-   */
-  getWorkspace() {
-    return document.getElementById('workspace');
-  }
-
-  /**
-   * Muestra u oculta las barras del sistema
-   * @param {boolean} visible - Visibilidad de las barras
-   */
-  toggleSystemBars(visible) {
-    const bars = ['red-bar', 'blue-bar', 'yellow-square'];
-    
-    bars.forEach(barId => {
-      const bar = document.getElementById(barId);
-      if (bar) {
-        bar.style.display = visible ? '' : 'none';
-      }
-    });
-  }
-
-  /**
-   * Inicia el sistema de actualización periódica de widgets
-   */
-  startWidgetUpdates() {
-    // Actualizar reloj cada segundo
-    setInterval(() => this.updateClock(), 1000);
-    
-    // Actualizar estado de la batería cada 5 minutos
-    setInterval(() => {
-      // Simular estado de batería
-      const level = Math.floor(Math.random() * 100);
-      const charging = Math.random() > 0.8;
-      this.updateBattery(level, charging);
-    }, 300000);
-    
-    // Actualizar estado de WiFi cada 30 segundos
-    setInterval(() => {
-      // Simular estado de WiFi
-      const statuses = ['Conectado', 'Conectando...', 'Desconectado'];
-      const status = statuses[Math.floor(Math.random() * statuses.length)];
-      const strength = Math.floor(Math.random() * 5);
-      this.updateWiFi(status, strength);
-    }, 30000);
-    
-    // Actualizar volumen cada minuto
-    setInterval(() => {
-      // Simular estado de volumen
-      const level = Math.floor(Math.random() * 100);
-      const muted = Math.random() > 0.9;
-      this.updateVolume(level, muted);
-    }, 60000);
-    
-    // Actualizar inmediatamente
-    this.updateClock();
-    this.updateBattery(85, false);
-    this.updateWiFi('Conectado', 4);
-    this.updateVolume(75, false);
+  // Método para obtener referencias a los elementos de la interfaz
+  getElement(elementId) {
+    return this.elements[elementId];
   }
 }
-
-// Exportar la clase
-export { SystemUI };
