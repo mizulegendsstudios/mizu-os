@@ -119,10 +119,18 @@ export default class MusicApp {
       text-align: center;
       color: white;
     `;
-    trackInfo.innerHTML = `
-      <div id="current-track-title" style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">No hay música reproduciéndose</div>
-      <div id="current-track-source" style="font-size: 14px; opacity: 0.8;"></div>
-    `;
+    
+    const currentTrackTitle = document.createElement('div');
+    currentTrackTitle.id = 'current-track-title';
+    currentTrackTitle.style.cssText = 'font-size: 18px; font-weight: bold; margin-bottom: 5px;';
+    currentTrackTitle.textContent = 'No hay música reproduciéndose';
+    
+    const currentTrackSource = document.createElement('div');
+    currentTrackSource.id = 'current-track-source';
+    currentTrackSource.style.cssText = 'font-size: 14px; opacity: 0.8;';
+    
+    trackInfo.appendChild(currentTrackTitle);
+    trackInfo.appendChild(currentTrackSource);
     
     // Contenedor del reproductor de medios (YouTube/SoundCloud/Mixcloud)
     const mediaPlayerContainer = document.createElement('div');
@@ -315,11 +323,11 @@ export default class MusicApp {
     panel.appendChild(playlistSection);
     panel.appendChild(this.audioElement);
     
-    // Guardar referencias a elementos importantes
+    // Guardar referencias a elementos importantes - CORREGIDO
     this.panel = panel;
-    this.currentTrackTitleEl = document.getElementById('current-track-title');
-    this.currentTrackSourceEl = document.getElementById('current-track-source');
-    this.playlistContainerEl = document.getElementById('playlist-container');
+    this.currentTrackTitleEl = currentTrackTitle;  // Referencia directa
+    this.currentTrackSourceEl = currentTrackSource;  // Referencia directa
+    this.playlistContainerEl = playlistContainer;  // Referencia directa
     this.playPauseBtnEl = playPauseBtn;
     this.mediaPlayerContainerEl = mediaPlayerContainer;
     this.dynamicPlayerEl = dynamicPlayer;
