@@ -17,7 +17,7 @@ export default class UIBuilder {
     video.muted = true;
     video.loop = true;
     video.playsInline = true;
-    video.src = 'https://assets.mixkit.co/videos/preview/mixkit-wavy-green-abstract-background-2729-large.mp4';
+    video.src = 'https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-board@main/docs/core/assets/bibiye.webm';
     video.onerror = () => console.log('Error al cargar el video de fondo.');
     this.body.appendChild(video);
     
