@@ -21,63 +21,22 @@
  * Sistema de widgets de estado para Mizu OS
  * Gestiona la visualización de información del sistema (hora, batería, WiFi, volumen)
  */
-// apps/core/modules/status-widget.js
 export default class StatusWidget {
   constructor() {
     this.widgets = {};
   }
 
-  createClock() {
-    const clock = document.createElement('div');
-    clock.className = 'status-widget';
-    clock.id = 'clock-widget';
+  createSeparator() {
+    const separator = document.createElement('div');
+    separator.className = 'status-widget';
+    separator.id = 'separator-widget';
+    separator.style.width = '1px';
+    separator.style.height = '20px';
+    separator.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+    separator.style.margin = '0 10px';
     
-    const updateClock = () => {
-      const now = new Date();
-      const hours = now.getHours().toString().padStart(2, '0');
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      // Solo mostrar horas y minutos, sin segundos
-      clock.innerHTML = `<i class="far fa-clock"></i> ${hours}:${minutes}`;
-    };
-    
-    // Actualizar inmediatamente
-    updateClock();
-    
-    // Actualizar cada minuto en lugar de cada segundo
-    setInterval(updateClock, 60000);
-    
-    this.widgets.clock = clock;
-    return clock;
-  }
-
-  createBattery() {
-    const battery = document.createElement('div');
-    battery.className = 'status-widget';
-    battery.id = 'battery-widget';
-    
-    // Simular nivel de batería (en una implementación real se usaría la API de batería)
-    const batteryLevel = Math.floor(Math.random() * 100);
-    
-    // Solo el icono, sin texto
-    battery.innerHTML = `<i class="fas fa-battery-three-quarters"></i>`;
-    
-    this.widgets.battery = battery;
-    return battery;
-  }
-
-  createWiFi() {
-    const wifi = document.createElement('div');
-    wifi.className = 'status-widget';
-    wifi.id = 'wifi-widget';
-    
-    // Simular estado de conexión (en una implementación real se usaría la API de conexión)
-    const isConnected = Math.random() > 0.3;
-    
-    // Solo el icono, sin texto
-    wifi.innerHTML = `<i class="fas fa-wifi"></i>`;
-    
-    this.widgets.wifi = wifi;
-    return wifi;
+    this.widgets.separator = separator;
+    return separator;
   }
 
   createVolume() {
@@ -95,6 +54,96 @@ export default class StatusWidget {
     return volume;
   }
 
+  createBattery() {
+    const battery = document.createElement('div');
+    battery.className = 'status-widget';
+    battery.id = 'battery-widget';
+    
+    // Simular nivel de batería
+    const batteryLevel = Math.floor(Math.random() * 100);
+    
+    // Solo el icono, sin texto
+    battery.innerHTML = `<i class="fas fa-battery-three-quarters"></i>`;
+    
+    this.widgets.battery = battery;
+    return battery;
+  }
+
+  createWiFi() {
+    const wifi = document.createElement('div');
+    wifi.className = 'status-widget';
+    wifi.id = 'wifi-widget';
+    
+    // Simular estado de conexión
+    const isConnected = Math.random() > 0.3;
+    
+    // Solo el icono, sin texto
+    wifi.innerHTML = `<i class="fas fa-wifi"></i>`;
+    
+    this.widgets.wifi = wifi;
+    return wifi;
+  }
+
+  createMonth() {
+    const month = document.createElement('div');
+    month.className = 'status-widget';
+    month.id = 'month-widget';
+    
+    const updateMonth = () => {
+      const now = new Date();
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      month.textContent = monthNames[now.getMonth()];
+    };
+    
+    updateMonth();
+    
+    this.widgets.month = month;
+    return month;
+  }
+
+  createDay() {
+    const day = document.createElement('div');
+    day.className = 'status-widget';
+    day.id = 'day-widget';
+    
+    const updateDay = () => {
+      const now = new Date();
+      day.textContent = now.getDate();
+    };
+    
+    updateDay();
+    
+    this.widgets.day = day;
+    return day;
+  }
+
+  createClock() {
+    const clock = document.createElement('div');
+    clock.className = 'status-widget';
+    clock.id = 'clock-widget';
+    
+    const updateClock = () => {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      
+      // Convertir a formato 12 horas
+      hours = hours % 12;
+      hours = hours ? hours : 12; // 0 debe ser 12
+      
+      clock.innerHTML = `${hours}:${minutes} <small>${ampm}</small>`;
+    };
+    
+    updateClock();
+    
+    // Actualizar cada minuto
+    setInterval(updateClock, 60000);
+    
+    this.widgets.clock = clock;
+    return clock;
+  }
+
   createAllWidgets() {
     console.log('StatusWidget: Creando todos los widgets');
     
@@ -102,13 +151,17 @@ export default class StatusWidget {
     container.className = 'status-widgets-container';
     container.style.display = 'flex';
     container.style.alignItems = 'center';
-    container.style.gap = '15px';
+    container.style.gap = '12px'; // Reducir espacio entre widgets
     container.style.marginLeft = 'auto';
+    container.style.marginRight = '10px'; // Añadir margen derecho para separar del borde
     
-    // Nuevo orden: WiFi, Volumen, Batería, Reloj
+    // Nuevo orden: separador, volumen, batería, wifi, mes, día, hora, minutos, am/pm
+    container.appendChild(this.createSeparator());
     container.appendChild(this.createVolume());
-    container.appendChild(this.createWiFi());
     container.appendChild(this.createBattery());
+    container.appendChild(this.createWiFi());
+    container.appendChild(this.createMonth());
+    container.appendChild(this.createDay());
     container.appendChild(this.createClock());
     
     console.log('StatusWidget: Widgets creados correctamente');
