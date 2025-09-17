@@ -18,7 +18,6 @@
 /**
  * Aplicación de diagnóstico y optimización del sistema para Mizu OS
  * Detecta capacidades del dispositivo y ofrece recomendaciones automáticas
- * docs/apps/performance/appcore.js
  */
 import DeviceInfo from './modules/device-info.js';
 import MetricsCollector from './modules/metrics-collector.js';
@@ -116,7 +115,7 @@ export default class PerformanceApp {
     this.uiModule.showLoading();
     this.uiModule.hideOptimizations();
     
-    // Detener cualquier medición de FPS anterior
+    // Detener cualquier medición anterior
     this.metricsCollector.stopFPSMeasurement();
     
     // Recopilar información del dispositivo
@@ -124,21 +123,21 @@ export default class PerformanceApp {
     this.uiModule.updateDeviceInfo(this.deviceInfo);
     
     // Iniciar medición de FPS
-    this.metricsCollector.startFPSMeasurement((fps) => {
+    this.metricsCollector.startFPSMeasurement((fps, fpsHistory) => {
       this.performanceMetrics.fps = fps;
-      this.uiModule.updateFPS(fps);
+      this.uiModule.updateFPS(fps, fpsHistory);
     });
     
     // Medir uso de memoria
-    this.metricsCollector.measureMemoryUsage((ramUsage) => {
+    this.metricsCollector.measureMemoryUsage((ramUsage, usedMB, totalMB, ramHistory) => {
       this.performanceMetrics.ramUsage = ramUsage;
-      this.uiModule.updateRAM(ramUsage);
+      this.uiModule.updateRAM(ramUsage, usedMB, totalMB, ramHistory);
     });
     
     // Medir carga de CPU
-    this.metricsCollector.measureCPULoad((cpuLoad) => {
+    this.metricsCollector.measureCPULoad((cpuLoad, cpuHistory) => {
       this.performanceMetrics.cpuLoad = cpuLoad;
-      this.uiModule.updateCPU(cpuLoad);
+      this.uiModule.updateCPU(cpuLoad, cpuHistory);
     });
     
     // Detectar problemas de video
