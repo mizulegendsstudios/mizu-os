@@ -293,8 +293,25 @@ export default class AppLoader {
     
     // Verificar si la aplicación ya está activa
     if (this.activeApps.has(appId)) {
-      console.log(`[DEBUG] AppLoader: La aplicación ${appId} ya está activa`);
+      console.log(`[DEBUG] AppLoader: La aplicación ${appId} ya está activa, alternando visibilidad`);
+      // En lugar de desactivar, emitimos un evento para alternar la visibilidad
+      this.eventBus.emit(`${appId}:toggleVisibility`, { appId });
       return;
+    }
+    
+    // Si hay una aplicación activa, ocultarla (no destruirla)
+    if (this.activeApps.size > 0) {
+      // Obtenemos la aplicación activa actual
+      const currentActiveAppId = Array.from(this.activeApps.keys())[0];
+      if (currentActiveAppId && currentActiveAppId !== appId) {
+        console.log(`[DEBUG] AppLoader: Ocultando aplicación activa actual: ${currentActiveAppId}`);
+        // Emitimos evento para ocultar la aplicación actual
+        this.eventBus.emit(`${currentActiveAppId}:toggleVisibility`, { appId: currentActiveAppId, hide: true });
+        
+        // No eliminamos la aplicación de las activas, solo la ocultamos
+        // Pero limpiamos el contenedor para mostrar la nueva aplicación
+        this.appsContainer.innerHTML = '';
+      }
     }
     
     // Cargar la aplicación si no está cargada
@@ -359,10 +376,8 @@ export default class AppLoader {
     try {
       const appData = this.activeApps.get(appId);
       
-      // Destruir la aplicación si tiene un método destroy
-      if (typeof appData.instance.destroy === 'function') {
-        appData.instance.destroy();
-      }
+      // En lugar de destruir, emitimos un evento para que la aplicación se oculte
+      this.eventBus.emit(`${appId}:toggleVisibility`, { appId, hide: true });
       
       // Eliminar la aplicación de las aplicaciones activas
       this.activeApps.delete(appId);
