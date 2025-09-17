@@ -17,7 +17,6 @@
  */
 /**
  * Módulo para crear y gestionar la interfaz de usuario
- * docs/apps/performance/modules/ui.js
  */
 export default class UI {
   constructor() {
@@ -29,6 +28,9 @@ export default class UI {
     this.recommendationsList = null;
     this.optimizationsSection = null;
     this.optimizationsList = null;
+    this.fpsChart = null;
+    this.cpuChart = null;
+    this.ramChart = null;
   }
   
   // Renderizar la interfaz de usuario
@@ -69,6 +71,9 @@ export default class UI {
     // Sección de métricas de rendimiento
     const metricsSection = this.createMetricsSection();
     
+    // Sección de gráficos
+    const chartsSection = this.createChartsSection();
+    
     // Sección de recomendaciones
     const recommendationsSection = this.createRecommendationsSection();
     
@@ -82,6 +87,7 @@ export default class UI {
     container.appendChild(title);
     container.appendChild(deviceSection);
     container.appendChild(metricsSection);
+    container.appendChild(chartsSection);
     container.appendChild(recommendationsSection);
     container.appendChild(this.optimizationsSection);
     container.appendChild(actionsSection);
@@ -168,6 +174,84 @@ export default class UI {
     metricsSection.appendChild(metricsInfo);
     
     return metricsSection;
+  }
+  
+  // Crear sección de gráficos
+  createChartsSection() {
+    const chartsSection = document.createElement('div');
+    chartsSection.className = 'charts-section';
+    chartsSection.style.cssText = `
+      margin-bottom: 20px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+    `;
+    
+    const chartsTitle = document.createElement('h2');
+    chartsTitle.textContent = 'Gráficos de Rendimiento';
+    chartsTitle.style.cssText = `
+      color: #6366f1;
+      margin-bottom: 10px;
+      font-size: 18px;
+    `;
+    
+    const chartsContainer = document.createElement('div');
+    chartsContainer.className = 'charts-container';
+    chartsContainer.style.cssText = `
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+    `;
+    
+    // Crear gráficos
+    this.fpsChart = this.createChart('FPS', 'fps-chart');
+    this.cpuChart = this.createChart('CPU', 'cpu-chart');
+    this.ramChart = this.createChart('RAM', 'ram-chart');
+    
+    chartsContainer.appendChild(this.fpsChart);
+    chartsContainer.appendChild(this.cpuChart);
+    chartsContainer.appendChild(this.ramChart);
+    
+    chartsSection.appendChild(chartsTitle);
+    chartsSection.appendChild(chartsContainer);
+    
+    return chartsSection;
+  }
+  
+  // Crear un gráfico
+  createChart(title, id) {
+    const chartContainer = document.createElement('div');
+    chartContainer.className = 'chart-container';
+    chartContainer.style.cssText = `
+      display: flex;
+      flex-direction: column;
+    `;
+    
+    const chartTitle = document.createElement('div');
+    chartTitle.textContent = title;
+    chartTitle.style.cssText = `
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 5px;
+      text-align: center;
+    `;
+    
+    const chart = document.createElement('div');
+    chart.id = id;
+    chart.className = 'chart';
+    chart.style.cssText = `
+      height: 120px;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    `;
+    
+    chartContainer.appendChild(chartTitle);
+    chartContainer.appendChild(chart);
+    
+    return chartContainer;
   }
   
   // Crear elemento de métrica
@@ -377,7 +461,7 @@ export default class UI {
   }
   
   // Actualizar FPS
-  updateFPS(fps) {
+  updateFPS(fps, fpsHistory) {
     const fpsValue = this.fpsElement.querySelector('span:last-child');
     if (fpsValue) {
       fpsValue.textContent = `${fps} FPS`;
@@ -391,17 +475,20 @@ export default class UI {
         fpsValue.style.color = '#ef4444'; // Rojo
       }
     }
+    
+    // Actualizar gráfico de FPS
+    this.updateChart('fps-chart', fpsHistory, 60);
   }
   
   // Actualizar uso de RAM
-  updateRAM(ramUsage) {
+  updateRAM(ramUsage, usedMB, totalMB, ramHistory) {
     const ramValue = this.ramElement.querySelector('span:last-child');
     if (ramValue) {
       if (ramUsage === -1) {
         ramValue.textContent = 'No disponible';
         ramValue.style.color = '#f59e0b'; // Amarillo
       } else {
-        ramValue.textContent = `${ramUsage}%`;
+        ramValue.textContent = `${ramUsage}% (${usedMB}MB/${totalMB}MB)`;
         
         // Cambiar color según uso
         if (ramUsage < 50) {
@@ -413,10 +500,13 @@ export default class UI {
         }
       }
     }
+    
+    // Actualizar gráfico de RAM
+    this.updateChart('ram-chart', ramHistory, 100);
   }
   
   // Actualizar carga de CPU
-  updateCPU(cpuLoad) {
+  updateCPU(cpuLoad, cpuHistory) {
     const cpuValue = this.cpuElement.querySelector('span:last-child');
     if (cpuValue) {
       if (cpuLoad === -1) {
@@ -435,6 +525,36 @@ export default class UI {
         }
       }
     }
+    
+    // Actualizar gráfico de CPU
+    this.updateChart('cpu-chart', cpuHistory, 100);
+  }
+  
+  // Actualizar gráfico
+  updateChart(chartId, dataHistory, maxValue) {
+    const chart = document.getElementById(chartId);
+    if (!chart || !dataHistory || dataHistory.length === 0) return;
+    
+    chart.innerHTML = '';
+    
+    const width = chart.offsetWidth;
+    const barWidth = width / dataHistory.length;
+    
+    dataHistory.forEach((value, index) => {
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar';
+      bar.style.cssText = `
+        position: absolute;
+        bottom: 0;
+        left: ${index * barWidth}px;
+        width: ${barWidth - 1}px;
+        height: ${(value / maxValue) * 100}%;
+        background: ${value < 30 ? '#ef4444' : value < 70 ? '#f59e0b' : '#10b981'};
+        transition: height 0.2s ease;
+      `;
+      
+      chart.appendChild(bar);
+    });
   }
   
   // Actualizar problemas de video
