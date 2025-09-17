@@ -17,6 +17,7 @@
  */
 /**
  * Módulo para recopilar métricas de rendimiento
+ * docs/apps/performance/modules/metrics-collector.js
  */
 export default class MetricsCollector {
   constructor() {
