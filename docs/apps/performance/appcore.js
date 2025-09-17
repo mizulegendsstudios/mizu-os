@@ -414,35 +414,62 @@ export default class PerformanceApp {
   // Recopilar información del dispositivo
   collectDeviceInfo() {
     // Información del navegador
-    this.deviceInfo.browser = navigator.userAgent.split(' ').find(item => item.includes('/')) || 'Desconocido';
+    const userAgent = navigator.userAgent;
+    
+    // Extraer nombre del navegador de forma más precisa
+    if (userAgent.includes('Firefox')) {
+      this.deviceInfo.browser = 'Mozilla Firefox';
+    } else if (userAgent.includes('Chrome')) {
+      this.deviceInfo.browser = 'Google Chrome';
+    } else if (userAgent.includes('Safari')) {
+      this.deviceInfo.browser = 'Safari';
+    } else if (userAgent.includes('Edge')) {
+      this.deviceInfo.browser = 'Microsoft Edge';
+    } else {
+      this.deviceInfo.browser = 'Navegador desconocido';
+    }
     
     // Sistema operativo
-    if (navigator.userAgent.includes('Windows')) {
+    if (userAgent.includes('Windows')) {
       this.deviceInfo.os = 'Windows';
-    } else if (navigator.userAgent.includes('Mac')) {
+    } else if (userAgent.includes('Mac')) {
       this.deviceInfo.os = 'macOS';
-    } else if (navigator.userAgent.includes('Linux')) {
+    } else if (userAgent.includes('Linux')) {
       this.deviceInfo.os = 'Linux';
-    } else if (navigator.userAgent.includes('Android')) {
+    } else if (userAgent.includes('Android')) {
       this.deviceInfo.os = 'Android';
-    } else if (navigator.userAgent.includes('iOS') || navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
+    } else if (userAgent.includes('iOS') || userAgent.includes('iPhone') || userAgent.includes('iPad')) {
       this.deviceInfo.os = 'iOS';
     } else {
-      this.deviceInfo.os = 'Desconocido';
+      this.deviceInfo.os = 'Sistema operativo desconocido';
     }
     
     // Resolución
     this.deviceInfo.resolution = `${window.screen.width}x${window.screen.height}`;
     
-    // Tipo de dispositivo
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    // Tipo de dispositivo - CORREGIDO: No asumir Smart TV
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
       if (window.innerWidth > 768) {
         this.deviceInfo.deviceType = 'Tablet';
       } else {
         this.deviceInfo.deviceType = 'Smartphone';
       }
     } else {
-      this.deviceInfo.deviceType = 'Escritorio/Smart TV';
+      // CORREGIDO: En lugar de asumir Smart TV, usar "Escritorio" para dispositivos no móviles
+      this.deviceInfo.deviceType = 'Escritorio';
+    }
+    
+    // CORREGIDO: Detección más precisa de Smart TV solo si hay indicadores claros
+    // No basarse solo en la resolución o user agent genérico
+    const tvIndicators = [
+      'SmartTV', 'GoogleTV', 'AppleTV', 'Web0S', 'Tizen', 'NetCast', 
+      'Opera TV', 'Viera', 'PhilipsTV', 'NETTV', 'HbbTV'
+    ];
+    
+    const isTV = tvIndicators.some(indicator => userAgent.includes(indicator));
+    
+    if (isTV) {
+      this.deviceInfo.deviceType = 'Smart TV';
     }
   }
   
@@ -485,11 +512,6 @@ export default class PerformanceApp {
     this.fpsCounter = 0;
     this.lastTime = performance.now();
     
-    // Limpiar intervalo anterior si existe
-    if (this.fpsInterval) {
-      clearInterval(this.fpsInterval);
-    }
-    
     // Función para actualizar FPS
     const updateFPS = () => {
       this.fpsCounter++;
@@ -518,15 +540,11 @@ export default class PerformanceApp {
         this.fpsCounter = 0;
         this.lastTime = currentTime;
       }
+      
+      requestAnimationFrame(updateFPS);
     };
     
-    // Actualizar FPS en cada animación
-    const measureFPS = () => {
-      updateFPS();
-      requestAnimationFrame(measureFPS);
-    };
-    
-    requestAnimationFrame(measureFPS);
+    requestAnimationFrame(updateFPS);
   }
   
   // Medir uso de memoria
@@ -613,45 +631,56 @@ export default class PerformanceApp {
   
   // Detectar problemas de video
   detectVideoIssues() {
-    // Verificar si el dispositivo es una Smart TV (basado en el user agent o resolución)
-    const isSmartTV = /SmartTV|TV|GoogleTV|AppleTV|Web0S/.test(navigator.userAgent) || 
-                     (this.deviceInfo.deviceType === 'Escritorio/Smart TV' && 
-                      window.screen.width >= 1920 && window.screen.height >= 1080);
+    // CORREGIDO: No asumir problemas basados en el tipo de dispositivo
+    // En su lugar, basar la detección en el rendimiento real del dispositivo
     
-    // Simular detección de problemas de video
-    if (isSmartTV) {
-      // Las Smart TVs suelen tener problemas con video
-      this.performanceMetrics.videoLag = Math.random() > 0.3; // 70% de probabilidad de tener problemas
+    // Simular detección de problemas de video basada en el rendimiento
+    // Si el dispositivo tiene bajo rendimiento, es más probable que tenga problemas con video
+    
+    // Primero esperamos a tener las métricas de rendimiento
+    setTimeout(() => {
+      // La probabilidad de problemas de video aumenta con el bajo rendimiento
+      let problemProbability = 0.2; // 20% base
       
-      setTimeout(() => {
-        const videoValue = this.videoElement.querySelector('span:last-child');
-        if (videoValue) {
-          if (this.performanceMetrics.videoLag) {
-            videoValue.textContent = 'Detectado';
-            videoValue.style.color = '#ef4444'; // Rojo
-          } else {
-            videoValue.textContent = 'No detectado';
-            videoValue.style.color = '#10b981'; // Verde
-          }
-        }
-      }, 2000);
-    } else {
-      // Dispositivos móviles y escritorio suelen tener menos problemas
-      this.performanceMetrics.videoLag = Math.random() > 0.8; // 20% de probabilidad de tener problemas
+      // Aumentar probabilidad si el FPS es bajo
+      if (this.performanceMetrics.fps < 30) {
+        problemProbability += 0.4;
+      } else if (this.performanceMetrics.fps < 50) {
+        problemProbability += 0.2;
+      }
       
-      setTimeout(() => {
-        const videoValue = this.videoElement.querySelector('span:last-child');
-        if (videoValue) {
-          if (this.performanceMetrics.videoLag) {
-            videoValue.textContent = 'Detectado';
-            videoValue.style.color = '#ef4444'; // Rojo
-          } else {
-            videoValue.textContent = 'No detectado';
-            videoValue.style.color = '#10b981'; // Verde
-          }
+      // Aumentar probabilidad si el uso de RAM es alto
+      if (this.performanceMetrics.ramUsage > 80) {
+        problemProbability += 0.3;
+      } else if (this.performanceMetrics.ramUsage > 60) {
+        problemProbability += 0.1;
+      }
+      
+      // Aumentar probabilidad si la CPU está muy cargada
+      if (this.performanceMetrics.cpuLoad > 80) {
+        problemProbability += 0.3;
+      } else if (this.performanceMetrics.cpuLoad > 60) {
+        problemProbability += 0.1;
+      }
+      
+      // Limitar la probabilidad máxima a 0.9 (90%)
+      problemProbability = Math.min(problemProbability, 0.9);
+      
+      // Determinar si hay problemas de video basado en la probabilidad calculada
+      this.performanceMetrics.videoLag = Math.random() < problemProbability;
+      
+      // Actualizar UI
+      const videoValue = this.videoElement.querySelector('span:last-child');
+      if (videoValue) {
+        if (this.performanceMetrics.videoLag) {
+          videoValue.textContent = 'Detectado';
+          videoValue.style.color = '#ef4444'; // Rojo
+        } else {
+          videoValue.textContent = 'No detectado';
+          videoValue.style.color = '#10b981'; // Verde
         }
-      }, 2000);
-    }
+      }
+    }, 2000);
   }
   
   // Completar pruebas y generar recomendaciones
@@ -699,23 +728,27 @@ export default class PerformanceApp {
       });
     }
     
-    // Recomendaciones específicas para Smart TVs
-    if (this.deviceInfo.deviceType === 'Escritorio/Smart TV') {
+    // CORREGIDO: Recomendaciones específicas según el tipo de dispositivo real
+    if (this.deviceInfo.deviceType === 'Smart TV') {
       this.recommendations.push({
         priority: 'medium',
         title: 'Optimización para Smart TV',
         description: 'Dispositivo identificado como Smart TV.',
         action: 'Activar modo TV para una experiencia optimizada.'
       });
-    }
-    
-    // Recomendaciones específicas para móviles
-    if (this.deviceInfo.deviceType === 'Smartphone' || this.deviceInfo.deviceType === 'Tablet') {
+    } else if (this.deviceInfo.deviceType === 'Smartphone' || this.deviceInfo.deviceType === 'Tablet') {
       this.recommendations.push({
         priority: 'medium',
         title: 'Optimización para móvil',
         description: 'Dispositivo identificado como móvil o tablet.',
         action: 'Activar modo de bajo consumo para ahorrar batería.'
+      });
+    } else if (this.deviceInfo.deviceType === 'Escritorio') {
+      this.recommendations.push({
+        priority: 'medium',
+        title: 'Optimización para escritorio',
+        description: 'Dispositivo identificado como computadora de escritorio.',
+        action: 'Ajustar la configuración para un rendimiento óptimo.'
       });
     }
     
@@ -803,7 +836,7 @@ export default class PerformanceApp {
       });
     }
     
-    if (this.deviceInfo.deviceType === 'Escritorio/Smart TV') {
+    if (this.deviceInfo.deviceType === 'Smart TV') {
       // Activar modo TV
       this.eventBus.emit('system:enable-tv-mode', {
         reason: 'Smart TV detectada'
