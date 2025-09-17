@@ -1,0 +1,13 @@
+{
+  "name": "Performance",
+  "version": "1.0.0",
+  "description": "Herramienta de diagnóstico y optimización del sistema",
+  "icon": "⚡",
+  "entry": "appcore.js",
+  "styles": [],
+  "scripts": [],
+  "permissions": ["system.info", "system.performance", "system.optimization"],
+  "dependencies": [],
+  "author": "Mizu Legends Studios",
+  "license": "GNU AGPL-3.0"
+}
