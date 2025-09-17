@@ -18,6 +18,7 @@
 /**
  * Aplicación de diagnóstico y optimización del sistema para Mizu OS
  * Detecta capacidades del dispositivo y ofrece recomendaciones automáticas
+ * docs/apps/performance/appcore.js
  */
 import DeviceInfo from './modules/device-info.js';
 import MetricsCollector from './modules/metrics-collector.js';
@@ -122,8 +123,8 @@ export default class PerformanceApp {
       this.uiModule.updateRAM(ramUsage);
     });
     
-    // Simular medición de CPU
-    this.metricsCollector.simulateCPULoad((cpuLoad) => {
+    // Medir carga de CPU (cambiado de simulateCPULoad a measureCPULoad)
+    this.metricsCollector.measureCPULoad((cpuLoad) => {
       this.performanceMetrics.cpuLoad = cpuLoad;
       this.uiModule.updateCPU(cpuLoad);
     });
@@ -132,7 +133,7 @@ export default class PerformanceApp {
     this.metricsCollector.detectVideoIssues((videoLag, videoLoadTime) => {
       this.performanceMetrics.videoLag = videoLag;
       this.performanceMetrics.videoLoadTime = videoLoadTime;
-      this.uiModule.updateVideo(videoLag);
+      this.uiModule.updateVideo(videoLag, videoLoadTime);
     });
     
     // Esperar a que todas las pruebas se completen
