@@ -1,0 +1,9 @@
+docs/apps/performance/
+├── manifest.json
+├── appcore.js
+└── modules/
+    ├── device-info.js
+    ├── metrics-collector.js
+    ├── recommendations.js
+    ├── optimizations.js
+    └── ui.js
