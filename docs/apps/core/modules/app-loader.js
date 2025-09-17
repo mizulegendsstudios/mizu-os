@@ -27,6 +27,9 @@ export default class AppLoader {
     this.activeApps = new Map();
     this.appsContainer = null;
     
+    // Lista de aplicaciones que deben persistir (no ocultarse al cambiar de app)
+    this.persistentApps = ['music', 'core'];
+    
     console.log('[DEBUG] AppLoader: Constructor llamado con EventBus:', !!eventBus);
   }
   
@@ -305,12 +308,28 @@ export default class AppLoader {
       const currentActiveAppId = Array.from(this.activeApps.keys())[0];
       if (currentActiveAppId && currentActiveAppId !== appId) {
         console.log(`[DEBUG] AppLoader: Ocultando aplicación activa actual: ${currentActiveAppId}`);
-        // Emitimos evento para ocultar la aplicación actual
-        this.eventBus.emit(`${currentActiveAppId}:toggleVisibility`, { appId: currentActiveAppId, hide: true });
         
-        // No eliminamos la aplicación de las activas, solo la ocultamos
-        // Pero limpiamos el contenedor para mostrar la nueva aplicación
-        this.appsContainer.innerHTML = '';
+        // MODIFICACIÓN: Verificar si la aplicación actual es persistente
+        if (this.persistentApps.includes(currentActiveAppId)) {
+          console.log(`[DEBUG] AppLoader: La aplicación ${currentActiveAppId} es persistente, no se ocultará`);
+          // Para aplicaciones persistentes, no limpiamos el contenedor
+          // Solo emitimos evento para actualizar el estado
+          this.eventBus.emit(`${currentActiveAppId}:toggleVisibility`, { 
+            appId: currentActiveAppId, 
+            hide: false,
+            persistent: true 
+          });
+        } else {
+          // Para aplicaciones no persistentes, ocultar normalmente
+          this.eventBus.emit(`${currentActiveAppId}:toggleVisibility`, { 
+            appId: currentActiveAppId, 
+            hide: true,
+            persistent: false 
+          });
+          
+          // Limpiamos el contenedor solo para aplicaciones no persistentes
+          this.appsContainer.innerHTML = '';
+        }
       }
     }
     
@@ -329,9 +348,11 @@ export default class AppLoader {
       console.log(`[DEBUG] AppLoader: Verificando contenedor de aplicaciones`);
       this.ensureAppsContainer();
       
-      // Limpiar el contenedor antes de renderizar
-      console.log(`[DEBUG] AppLoader: Limpiando contenedor`);
-      this.appsContainer.innerHTML = '';
+      // MODIFICACIÓN: Limpiar el contenedor solo si la aplicación no es persistente
+      if (!this.persistentApps.includes(appId)) {
+        console.log(`[DEBUG] AppLoader: Limpiando contenedor para aplicación no persistente`);
+        this.appsContainer.innerHTML = '';
+      }
       
       // Inicializar la aplicación
       if (typeof appData.instance.init === 'function') {
@@ -346,8 +367,13 @@ export default class AppLoader {
         const appElement = appData.instance.render();
         console.log(`[DEBUG] AppLoader: Elemento de aplicación obtenido:`, !!appElement);
         
-        this.appsContainer.appendChild(appElement);
-        console.log(`[DEBUG] AppLoader: Aplicación ${appId} renderizada en el contenedor`);
+        // MODIFICACIÓN: Añadir la aplicación al contenedor solo si no es persistente
+        if (!this.persistentApps.includes(appId)) {
+          this.appsContainer.appendChild(appElement);
+          console.log(`[DEBUG] AppLoader: Aplicación ${appId} renderizada en el contenedor`);
+        } else {
+          console.log(`[DEBUG] AppLoader: Aplicación persistente ${appId} no se añade al contenedor`);
+        }
       }
       
       // Guardar la aplicación activa
@@ -376,14 +402,35 @@ export default class AppLoader {
     try {
       const appData = this.activeApps.get(appId);
       
-      // En lugar de destruir, emitimos un evento para que la aplicación se oculte
-      this.eventBus.emit(`${appId}:toggleVisibility`, { appId, hide: true });
-      
-      // Eliminar la aplicación de las aplicaciones activas
-      this.activeApps.delete(appId);
-      
-      // Limpiar el contenedor
-      this.appsContainer.innerHTML = '';
+      // MODIFICACIÓN: Verificar si la aplicación es persistente
+      if (this.persistentApps.includes(appId)) {
+        console.log(`[DEBUG] AppLoader: La aplicación ${appId} es persistente, no se destruirá`);
+        // Para aplicaciones persistentes, solo emitimos evento de desactivación
+        this.eventBus.emit(`${appId}:toggleVisibility`, { 
+          appId, 
+          hide: false,
+          persistent: true 
+        });
+        
+        // No eliminamos la aplicación de las activas
+        // No limpiamos el contenedor
+      } else {
+        // Para aplicaciones no persistentes, desactivar normalmente
+        console.log(`[DEBUG] AppLoader: La aplicación ${appId} no es persistente, se desactivará normalmente`);
+        
+        // En lugar de destruir, emitimos un evento para que la aplicación se oculte
+        this.eventBus.emit(`${appId}:toggleVisibility`, { 
+          appId, 
+          hide: true,
+          persistent: false 
+        });
+        
+        // Eliminar la aplicación de las aplicaciones activas
+        this.activeApps.delete(appId);
+        
+        // Limpiar el contenedor
+        this.appsContainer.innerHTML = '';
+      }
       
       // Emitir evento de aplicación desactivada
       this.eventBus.emit('app:deactivated', { appId });
@@ -462,5 +509,10 @@ export default class AppLoader {
     } catch (error) {
       console.error(`AppLoader: Error al aplicar optimización del sistema ${type}:`, error);
     }
+  }
+  
+  // NUEVO: Método para verificar si una aplicación es persistente
+  isPersistentApp(appId) {
+    return this.persistentApps.includes(appId);
   }
 }
