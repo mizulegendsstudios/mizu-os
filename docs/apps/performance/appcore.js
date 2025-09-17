@@ -28,13 +28,15 @@ export default class PerformanceApp {
       fps: 0,
       ramUsage: 0,
       cpuLoad: 0,
-      videoLag: false
+      videoLag: false,
+      videoLoadTime: 0
     };
     this.recommendations = [];
     this.testsCompleted = false;
     this.fpsCounter = 0;
     this.lastTime = performance.now();
     this.fpsInterval = null;
+    this.optimizationsApplied = false;
   }
   
   // Método init requerido por el AppLoader
@@ -308,6 +310,36 @@ export default class PerformanceApp {
     recommendationsSection.appendChild(recommendationsTitle);
     recommendationsSection.appendChild(this.recommendationsList);
     
+    // Sección de optimizaciones aplicadas (nueva)
+    this.optimizationsSection = document.createElement('div');
+    this.optimizationsSection.className = 'optimizations-section';
+    this.optimizationsSection.style.cssText = `
+      margin-bottom: 20px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      display: none;
+    `;
+    
+    const optimizationsTitle = document.createElement('h2');
+    optimizationsTitle.textContent = 'Optimizaciones Aplicadas';
+    optimizationsTitle.style.cssText = `
+      color: #10b981;
+      margin-bottom: 10px;
+      font-size: 18px;
+    `;
+    
+    this.optimizationsList = document.createElement('div');
+    this.optimizationsList.className = 'optimizations-list';
+    this.optimizationsList.style.cssText = `
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    `;
+    
+    this.optimizationsSection.appendChild(optimizationsTitle);
+    this.optimizationsSection.appendChild(this.optimizationsList);
+    
     // Botones de acción
     const actionsSection = document.createElement('div');
     actionsSection.className = 'actions-section';
@@ -368,6 +400,7 @@ export default class PerformanceApp {
     container.appendChild(deviceSection);
     container.appendChild(metricsSection);
     container.appendChild(recommendationsSection);
+    container.appendChild(this.optimizationsSection); // Nueva sección
     container.appendChild(actionsSection);
     
     // Guardar referencia al contenedor
@@ -447,7 +480,7 @@ export default class PerformanceApp {
     // Resolución
     this.deviceInfo.resolution = `${window.screen.width}x${window.screen.height}`;
     
-    // Tipo de dispositivo - CORREGIDO: No asumir Smart TV
+    // Tipo de dispositivo
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
       if (window.innerWidth > 768) {
         this.deviceInfo.deviceType = 'Tablet';
@@ -455,12 +488,10 @@ export default class PerformanceApp {
         this.deviceInfo.deviceType = 'Smartphone';
       }
     } else {
-      // CORREGIDO: En lugar de asumir Smart TV, usar "Escritorio" para dispositivos no móviles
       this.deviceInfo.deviceType = 'Escritorio';
     }
     
-    // CORREGIDO: Detección más precisa de Smart TV solo si hay indicadores claros
-    // No basarse solo en la resolución o user agent genérico
+    // Detección más precisa de Smart TV solo si hay indicadores claros
     const tvIndicators = [
       'SmartTV', 'GoogleTV', 'AppleTV', 'Web0S', 'Tizen', 'NetCast', 
       'Opera TV', 'Viera', 'PhilipsTV', 'NETTV', 'HbbTV'
@@ -480,6 +511,11 @@ export default class PerformanceApp {
     // Limpiar recomendaciones anteriores
     this.recommendations = [];
     this.recommendationsList.innerHTML = '';
+    
+    // Ocultar sección de optimizaciones aplicadas
+    this.optimizationsSection.style.display = 'none';
+    this.optimizationsList.innerHTML = '';
+    this.optimizationsApplied = false;
     
     const loadingItem = document.createElement('div');
     loadingItem.textContent = 'Ejecutando pruebas...';
@@ -629,45 +665,28 @@ export default class PerformanceApp {
     }, 1500);
   }
   
-  // Detectar problemas de video
+  // Detectar problemas de video - CORREGIDO para mayor consistencia
   detectVideoIssues() {
-    // CORREGIDO: No asumir problemas basados en el tipo de dispositivo
-    // En su lugar, basar la detección en el rendimiento real del dispositivo
+    // Medir el tiempo de carga de un video de prueba
+    const videoTest = document.createElement('video');
+    videoTest.preload = 'auto';
+    videoTest.src = 'https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-board@main/docs/assets/bibiye.webm';
     
-    // Simular detección de problemas de video basada en el rendimiento
-    // Si el dispositivo tiene bajo rendimiento, es más probable que tenga problemas con video
+    const startTime = performance.now();
     
-    // Primero esperamos a tener las métricas de rendimiento
-    setTimeout(() => {
-      // La probabilidad de problemas de video aumenta con el bajo rendimiento
-      let problemProbability = 0.2; // 20% base
+    videoTest.onloadeddata = () => {
+      const endTime = performance.now();
+      this.performanceMetrics.videoLoadTime = endTime - startTime;
       
-      // Aumentar probabilidad si el FPS es bajo
-      if (this.performanceMetrics.fps < 30) {
-        problemProbability += 0.4;
-      } else if (this.performanceMetrics.fps < 50) {
-        problemProbability += 0.2;
+      // Determinar si hay problemas de video basado en el tiempo de carga
+      // Si el video tarda más de 1 segundo en cargar, consideramos que hay problemas
+      this.performanceMetrics.videoLag = this.performanceMetrics.videoLoadTime > 1000;
+      
+      // También considerar el rendimiento general del sistema
+      if (this.performanceMetrics.fps < 30 || this.performanceMetrics.cpuLoad > 80) {
+        // Si el rendimiento es bajo, es más probable que haya problemas de video
+        this.performanceMetrics.videoLag = true;
       }
-      
-      // Aumentar probabilidad si el uso de RAM es alto
-      if (this.performanceMetrics.ramUsage > 80) {
-        problemProbability += 0.3;
-      } else if (this.performanceMetrics.ramUsage > 60) {
-        problemProbability += 0.1;
-      }
-      
-      // Aumentar probabilidad si la CPU está muy cargada
-      if (this.performanceMetrics.cpuLoad > 80) {
-        problemProbability += 0.3;
-      } else if (this.performanceMetrics.cpuLoad > 60) {
-        problemProbability += 0.1;
-      }
-      
-      // Limitar la probabilidad máxima a 0.9 (90%)
-      problemProbability = Math.min(problemProbability, 0.9);
-      
-      // Determinar si hay problemas de video basado en la probabilidad calculada
-      this.performanceMetrics.videoLag = Math.random() < problemProbability;
       
       // Actualizar UI
       const videoValue = this.videoElement.querySelector('span:last-child');
@@ -680,7 +699,28 @@ export default class PerformanceApp {
           videoValue.style.color = '#10b981'; // Verde
         }
       }
-    }, 2000);
+    };
+    
+    // Si el video no carga después de 3 segundos, asumimos que hay problemas
+    setTimeout(() => {
+      if (this.performanceMetrics.videoLoadTime === 0) {
+        this.performanceMetrics.videoLag = true;
+        
+        // Actualizar UI
+        const videoValue = this.videoElement.querySelector('span:last-child');
+        if (videoValue) {
+          videoValue.textContent = 'Detectado';
+          videoValue.style.color = '#ef4444'; // Rojo
+        }
+      }
+    }, 3000);
+    
+    // Limpiar el elemento de video de prueba
+    setTimeout(() => {
+      if (videoTest.parentNode) {
+        videoTest.parentNode.removeChild(videoTest);
+      }
+    }, 4000);
   }
   
   // Completar pruebas y generar recomendaciones
@@ -696,8 +736,9 @@ export default class PerformanceApp {
       this.recommendations.push({
         priority: 'high',
         title: 'Rendimiento de FPS bajo',
-        description: 'El dispositivo tiene un bajo rendimiento de fotogramas por segundo.',
-        action: 'Reducir efectos visuales y animaciones.'
+        description: `El dispositivo tiene un bajo rendimiento de fotogramas por segundo (${this.performanceMetrics.fps} FPS).`,
+        action: 'Reducir efectos visuales y animaciones.',
+        optimization: 'reduce-effects'
       });
     }
     
@@ -705,8 +746,9 @@ export default class PerformanceApp {
       this.recommendations.push({
         priority: 'high',
         title: 'Alto uso de memoria',
-        description: 'El dispositivo está utilizando mucha memoria RAM.',
-        action: 'Cerrar aplicaciones en segundo plano y reducir la calidad de video.'
+        description: `El dispositivo está utilizando mucha memoria RAM (${this.performanceMetrics.ramUsage}%).`,
+        action: 'Cerrar aplicaciones en segundo plano y reducir la calidad de video.',
+        optimization: 'reduce-memory'
       });
     }
     
@@ -714,8 +756,9 @@ export default class PerformanceApp {
       this.recommendations.push({
         priority: 'high',
         title: 'Alta carga de CPU',
-        description: 'El procesador está trabajando intensamente.',
-        action: 'Desactivar efectos visuales y aplicaciones en segundo plano.'
+        description: `El procesador está trabajando intensamente (${this.performanceMetrics.cpuLoad}%).`,
+        action: 'Desactivar efectos visuales y aplicaciones en segundo plano.',
+        optimization: 'reduce-cpu'
       });
     }
     
@@ -723,32 +766,36 @@ export default class PerformanceApp {
       this.recommendations.push({
         priority: 'high',
         title: 'Problemas de video detectados',
-        description: 'Se han detectado problemas de reproducción de video.',
-        action: 'Desactivar video de fondo y usar imágenes estáticas.'
+        description: `Se han detectado problemas de reproducción de video (tiempo de carga: ${this.performanceMetrics.videoLoadTime}ms).`,
+        action: 'Desactivar video de fondo y usar imágenes estáticas.',
+        optimization: 'disable-video-background'
       });
     }
     
-    // CORREGIDO: Recomendaciones específicas según el tipo de dispositivo real
+    // Recomendaciones específicas según el tipo de dispositivo
     if (this.deviceInfo.deviceType === 'Smart TV') {
       this.recommendations.push({
         priority: 'medium',
         title: 'Optimización para Smart TV',
         description: 'Dispositivo identificado como Smart TV.',
-        action: 'Activar modo TV para una experiencia optimizada.'
+        action: 'Activar modo TV para una experiencia optimizada.',
+        optimization: 'enable-tv-mode'
       });
     } else if (this.deviceInfo.deviceType === 'Smartphone' || this.deviceInfo.deviceType === 'Tablet') {
       this.recommendations.push({
         priority: 'medium',
         title: 'Optimización para móvil',
         description: 'Dispositivo identificado como móvil o tablet.',
-        action: 'Activar modo de bajo consumo para ahorrar batería.'
+        action: 'Activar modo de bajo consumo para ahorrar batería.',
+        optimization: 'enable-low-power-mode'
       });
     } else if (this.deviceInfo.deviceType === 'Escritorio') {
       this.recommendations.push({
         priority: 'medium',
         title: 'Optimización para escritorio',
         description: 'Dispositivo identificado como computadora de escritorio.',
-        action: 'Ajustar la configuración para un rendimiento óptimo.'
+        action: 'Ajustar la configuración para un rendimiento óptimo.',
+        optimization: 'desktop-optimization'
       });
     }
     
@@ -758,7 +805,8 @@ export default class PerformanceApp {
         priority: 'low',
         title: 'Rendimiento óptimo',
         description: 'El dispositivo funciona correctamente.',
-        action: 'No se requieren optimizaciones.'
+        action: 'No se requieren optimizaciones.',
+        optimization: null
       });
     }
     
@@ -809,39 +857,202 @@ export default class PerformanceApp {
     this.testsCompleted = true;
   }
   
-  // Aplicar optimizaciones
+  // Aplicar optimizaciones - CORREGIDO para acciones concretas
   applyOptimizations() {
     console.log('PerformanceApp: Aplicando optimizaciones');
     
-    // Enviar eventos al EventBus para que otras partes del sistema reaccionen
-    if (this.performanceMetrics.fps < 30 || this.performanceMetrics.cpuLoad > 80) {
-      // Reducir efectos visuales
-      this.eventBus.emit('system:reduce-effects', { 
-        level: 'high',
-        reason: 'Bajo rendimiento detectado'
-      });
+    if (this.optimizationsApplied) {
+      this.showNotification('Las optimizaciones ya han sido aplicadas');
+      return;
     }
     
-    if (this.performanceMetrics.videoLag) {
-      // Desactivar video de fondo
-      this.eventBus.emit('system:disable-video-background', {
-        reason: 'Problemas de video detectados'
+    // Mostrar sección de optimizaciones aplicadas
+    this.optimizationsSection.style.display = 'block';
+    this.optimizationsList.innerHTML = '';
+    
+    const optimizationsApplied = [];
+    
+    // Aplicar cada optimización según las recomendaciones
+    this.recommendations.forEach(rec => {
+      if (rec.optimization) {
+        switch (rec.optimization) {
+          case 'reduce-effects':
+            // Reducir efectos visuales
+            document.body.style.setProperty('--animation-speed', '0');
+            document.body.style.setProperty('--blur-intensity', '0');
+            document.body.style.setProperty('--transition-duration', '0ms');
+            document.body.classList.add('reduced-effects');
+            
+            // Emitir evento
+            this.eventBus.emit('system:reduce-effects', { 
+              level: 'high',
+              reason: 'Bajo rendimiento detectado'
+            });
+            
+            optimizationsApplied.push({
+              title: 'Efectos visuales reducidos',
+              description: 'Se han desactivado las animaciones y efectos visuales para mejorar el rendimiento.'
+            });
+            break;
+            
+          case 'disable-video-background':
+            // Desactivar video de fondo
+            const videoBackground = document.getElementById('background-video');
+            if (videoBackground) {
+              videoBackground.style.display = 'none';
+            }
+            
+            // También ocultar el video de fondo del sistema
+            const systemVideo = document.querySelector('.video-background');
+            if (systemVideo) {
+              systemVideo.style.display = 'none';
+            }
+            
+            // Emitir evento
+            this.eventBus.emit('system:disable-video-background', {
+              reason: 'Problemas de video detectados'
+            });
+            
+            optimizationsApplied.push({
+              title: 'Video de fondo desactivado',
+              description: 'Se ha desactivado el video de fondo para reducir el consumo de recursos.'
+            });
+            break;
+            
+          case 'enable-low-power-mode':
+            // Activar modo de bajo consumo
+            document.body.classList.add('low-power-mode');
+            
+            // Reducir la frecuencia de actualización de animaciones
+            if (window.requestAnimationFrame) {
+              const originalRAF = window.requestAnimationFrame;
+              window.requestAnimationFrame = function(callback) {
+                return setTimeout(() => {
+                  callback(performance.now());
+                }, 1000 / 30); // Limitar a 30 FPS
+              };
+            }
+            
+            // Emitir evento
+            this.eventBus.emit('system:enable-low-power-mode', {
+              reason: 'Dispositivo móvil detectado'
+            });
+            
+            optimizationsApplied.push({
+              title: 'Modo de bajo consumo activado',
+              description: 'Se ha activado el modo de bajo consumo para ahorrar batería y recursos.'
+            });
+            break;
+            
+          case 'enable-tv-mode':
+            // Activar modo TV
+            document.body.classList.add('tv-mode');
+            
+            // Aumentar el tamaño de los elementos para mejor visibilidad en TV
+            document.documentElement.style.setProperty('--font-size-multiplier', '1.2');
+            
+            // Emitir evento
+            this.eventBus.emit('system:enable-tv-mode', {
+              reason: 'Smart TV detectada'
+            });
+            
+            optimizationsApplied.push({
+              title: 'Modo TV activado',
+              description: 'Se ha activado el modo TV con interfaz optimizada para pantallas grandes.'
+            });
+            break;
+            
+          case 'desktop-optimization':
+            // Optimización para escritorio
+            document.body.classList.add('desktop-optimized');
+            
+            // Ajustar la densidad de elementos para mejor uso en escritorio
+            document.documentElement.style.setProperty('--element-density', 'compact');
+            
+            optimizationsApplied.push({
+              title: 'Optimización para escritorio aplicada',
+              description: 'Se ha ajustado la interfaz para un uso óptimo en computadoras de escritorio.'
+            });
+            break;
+            
+          case 'reduce-memory':
+            // Liberar memoria
+            if ('clearResourceTimings' in performance) {
+              performance.clearResourceTimings();
+            }
+            
+            // Limpiar variables no utilizadas
+            this.recommendations = [];
+            this.recommendationsList.innerHTML = '';
+            
+            optimizationsApplied.push({
+              title: 'Memoria liberada',
+              description: 'Se ha liberado memoria del sistema eliminando datos temporales.'
+            });
+            break;
+            
+          case 'reduce-cpu':
+            // Reducir carga de CPU
+            // Limitar la ejecución de scripts intensivos
+            const originalSetTimeout = window.setTimeout;
+            window.setTimeout = function(callback, delay, ...args) {
+              return originalSetTimeout.call(window, () => {
+                if (typeof callback === 'function') {
+                  callback.apply(this, args);
+                }
+              }, Math.max(delay, 100)); // Mínimo 100ms entre ejecuciones
+            };
+            
+            optimizationsApplied.push({
+              title: 'Carga de CPU reducida',
+              description: 'Se ha limitado la ejecución de scripts para reducir la carga del procesador.'
+            });
+            break;
+        }
+      }
+    });
+    
+    // Mostrar las optimizaciones aplicadas en la UI
+    if (optimizationsApplied.length > 0) {
+      optimizationsApplied.forEach(opt => {
+        const optItem = document.createElement('div');
+        optItem.style.cssText = `
+          padding: 10px;
+          border-radius: 5px;
+          background: rgba(16, 185, 129, 0.2);
+          border-left: 3px solid #10b981;
+        `;
+        
+        const optTitle = document.createElement('div');
+        optTitle.textContent = opt.title;
+        optTitle.style.cssText = `
+          font-weight: bold;
+          margin-bottom: 5px;
+        `;
+        
+        const optDesc = document.createElement('div');
+        optDesc.textContent = opt.description;
+        optDesc.style.cssText = `
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.8);
+        `;
+        
+        optItem.appendChild(optTitle);
+        optItem.appendChild(optDesc);
+        this.optimizationsList.appendChild(optItem);
       });
+    } else {
+      const noOptItem = document.createElement('div');
+      noOptItem.textContent = 'No se requirieron optimizaciones.';
+      noOptItem.style.cssText = `
+        font-style: italic;
+        color: rgba(255, 255, 255, 0.7);
+      `;
+      this.optimizationsList.appendChild(noOptItem);
     }
     
-    if (this.deviceInfo.deviceType === 'Smartphone' || this.deviceInfo.deviceType === 'Tablet') {
-      // Activar modo de bajo consumo
-      this.eventBus.emit('system:enable-low-power-mode', {
-        reason: 'Dispositivo móvil detectado'
-      });
-    }
-    
-    if (this.deviceInfo.deviceType === 'Smart TV') {
-      // Activar modo TV
-      this.eventBus.emit('system:enable-tv-mode', {
-        reason: 'Smart TV detectada'
-      });
-    }
+    // Marcar optimizaciones como aplicadas
+    this.optimizationsApplied = true;
     
     // Mostrar notificación
     this.showNotification('Optimizaciones aplicadas correctamente');
