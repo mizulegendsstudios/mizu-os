@@ -673,7 +673,7 @@ export default class MusicApp {
     if (this.currentTrackIndex !== -1) {
       const track = this.playlist[this.currentTrackIndex];
       this.currentTrackTitleEl.textContent = track.title;
-      this.currentTrackSourceEl.textContent = `Fuente: ${track.source}`;
+      this.currentTrackSourceEl.textContent = 'Fuente: ' + track.source;
     } else {
       this.currentTrackTitleEl.textContent = 'No hay música reproduciéndose';
       this.currentTrackSourceEl.textContent = '';
