@@ -103,9 +103,21 @@ export default class PerformanceApp {
     this.optimizationsApplied = false;
     this.recommendations = [];
     
+    // Reiniciar métricas
+    this.performanceMetrics = {
+      fps: 0,
+      ramUsage: 0,
+      cpuLoad: 0,
+      videoLag: false,
+      videoLoadTime: 0
+    };
+    
     // Actualizar UI
     this.uiModule.showLoading();
     this.uiModule.hideOptimizations();
+    
+    // Detener cualquier medición de FPS anterior
+    this.metricsCollector.stopFPSMeasurement();
     
     // Recopilar información del dispositivo
     this.deviceInfo = this.deviceInfoModule.collectDeviceInfo();
@@ -123,7 +135,7 @@ export default class PerformanceApp {
       this.uiModule.updateRAM(ramUsage);
     });
     
-    // Medir carga de CPU (cambiado de simulateCPULoad a measureCPULoad)
+    // Medir carga de CPU
     this.metricsCollector.measureCPULoad((cpuLoad) => {
       this.performanceMetrics.cpuLoad = cpuLoad;
       this.uiModule.updateCPU(cpuLoad);
