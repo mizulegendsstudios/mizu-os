@@ -31,6 +31,8 @@ export default class SystemUI {
       isPlaying: false,
       wasPlayingBeforeSwitch: false // Para rastrear si la música estaba reproduciéndose antes de cambiar de app
     };
+    // Lista de aplicaciones que deben persistir (no ocultarse al cambiar de app)
+    this.persistentApps = ['music', 'core'];
   }
 
   init() {
@@ -281,16 +283,19 @@ export default class SystemUI {
           this.eventBus.emit('app:deactivate', { appId });
         } else {
           console.log(`[DEBUG] La aplicación ${appId} no está activa, se va a activar`);
-          // Si hay una aplicación activa diferente, desactivarla primero
+          
+          // Si hay una aplicación activa diferente, manejarla según sea persistente o no
           if (this.currentActiveApp) {
             console.log(`[DEBUG] Desactivando aplicación actual: ${this.currentActiveApp}`);
             
-            // MODIFICACIÓN: Para la aplicación de música, no ocultar la interfaz al cambiar de app
-            if (this.currentActiveApp !== 'music') {
-              this.eventBus.emit('app:deactivate', { appId: this.currentActiveApp });
-            } else {
-              // Para música, solo emitir evento de desactivación pero no ocultar
+            // Si la aplicación actual es persistente (como music), no ocultarla
+            if (this.persistentApps.includes(this.currentActiveApp)) {
+              console.log(`[DEBUG] La aplicación ${this.currentActiveApp} es persistente, no se ocultará`);
+              // Solo emitir evento de desactivación para actualizar el estado del sistema
               this.eventBus.emit('app:deactivated', { appId: this.currentActiveApp });
+            } else {
+              // Si no es persistente, desactivarla normalmente
+              this.eventBus.emit('app:deactivate', { appId: this.currentActiveApp });
             }
           }
           
@@ -372,5 +377,10 @@ export default class SystemUI {
         this.isProcessingMusicControl = false;
       }
     }, 2000);
+  }
+  
+  // NUEVO: Método para verificar si una aplicación es persistente
+  isPersistentApp(appId) {
+    return this.persistentApps.includes(appId);
   }
 }
