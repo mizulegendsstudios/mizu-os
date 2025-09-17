@@ -26,6 +26,7 @@ export default class AppLoader {
     this.loadedApps = new Map();
     this.activeApps = new Map();
     this.appsContainer = null;
+    this.persistentAppsContainer = null; // Contenedor separado para aplicaciones persistentes
     
     // Lista de aplicaciones que deben persistir (no ocultarse al cambiar de app)
     this.persistentApps = ['music', 'core'];
@@ -38,6 +39,9 @@ export default class AppLoader {
     
     // Asegurarse de que el contenedor de aplicaciones exista
     this.ensureAppsContainer();
+    
+    // Crear contenedor para aplicaciones persistentes
+    this.ensurePersistentAppsContainer();
     
     // Suscribirse al evento de activación de aplicaciones
     console.log('[DEBUG] AppLoader: Suscribiéndose al evento app:activate');
@@ -135,6 +139,38 @@ export default class AppLoader {
     }
     
     return this.appsContainer;
+  }
+  
+  // NUEVO: Método para crear un contenedor separado para aplicaciones persistentes
+  ensurePersistentAppsContainer() {
+    console.log('[DEBUG] AppLoader: Verificando contenedor de aplicaciones persistentes');
+    
+    // Verificar si el contenedor ya existe
+    this.persistentAppsContainer = document.getElementById('persistent-apps-container');
+    console.log('[DEBUG] AppLoader: Contenedor persistente encontrado:', !!this.persistentAppsContainer);
+    
+    if (!this.persistentAppsContainer) {
+      console.log('AppLoader: Creando contenedor de aplicaciones persistentes');
+      
+      // Crear el contenedor si no existe
+      this.persistentAppsContainer = document.createElement('div');
+      this.persistentAppsContainer.id = 'persistent-apps-container';
+      this.persistentAppsContainer.style.cssText = `
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        z-index: 1;
+      `;
+      
+      // Añadir el contenedor al body
+      document.body.appendChild(this.persistentAppsContainer);
+      console.log('AppLoader: Contenedor de aplicaciones persistentes creado correctamente');
+    }
+    
+    return this.persistentAppsContainer;
   }
   
   async loadApp(appId) {
@@ -343,9 +379,8 @@ export default class AppLoader {
       console.log(`[DEBUG] AppLoader: Verificando contenedor de aplicaciones`);
       this.ensureAppsContainer();
       
-      // Limpiar el contenedor para todas las aplicaciones
-      console.log(`[DEBUG] AppLoader: Limpiando contenedor`);
-      this.appsContainer.innerHTML = '';
+      // Asegurarse de que el contenedor de aplicaciones persistentes exista
+      this.ensurePersistentAppsContainer();
       
       // Inicializar la aplicación
       if (typeof appData.instance.init === 'function') {
@@ -360,9 +395,17 @@ export default class AppLoader {
         const appElement = appData.instance.render();
         console.log(`[DEBUG] AppLoader: Elemento de aplicación obtenido:`, !!appElement);
         
-        // Añadir la aplicación al contenedor
-        this.appsContainer.appendChild(appElement);
-        console.log(`[DEBUG] AppLoader: Aplicación ${appId} renderizada en el contenedor`);
+        // MODIFICACIÓN: Si es una aplicación persistente, añadirla al contenedor persistente
+        if (this.persistentApps.includes(appId)) {
+          this.persistentAppsContainer.appendChild(appElement);
+          console.log(`[DEBUG] AppLoader: Aplicación persistente ${appId} añadida al contenedor persistente`);
+        } else {
+          // Limpiar el contenedor principal
+          this.appsContainer.innerHTML = '';
+          // Añadir la aplicación al contenedor principal
+          this.appsContainer.appendChild(appElement);
+          console.log(`[DEBUG] AppLoader: Aplicación ${appId} renderizada en el contenedor principal`);
+        }
       }
       
       // Guardar la aplicación activa
@@ -428,16 +471,18 @@ export default class AppLoader {
       return;
     }
     
-    const appData = this.activeApps.get(appId);
-    
-    // Limpiar el contenedor
+    // Limpiar el contenedor principal
     this.appsContainer.innerHTML = '';
     
-    // Renderizar la aplicación nuevamente
-    if (typeof appData.instance.render === 'function') {
-      const appElement = appData.instance.render();
+    // Buscar la aplicación en el contenedor persistente
+    const appElement = this.persistentAppsContainer.querySelector(`[data-app-id="${appId}"]`);
+    
+    if (appElement) {
+      // Mover la aplicación al contenedor principal
       this.appsContainer.appendChild(appElement);
-      console.log(`[DEBUG] AppLoader: Aplicación persistente ${appId} mostrada en el contenedor`);
+      console.log(`[DEBUG] AppLoader: Aplicación persistente ${appId} movida al contenedor principal`);
+    } else {
+      console.log(`[DEBUG] AppLoader: No se encontró el elemento de la aplicación persistente ${appId}`);
     }
     
     // Notificar a la aplicación que se está mostrando
@@ -453,8 +498,19 @@ export default class AppLoader {
       return;
     }
     
-    // Limpiar el contenedor
+    // Limpiar el contenedor principal
     this.appsContainer.innerHTML = '';
+    
+    // Buscar la aplicación en el contenedor principal
+    const appElement = this.appsContainer.querySelector(`[data-app-id="${appId}"]`);
+    
+    if (appElement) {
+      // Mover la aplicación al contenedor persistente
+      this.persistentAppsContainer.appendChild(appElement);
+      console.log(`[DEBUG] AppLoader: Aplicación persistente ${appId} movida al contenedor persistente`);
+    } else {
+      console.log(`[DEBUG] AppLoader: No se encontró el elemento de la aplicación persistente ${appId} en el contenedor principal`);
+    }
     
     // Notificar a la aplicación que se está ocultando
     this.eventBus.emit(`${appId}:toggleVisibility`, { appId, hide: true });
