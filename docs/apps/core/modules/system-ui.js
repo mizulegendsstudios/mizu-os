@@ -1,6 +1,6 @@
 /*
  * Mizu OS - System UI Module
- * Copyright (C) 2025 Mizu Legends Studios.
+ * Copyright (C) 2025 Mizu Legends Studios
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,299 +16,624 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 /**
- * Sistema de interfaz de usuario para Mizu OS
- * Gestiona la creación y manipulación de elementos de la interfaz
+ * Módulo de interfaz de usuario del sistema para Mizu OS
+ * Gestiona la creación y manipulación de elementos visuales del sistema
  */
-// apps/core/modules/system-ui.js
 export default class SystemUI {
-  constructor(eventBus, statusWidget) {
+  constructor(eventBus) {
     this.eventBus = eventBus;
-    this.statusWidget = statusWidget;
-    this.elements = {};
-    this.currentActiveApp = null; // Para rastrear la aplicación activa actual
-  }
-
-  init() {
-    console.log('SystemUI: Inicializando interfaz de usuario');
+    this.videoBackground = null;
+    this.redBar = null;
+    this.blueBar = null;
+    this.yellowSquare = null;
+    this.blackBar = null;
+    this.activeAppId = null;
     
-    // Crear elementos de la interfaz en orden correcto
-    this.createVideoBackground();  // PRIMERO: Video de fondo
+    console.log('SystemUI: Inicializando interfaz de usuario');
+  }
+  
+  init() {
+    console.log('SystemUI: Inicializando componentes de la interfaz');
+    
+    // Crear video de fondo
+    this.createVideoBackground();
+    
+    // Crear barras del sistema
     this.createRedBar();
     this.createBlueBar();
     this.createYellowSquare();
     this.createBlackBar();
     
-    // Suscribirse a eventos de aplicaciones
-    this.subscribeToAppEvents();
+    // Suscribirse a eventos del sistema
+    this.setupEventListeners();
     
     console.log('SystemUI: Interfaz de usuario inicializada correctamente');
     return true;
   }
-
-  subscribeToAppEvents() {
-    // Suscribirse a eventos de activación y desactivación de aplicaciones
+  
+  setupEventListeners() {
+    // Suscribirse a eventos de activación/desactivación de aplicaciones
     this.eventBus.on('app:activated', (data) => {
-      console.log(`SystemUI: Aplicación activada: ${data.appId}`);
-      this.currentActiveApp = data.appId;
-      this.updateAppButtonsState();
+      console.log('SystemUI: Aplicación activada:', data.appId);
+      this.activeAppId = data.appId;
+      this.updateAppButtons();
     });
     
     this.eventBus.on('app:deactivated', (data) => {
-      console.log(`SystemUI: Aplicación desactivada: ${data.appId}`);
-      if (this.currentActiveApp === data.appId) {
-        this.currentActiveApp = null;
+      console.log('SystemUI: Aplicación desactivada:', data.appId);
+      if (this.activeAppId === data.appId) {
+        this.activeAppId = null;
       }
-      this.updateAppButtonsState();
+      this.updateAppButtons();
     });
     
-    // NUEVO: Suscribirse a eventos de optimización del sistema
-    this.eventBus.on('system:optimization-applied', (data) => {
-      console.log(`SystemUI: Optimización aplicada: ${data.type}`, data);
-      
-      // Aplicar cambios visuales según el tipo de optimización
-      switch (data.type) {
-        case 'disable-video-background':
-          if (this.elements.videoBackground) {
-            this.elements.videoBackground.style.display = 'none';
-          }
-          break;
-          
-        case 'reduce-effects':
-          // Reducir efectos visuales
-          document.body.classList.add('reduced-effects');
-          break;
-          
-        case 'enable-low-power-mode':
-          // Activar modo de bajo consumo
-          document.body.classList.add('low-power-mode');
-          break;
-          
-        case 'enable-tv-mode':
-          // Activar modo TV
-          document.body.classList.add('tv-mode');
-          break;
+    // Suscribirse a eventos de optimización del sistema
+    this.eventBus.on('system:reduce-effects', () => {
+      console.log('SystemUI: Reduciendo efectos visuales');
+      if (this.videoBackground) {
+        this.videoBackground.style.display = 'none';
       }
     });
-  }
-
-  updateAppButtonsState() {
-    // Actualizar el estado visual de los botones de aplicaciones
-    const appButtons = document.querySelectorAll('.app-button');
-    appButtons.forEach(button => {
-      const appId = button.dataset.appId;
-      if (appId === this.currentActiveApp) {
-        button.classList.add('active');
-      } else {
-        button.classList.remove('active');
+    
+    this.eventBus.on('system:disable-video-background', () => {
+      console.log('SystemUI: Desactivando video de fondo');
+      if (this.videoBackground) {
+        this.videoBackground.style.display = 'none';
       }
     });
+    
+    this.eventBus.on('system:enable-low-power-mode', () => {
+      console.log('SystemUI: Activando modo de bajo consumo');
+      if (this.videoBackground) {
+        this.videoBackground.style.display = 'none';
+      }
+    });
+    
+    this.eventBus.on('system:enable-tv-mode', () => {
+      console.log('SystemUI: Activando modo TV');
+      // Ajustes específicos para TV mode
+      document.body.style.fontSize = '18px';
+    });
   }
-
+  
   createVideoBackground() {
     console.log('SystemUI: Creando video de fondo');
     
-    // Video de fondo
-    const video = document.createElement('video');
-    video.className = 'video-background';
-    video.autoplay = true;
-    video.muted = true;
-    video.loop = true;
-    video.playsInline = true;
+    // Crear elemento de video
+    this.videoBackground = document.createElement('video');
+    this.videoBackground.className = 'video-background';
+    this.videoBackground.id = 'background-video';
+    this.videoBackground.autoplay = true;
+    this.videoBackground.loop = true;
+    this.videoBackground.muted = true;
+    this.videoBackground.playsInline = true;
     
-    // URL actualizada del video
-    video.src = 'https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-board@main/docs/assets/bibiye.webm';
+    // Establecer fuente del video
+    this.videoBackground.src = 'https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-board@main/docs/assets/bibiye.webm';
     
-    // Añadir manejadores de eventos para depuración
-    video.onloadeddata = () => {
+    // Estilos del video
+    this.videoBackground.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      opacity: 0.7;
+    `;
+    
+    // Añadir video al body
+    document.body.appendChild(this.videoBackground);
+    
+    // Verificar que el video se haya cargado correctamente
+    this.videoBackground.addEventListener('loadeddata', () => {
       console.log('SystemUI: Video cargado correctamente');
-      console.log('SystemUI: Elemento de video:', video);
-      console.log('SystemUI: Video tiene src:', video.src);
-      console.log('SystemUI: Video está en el DOM:', document.body.contains(video));
-    };
+      console.log('SystemUI: Elemento de video:', this.videoBackground);
+      console.log('SystemUI: Video tiene src:', this.videoBackground.src);
+      console.log('SystemUI: Video está en el DOM:', document.body.contains(this.videoBackground));
+    });
     
-    video.onerror = () => {
-      console.error('SystemUI: Error al cargar el video de fondo');
-      console.error('SystemUI: URL del video:', video.src);
-    };
-    
-    // Añadir al body
-    document.body.appendChild(video);
-    
-    // Guardar referencia al elemento
-    this.elements.videoBackground = video;
-    
-    console.log('SystemUI: Video de fondo creado correctamente');
-    
-    // Verificar que el video se añadió correctamente
+    // Verificación posterior para asegurar que el video está en el DOM
     setTimeout(() => {
-      const videoElement = document.querySelector('.video-background');
-      console.log('SystemUI: Verificación posterior - Video encontrado en DOM:', !!videoElement);
-      if (videoElement) {
+      console.log('SystemUI: Verificación posterior - Video encontrado en DOM:', document.getElementById('background-video') !== null);
+      if (this.videoBackground) {
         console.log('SystemUI: Estado del video:', {
-          readyState: videoElement.readyState,
-          networkState: videoElement.networkState,
-          paused: videoElement.paused,
-          ended: videoElement.ended,
-          currentTime: videoElement.currentTime,
-          duration: videoElement.duration
+          readyState: this.videoBackground.readyState,
+          networkState: this.videoBackground.networkState,
+          paused: this.videoBackground.paused,
+          ended: this.videoBackground.ended,
+          currentTime: this.videoBackground.currentTime,
+          duration: this.videoBackground.duration
         });
       }
     }, 1000);
+    
+    console.log('SystemUI: Video de fondo creado correctamente');
   }
-
+  
   createRedBar() {
     console.log('SystemUI: Creando barra roja');
     
-    const redBar = document.createElement('div');
-    redBar.id = 'red-bar';
+    // Crear barra roja
+    this.redBar = document.createElement('div');
+    this.redBar.id = 'red-bar';
+    this.redBar.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(220, 38, 38, 0.7));
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    `;
     
-    // Añadir controles de música (centrados)
-    const musicControls = this.statusWidget.createMusicControls();
-    redBar.appendChild(musicControls);
+    // Añadir controles de música a la barra roja
+    this.createMusicControls();
     
-    // Añadir widgets de estado (a la derecha)
-    const statusWidgets = this.statusWidget.createAllWidgets();
-    redBar.appendChild(statusWidgets);
-    
-    // Guardar referencia al elemento
-    this.elements.redBar = redBar;
-    
-    // Añadir al body
-    document.body.appendChild(redBar);
+    // Añadir barra roja al body
+    document.body.appendChild(this.redBar);
     
     console.log('SystemUI: Barra roja creada correctamente');
   }
-
+  
+  createMusicControls() {
+    console.log('StatusWidget: Creando todos los widgets');
+    
+    // Contenedor de widgets
+    const widgetsContainer = document.createElement('div');
+    widgetsContainer.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-left: auto;
+    `;
+    
+    // Widget de reloj
+    const clockWidget = document.createElement('div');
+    clockWidget.className = 'status-widget';
+    clockWidget.id = 'clock-widget';
+    clockWidget.style.cssText = `
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+    `;
+    clockWidget.textContent = '00:00';
+    
+    // Widget de batería
+    const batteryWidget = document.createElement('div');
+    batteryWidget.className = 'status-widget';
+    batteryWidget.id = 'battery-widget';
+    batteryWidget.style.cssText = `
+      color: white;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    `;
+    batteryWidget.innerHTML = '<i class="fa-solid fa-battery-three-quarters"></i> 75%';
+    
+    // Widget de WiFi
+    const wifiWidget = document.createElement('div');
+    wifiWidget.className = 'status-widget';
+    wifiWidget.id = 'wifi-widget';
+    wifiWidget.style.cssText = `
+      color: white;
+      font-size: 14px;
+    `;
+    wifiWidget.innerHTML = '<i class="fa-solid fa-wifi"></i>';
+    
+    // Widget de volumen
+    const volumeWidget = document.createElement('div');
+    volumeWidget.className = 'status-widget';
+    volumeWidget.id = 'volume-widget';
+    volumeWidget.style.cssText = `
+      color: white;
+      font-size: 14px;
+    `;
+    volumeWidget.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+    
+    // Controles de música
+    const musicControls = document.createElement('div');
+    musicControls.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-right: 15px;
+    `;
+    
+    // Botón de reproducción/pausa de música
+    const playPauseBtn = document.createElement('button');
+    playPauseBtn.className = 'music-control-button';
+    playPauseBtn.style.cssText = `
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    `;
+    playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+    playPauseBtn.addEventListener('click', () => {
+      this.eventBus.emit('music:togglePlayPause');
+    });
+    
+    // Botón de pista anterior
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'music-control-button';
+    prevBtn.style.cssText = `
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    `;
+    prevBtn.innerHTML = '<i class="fa-solid fa-backward"></i>';
+    prevBtn.addEventListener('click', () => {
+      this.eventBus.emit('music:playPrev');
+    });
+    
+    // Botón de pista siguiente
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'music-control-button';
+    nextBtn.style.cssText = `
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    `;
+    nextBtn.innerHTML = '<i class="fa-solid fa-forward"></i>';
+    nextBtn.addEventListener('click', () => {
+      this.eventBus.emit('music:playNext');
+    });
+    
+    // Añadir botones a los controles de música
+    musicControls.appendChild(prevBtn);
+    musicControls.appendChild(playPauseBtn);
+    musicControls.appendChild(nextBtn);
+    
+    // Añadir widgets al contenedor
+    widgetsContainer.appendChild(musicControls);
+    widgetsContainer.appendChild(clockWidget);
+    widgetsContainer.appendChild(batteryWidget);
+    widgetsContainer.appendChild(wifiWidget);
+    widgetsContainer.appendChild(volumeWidget);
+    
+    // Añadir contenedor a la barra roja
+    this.redBar.appendChild(widgetsContainer);
+    
+    // Inicializar widgets
+    this.initWidgets();
+    
+    console.log('StatusWidget: Widgets creados correctamente');
+  }
+  
+  initWidgets() {
+    // Actualizar reloj
+    const updateClock = () => {
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const clockWidget = document.getElementById('clock-widget');
+      if (clockWidget) {
+        clockWidget.textContent = `${hours}:${minutes}`;
+      }
+    };
+    
+    // Actualizar reloj inmediatamente y luego cada segundo
+    updateClock();
+    setInterval(updateClock, 1000);
+    
+    // Simular actualización de batería
+    const updateBattery = () => {
+      const batteryWidget = document.getElementById('battery-widget');
+      if (batteryWidget) {
+        const batteryLevel = Math.floor(Math.random() * 40) + 60; // 60-100%
+        let batteryIcon = 'fa-battery-full';
+        
+        if (batteryLevel < 20) {
+          batteryIcon = 'fa-battery-empty';
+        } else if (batteryLevel < 40) {
+          batteryIcon = 'fa-battery-quarter';
+        } else if (batteryLevel < 60) {
+          batteryIcon = 'fa-battery-half';
+        } else if (batteryLevel < 80) {
+          batteryIcon = 'fa-battery-three-quarters';
+        }
+        
+        batteryWidget.innerHTML = `<i class="fa-solid ${batteryIcon}"></i> ${batteryLevel}%`;
+      }
+    };
+    
+    // Actualizar batería cada 30 segundos
+    updateBattery();
+    setInterval(updateBattery, 30000);
+    
+    // Simular cambios de WiFi
+    const updateWiFi = () => {
+      const wifiWidget = document.getElementById('wifi-widget');
+      if (wifiWidget) {
+        const wifiStrength = Math.random();
+        let wifiIcon = 'fa-wifi';
+        
+        if (wifiStrength < 0.3) {
+          wifiIcon = 'fa-wifi-slash';
+        } else if (wifiStrength < 0.6) {
+          wifiIcon = 'fa-signal';
+        }
+        
+        wifiWidget.innerHTML = `<i class="fa-solid ${wifiIcon}"></i>`;
+      }
+    };
+    
+    // Actualizar WiFi cada 10 segundos
+    updateWiFi();
+    setInterval(updateWiFi, 10000);
+  }
+  
   createBlueBar() {
     console.log('SystemUI: Creando barra azul');
     
-    const blueBar = document.createElement('div');
-    blueBar.id = 'blue-bar';
+    // Crear barra azul
+    this.blueBar = document.createElement('div');
+    this.blueBar.id = 'blue-bar';
+    this.blueBar.style.cssText = `
+      position: fixed;
+      top: 40px;
+      left: 0;
+      width: 60px;
+      height: calc(100vh - 40px);
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.9), rgba(37, 99, 235, 0.7));
+      backdrop-filter: blur(10px);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px 0;
+      gap: 15px;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+      overflow-y: auto;
+    `;
     
-    // Crear botón para la aplicación de música
-    const musicAppButton = this.createAppButton('music', 'Música', 'fa-music');
-    blueBar.appendChild(musicAppButton);
+    // Lista de aplicaciones
+    const apps = [
+      { id: 'music', name: 'Música', icon: '🎵' },
+      { id: 'diagram', name: 'Diagramas', icon: '📊' },
+      { id: 'editor', name: 'Editor', icon: '📝' },
+      { id: 'settings', name: 'Config', icon: '⚙️' },
+      { id: 'spreadsheet', name: 'Hoja', icon: '📄' },
+      { id: 'performance', name: 'Rendimiento', icon: '⚡' }
+    ];
     
-    // Crear botón para la aplicación de diagram
-    const diagramAppButton = this.createAppButton('diagram', 'Diagrama', 'fa-project-diagram');
-    blueBar.appendChild(diagramAppButton);
+    // Crear botones para cada aplicación
+    apps.forEach(app => {
+      const appButton = this.createAppButton(app.id, app.name, app.icon);
+      this.blueBar.appendChild(appButton);
+    });
     
-    // Crear botón para la aplicación de editor
-    const editorAppButton = this.createAppButton('editor', 'Editor', 'fa-edit');
-    blueBar.appendChild(editorAppButton);
-    
-    // Crear botón para la aplicación de settings
-    const settingsAppButton = this.createAppButton('settings', 'Configuración', 'fa-cog');
-    blueBar.appendChild(settingsAppButton);
-    
-    // Crear botón para la aplicación de spreadsheet
-    const spreadsheetAppButton = this.createAppButton('spreadsheet', 'Hoja de cálculo', 'fa-table');
-    blueBar.appendChild(spreadsheetAppButton);
-    
-    // NUEVO: Crear botón para la aplicación de rendimiento
-    const performanceAppButton = this.createAppButton('performance', 'Rendimiento', 'fa-tachometer-alt');
-    blueBar.appendChild(performanceAppButton);
-    
-    // Guardar referencia al elemento
-    this.elements.blueBar = blueBar;
-    
-    // Añadir al body
-    document.body.appendChild(blueBar);
+    // Añadir barra azul al body
+    document.body.appendChild(this.blueBar);
     
     console.log('SystemUI: Barra azul creada correctamente');
   }
-
-  createAppButton(appId, title, iconClass) {
-    console.log(`SystemUI: Creando botón para aplicación ${appId}`);
+  
+  createAppButton(appId, appName, appIcon) {
+    console.log(`[DEBUG] SystemUI: Creando botón para aplicación ${appId}`);
     
     const button = document.createElement('button');
     button.className = 'app-button';
-    button.title = title;
     button.dataset.appId = appId;
+    button.style.cssText = `
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      pointer-events: auto;
+    `;
     
-    const icon = document.createElement('i');
-    icon.className = `fas ${iconClass}`;
+    const icon = document.createElement('div');
+    icon.textContent = appIcon;
+    icon.style.cssText = `
+      font-size: 20px;
+      margin-bottom: 3px;
+    `;
+    
+    const name = document.createElement('div');
+    name.textContent = appName;
+    name.style.cssText = `
+      font-size: 9px;
+      text-align: center;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    `;
     
     button.appendChild(icon);
+    button.appendChild(name);
     
-    // Añadir evento de clic para activar/desactivar la aplicación
+    // Evento de clic
     button.addEventListener('click', () => {
       console.log(`[DEBUG] Botón de aplicación ${appId} presionado`);
-      console.log(`[DEBUG] EventBus disponible:`, !!this.eventBus);
-      console.log(`[DEBUG] Tipo de EventBus:`, typeof this.eventBus);
       
-      // Verificar que el EventBus esté disponible
-      if (this.eventBus) {
-        console.log(`[DEBUG] Preparando para manejar clic en aplicación ${appId}`);
-        
-        // Verificar si esta aplicación ya está activa
-        if (this.currentActiveApp === appId) {
-          console.log(`[DEBUG] La aplicación ${appId} ya está activa, se va a desactivar`);
-          // Si es la misma aplicación, desactivarla
-          this.eventBus.emit('app:deactivate', { appId });
-        } else {
-          console.log(`[DEBUG] La aplicación ${appId} no está activa, se va a activar`);
-          // Si hay una aplicación activa diferente, desactivarla primero
-          if (this.currentActiveApp) {
-            console.log(`[DEBUG] Desactivando aplicación actual: ${this.currentActiveApp}`);
-            this.eventBus.emit('app:deactivate', { appId: this.currentActiveApp });
-          }
-          
-          // Activar la nueva aplicación
-          this.eventBus.emit('app:activate', { appId });
-        }
-      } else {
-        console.error('[ERROR] EventBus no disponible en SystemUI');
-        console.log('[DEBUG] window.MizuOS:', window.MizuOS);
-        console.log('[DEBUG] window.MizuOS.eventBus:', window.MizuOS ? window.MizuOS.eventBus : 'undefined');
+      // Verificar si el EventBus está disponible
+      if (!this.eventBus) {
+        console.error('[ERROR] EventBus no está disponible');
+        return;
       }
+      
+      console.log('[DEBUG] EventBus disponible:', !!this.eventBus);
+      console.log('[DEBUG] Tipo de EventBus:', typeof this.eventBus);
+      
+      console.log(`[DEBUG] Preparando para manejar clic en aplicación ${appId}`);
+      
+      // Si es la aplicación activa, emitir evento para alternar visibilidad
+      if (this.activeAppId === appId) {
+        console.log(`[DEBUG] La aplicación ${appId} ya está activa, alternando visibilidad`);
+        this.eventBus.emit(`${appId}:toggleVisibility`, { appId, hide: true });
+      } else {
+        // Si no es la aplicación activa, activarla normalmente
+        console.log(`[DEBUG] La aplicación ${appId} no está activa, se va a activar`);
+        this.eventBus.emit('app:activate', { appId });
+      }
+      
+      console.log(`[DEBUG] Evento emitido para ${appId}`);
     });
     
     console.log(`[DEBUG] Botón para aplicación ${appId} creado correctamente`);
+    
     return button;
   }
-
+  
+  updateAppButtons() {
+    // Actualizar estado visual de los botones de aplicaciones
+    const appButtons = document.querySelectorAll('.app-button');
+    
+    appButtons.forEach(button => {
+      const appId = button.dataset.appId;
+      
+      if (appId === this.activeAppId) {
+        // Aplicación activa
+        button.style.background = 'rgba(255, 255, 255, 0.3)';
+        button.style.transform = 'scale(1.05)';
+        button.style.boxShadow = '0 0 10px rgba(255, 255, 255, 0.5)';
+      } else {
+        // Aplicación inactiva
+        button.style.background = 'rgba(255, 255, 255, 0.1)';
+        button.style.transform = 'scale(1)';
+        button.style.boxShadow = 'none';
+      }
+    });
+  }
+  
   createYellowSquare() {
     console.log('SystemUI: Creando cuadrado amarillo');
     
-    const yellowSquare = document.createElement('div');
-    yellowSquare.id = 'yellow-square';
+    // Crear cuadrado amarillo
+    this.yellowSquare = document.createElement('div');
+    this.yellowSquare.id = 'yellow-square';
+    this.yellowSquare.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, rgba(234, 179, 8, 0.9), rgba(234, 179, 8, 0.7));
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      transform: translate(-50%, -50%);
+      z-index: 998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    `;
     
-    const cube = document.createElement('div');
-    cube.id = 'cube';
-    
+    // Contenido del cuadrado amarillo (holograma)
     const hologram = document.createElement('div');
-    hologram.id = 'hologram';
+    hologram.style.cssText = `
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.8), rgba(234, 179, 8, 0.4));
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    `;
+    hologram.textContent = 'MIZU';
     
-    cube.appendChild(hologram);
-    yellowSquare.appendChild(cube);
+    // Añadir animación al holograma
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes pulse {
+        0% { transform: scale(1); opacity: 0.8; }
+        50% { transform: scale(1.1); opacity: 1; }
+        100% { transform: scale(1); opacity: 0.8; }
+      }
+    `;
+    document.head.appendChild(style);
     
-    // Guardar referencia al elemento
-    this.elements.yellowSquare = yellowSquare;
+    this.yellowSquare.appendChild(hologram);
     
-    // Añadir al body
-    document.body.appendChild(yellowSquare);
+    // Añadir cuadrado amarillo al body
+    document.body.appendChild(this.yellowSquare);
+    
+    // Mostrar cuadrado amarillo durante 3 segundos al inicio
+    setTimeout(() => {
+      this.yellowSquare.style.opacity = '1';
+      
+      setTimeout(() => {
+        this.yellowSquare.style.opacity = '0';
+      }, 3000);
+    }, 500);
     
     console.log('SystemUI: Cuadrado amarillo creado correctamente');
   }
-
+  
   createBlackBar() {
     console.log('SystemUI: Creando barra negra');
     
-    const blackBar = document.createElement('div');
-    blackBar.id = 'black-bar';
+    // Crear barra negra
+    this.blackBar = document.createElement('div');
+    this.blackBar.id = 'black-bar';
+    this.blackBar.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-size: contain;
+      background-color: hsla(0, 0%, 0%, 0.2);
+      padding: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      z-index: 641;
+      transition: top 0.5s ease, left 0.5s ease, right 0.5s ease, bottom 0.5s ease;
+      overflow: hidden;
+      cursor: grab;
+    `;
     
-    // Guardar referencia al elemento
-    this.elements.blackBar = blackBar;
-    
-    // Añadir al body
-    document.body.appendChild(blackBar);
+    // Añadir barra negra al body
+    document.body.appendChild(this.blackBar);
     
     console.log('SystemUI: Barra negra creada correctamente');
-  }
-
-  // Método para obtener referencias a los elementos de la interfaz
-  getElement(elementId) {
-    return this.elements[elementId];
   }
 }
