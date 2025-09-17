@@ -27,6 +27,10 @@ export default class SystemUI {
     this.elements = {};
     this.currentActiveApp = null; // Para rastrear la aplicación activa actual
     this.isProcessingMusicControl = false; // Para evitar múltiples clics rápidos
+    this.musicAppState = {
+      isPlaying: false,
+      wasPlayingBeforeSwitch: false // Para rastrear si la música estaba reproduciéndose antes de cambiar de app
+    };
   }
 
   init() {
@@ -52,10 +56,24 @@ export default class SystemUI {
       console.log(`SystemUI: Aplicación activada: ${data.appId}`);
       this.currentActiveApp = data.appId;
       this.updateAppButtonsState();
+      
+      // Si volvemos a la aplicación de música y estaba reproduciendo antes, reanudar
+      if (data.appId === 'music' && this.musicAppState.wasPlayingBeforeSwitch) {
+        console.log('SystemUI: Reanudando música al volver a la aplicación');
+        this.eventBus.emit('music:togglePlayPause');
+        this.musicAppState.wasPlayingBeforeSwitch = false;
+      }
     });
     
     this.eventBus.on('app:deactivated', (data) => {
       console.log(`SystemUI: Aplicación desactivada: ${data.appId}`);
+      
+      // Si la aplicación desactivada es música y estaba reproduciendo, guardar ese estado
+      if (data.appId === 'music' && this.musicAppState.isPlaying) {
+        console.log('SystemUI: Guardando estado de reproducción de música');
+        this.musicAppState.wasPlayingBeforeSwitch = true;
+      }
+      
       if (this.currentActiveApp === data.appId) {
         this.currentActiveApp = null;
       }
@@ -95,6 +113,8 @@ export default class SystemUI {
     this.eventBus.on('music:state-changed', (data) => {
       console.log('SystemUI: Estado de música cambiado:', data);
       this.isProcessingMusicControl = false;
+      this.musicAppState.isPlaying = data.isPlaying;
+      
       // Actualizar visualmente el estado de los botones si es necesario
       if (this.statusWidget && typeof this.statusWidget.updateMusicControlsState === 'function') {
         this.statusWidget.updateMusicControlsState(data.isPlaying);
@@ -264,7 +284,14 @@ export default class SystemUI {
           // Si hay una aplicación activa diferente, desactivarla primero
           if (this.currentActiveApp) {
             console.log(`[DEBUG] Desactivando aplicación actual: ${this.currentActiveApp}`);
-            this.eventBus.emit('app:deactivate', { appId: this.currentActiveApp });
+            
+            // MODIFICACIÓN: Para la aplicación de música, no ocultar la interfaz al cambiar de app
+            if (this.currentActiveApp !== 'music') {
+              this.eventBus.emit('app:deactivate', { appId: this.currentActiveApp });
+            } else {
+              // Para música, solo emitir evento de desactivación pero no ocultar
+              this.eventBus.emit('app:deactivated', { appId: this.currentActiveApp });
+            }
           }
           
           // Activar la nueva aplicación
