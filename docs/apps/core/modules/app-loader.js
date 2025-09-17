@@ -52,6 +52,27 @@ export default class AppLoader {
       this.deactivateApp(data.appId);
     });
     
+    // NUEVO: Suscribirse a eventos de optimización del sistema
+    this.eventBus.on('system:reduce-effects', (data) => {
+      console.log('AppLoader: Evento system:reduce-effects recibido:', data);
+      this.applySystemOptimization('reduce-effects', data);
+    });
+    
+    this.eventBus.on('system:disable-video-background', (data) => {
+      console.log('AppLoader: Evento system:disable-video-background recibido:', data);
+      this.applySystemOptimization('disable-video-background', data);
+    });
+    
+    this.eventBus.on('system:enable-low-power-mode', (data) => {
+      console.log('AppLoader: Evento system:enable-low-power-mode recibido:', data);
+      this.applySystemOptimization('enable-low-power-mode', data);
+    });
+    
+    this.eventBus.on('system:enable-tv-mode', (data) => {
+      console.log('AppLoader: Evento system:enable-tv-mode recibido:', data);
+      this.applySystemOptimization('enable-tv-mode', data);
+    });
+    
     console.log('AppLoader: Cargador de aplicaciones inicializado correctamente');
     return true;
   }
@@ -148,80 +169,30 @@ export default class AppLoader {
           console.log(`[DEBUG] AppLoader: Manifiesto integrado para settings:`, manifest);
           
           // Continuar con la carga usando el manifiesto integrado
-          const scriptPath = `./apps/${appId}/${manifest.entry}`;
-          console.log(`[DEBUG] AppLoader: Cargando script desde ${scriptPath}`);
+          return await this.loadAppFromManifest(appId, manifest);
+        } 
+        // NUEVO: Si es la aplicación de rendimiento, intentar con un manifiesto integrado
+        else if (appId === 'performance') {
+          console.log(`[DEBUG] AppLoader: Intentando cargar manifiesto integrado para performance`);
+          const manifest = {
+            name: "Performance",
+            version: "1.0.0",
+            description: "Herramienta de diagnóstico y optimización del sistema",
+            icon: "⚡",
+            entry: "appcore.js",
+            styles: [],
+            scripts: [],
+            permissions: ["system.info", "system.performance", "system.optimization"],
+            dependencies: [],
+            author: "Mizu Legends Studios",
+            license: "GNU AGPL-3.0"
+          };
+          console.log(`[DEBUG] AppLoader: Manifiesto integrado para performance:`, manifest);
           
-          const scriptResponse = await fetch(scriptPath);
-          console.log(`[DEBUG] AppLoader: Respuesta del script:`, scriptResponse.status);
-          
-          if (!scriptResponse.ok) {
-            throw new Error(`No se pudo cargar el script de ${appId}`);
-          }
-          
-          const scriptContent = await scriptResponse.text();
-          console.log(`[DEBUG] AppLoader: Script de ${appId} cargado, longitud:`, scriptContent.length);
-          
-          // Crear una promesa para cargar el módulo dinámicamente
-          const loadModule = new Promise((resolve, reject) => {
-            // Crear un elemento de script para cargar el módulo
-            const script = document.createElement('script');
-            script.type = 'module';
-            
-            // Crear una variable global para almacenar la clase de la aplicación
-            const tempGlobalVar = `__temp_${appId}_app`;
-            
-            // Crear el código que importará el módulo y lo asignará a una variable global
-            script.textContent = `
-              import('${scriptPath}')
-                .then(module => {
-                  window.${tempGlobalVar} = module.default;
-                  window.${tempGlobalVar}_loaded = true;
-                })
-                .catch(error => {
-                  console.error('Error loading module:', error);
-                  window.${tempGlobalVar}_error = error;
-                });
-            `;
-            
-            // Añadir el script al documento
-            document.head.appendChild(script);
-            
-            // Esperar a que el módulo se cargue
-            const checkInterval = setInterval(() => {
-              if (window[`${tempGlobalVar}_loaded`]) {
-                clearInterval(checkInterval);
-                resolve(window[tempGlobalVar]);
-                // Limpiar variables temporales
-                delete window[tempGlobalVar];
-                delete window[`${tempGlobalVar}_loaded`];
-                document.head.removeChild(script);
-              } else if (window[`${tempGlobalVar}_error`]) {
-                clearInterval(checkInterval);
-                reject(window[`${tempGlobalVar}_error`]);
-                // Limpiar variables temporales
-                delete window[`${tempGlobalVar}_error`];
-                document.head.removeChild(script);
-              }
-            }, 50);
-          });
-          
-          // Esperar a que el módulo se cargue
-          const AppClass = await loadModule;
-          console.log(`[DEBUG] AppLoader: Clase de aplicación obtenida:`, typeof AppClass);
-          
-          // Crear una instancia de la aplicación
-          const appInstance = new AppClass(this.eventBus);
-          console.log(`[DEBUG] AppLoader: Instancia de aplicación creada:`, typeof appInstance);
-          
-          // Guardar la aplicación cargada
-          this.loadedApps.set(appId, {
-            instance: appInstance,
-            manifest: manifest
-          });
-          
-          console.log(`[DEBUG] AppLoader: Aplicación ${appId} cargada correctamente`);
-          return this.loadedApps.get(appId);
-        } else {
+          // Continuar con la carga usando el manifiesto integrado
+          return await this.loadAppFromManifest(appId, manifest);
+        }
+        else {
           throw new Error(`No se pudo cargar el manifiesto de ${appId}`);
         }
       }
@@ -229,6 +200,19 @@ export default class AppLoader {
       const manifest = await manifestResponse.json();
       console.log(`[DEBUG] AppLoader: Manifiesto de ${appId} cargado:`, manifest);
       
+      // NUEVO: Extraer la lógica de carga a un método separado para reutilización
+      return await this.loadAppFromManifest(appId, manifest);
+    } catch (error) {
+      console.error(`[ERROR] AppLoader: Error al cargar la aplicación ${appId}:`, error);
+      return null;
+    }
+  }
+  
+  // NUEVO: Método separado para cargar una aplicación desde un manifiesto
+  async loadAppFromManifest(appId, manifest) {
+    console.log(`[DEBUG] AppLoader: Cargando aplicación ${appId} desde manifiesto`);
+    
+    try {
       // Compatibilidad con ambos formatos: "entry" y "main"
       const entryPoint = manifest.entry || manifest.main;
       if (!entryPoint) {
@@ -299,7 +283,7 @@ export default class AppLoader {
       console.log(`[DEBUG] AppLoader: Aplicación ${appId} cargada correctamente`);
       return this.loadedApps.get(appId);
     } catch (error) {
-      console.error(`[ERROR] AppLoader: Error al cargar la aplicación ${appId}:`, error);
+      console.error(`[ERROR] AppLoader: Error al cargar la aplicación ${appId} desde manifiesto:`, error);
       return null;
     }
   }
@@ -392,6 +376,76 @@ export default class AppLoader {
       console.log(`AppLoader: Aplicación ${appId} desactivada correctamente`);
     } catch (error) {
       console.error(`AppLoader: Error al desactivar la aplicación ${appId}:`, error);
+    }
+  }
+  
+  // NUEVO: Método para aplicar optimizaciones del sistema
+  applySystemOptimization(type, data) {
+    console.log(`AppLoader: Aplicando optimización del sistema: ${type}`, data);
+    
+    try {
+      switch (type) {
+        case 'reduce-effects':
+          // Reducir efectos visuales en todo el sistema
+          document.body.style.setProperty('--animation-speed', '0');
+          document.body.style.setProperty('--blur-intensity', '0');
+          document.body.style.setProperty('--transition-duration', '0ms');
+          
+          // Notificar a todas las aplicaciones activas
+          this.activeApps.forEach((appData, appId) => {
+            if (typeof appData.instance.onSystemOptimization === 'function') {
+              appData.instance.onSystemOptimization(type, data);
+            }
+          });
+          break;
+          
+        case 'disable-video-background':
+          // Desactivar video de fondo
+          const videoBackground = document.getElementById('background-video');
+          if (videoBackground) {
+            videoBackground.style.display = 'none';
+          }
+          
+          // Notificar a todas las aplicaciones activas
+          this.activeApps.forEach((appData, appId) => {
+            if (typeof appData.instance.onSystemOptimization === 'function') {
+              appData.instance.onSystemOptimization(type, data);
+            }
+          });
+          break;
+          
+        case 'enable-low-power-mode':
+          // Activar modo de bajo consumo
+          document.body.classList.add('low-power-mode');
+          
+          // Notificar a todas las aplicaciones activas
+          this.activeApps.forEach((appData, appId) => {
+            if (typeof appData.instance.onSystemOptimization === 'function') {
+              appData.instance.onSystemOptimization(type, data);
+            }
+          });
+          break;
+          
+        case 'enable-tv-mode':
+          // Activar modo TV
+          document.body.classList.add('tv-mode');
+          
+          // Notificar a todas las aplicaciones activas
+          this.activeApps.forEach((appData, appId) => {
+            if (typeof appData.instance.onSystemOptimization === 'function') {
+              appData.instance.onSystemOptimization(type, data);
+            }
+          });
+          break;
+          
+        default:
+          console.warn(`AppLoader: Tipo de optimización desconocido: ${type}`);
+      }
+      
+      // Emitir evento de optimización aplicada
+      this.eventBus.emit('system:optimization-applied', { type, data });
+    } catch (error) {
+      console.error(`AppLoader: Error al aplicar optimización del sistema ${type}:`, error);
     }
   }
 }
