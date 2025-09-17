@@ -28,6 +28,7 @@ export default class SystemUI {
     this.yellowSquare = null;
     this.blackBar = null;
     this.activeAppId = null;
+    this.elements = {};
     
     console.log('SystemUI: Inicializando interfaz de usuario');
   }
@@ -73,6 +74,7 @@ export default class SystemUI {
       if (this.videoBackground) {
         this.videoBackground.style.display = 'none';
       }
+      document.body.classList.add('reduced-effects');
     });
     
     this.eventBus.on('system:disable-video-background', () => {
@@ -87,12 +89,12 @@ export default class SystemUI {
       if (this.videoBackground) {
         this.videoBackground.style.display = 'none';
       }
+      document.body.classList.add('low-power-mode');
     });
     
     this.eventBus.on('system:enable-tv-mode', () => {
       console.log('SystemUI: Activando modo TV');
-      // Ajustes específicos para TV mode
-      document.body.style.fontSize = '18px';
+      document.body.classList.add('tv-mode');
     });
   }
   
@@ -111,7 +113,7 @@ export default class SystemUI {
     // Establecer fuente del video
     this.videoBackground.src = 'https://cdn.jsdelivr.net/gh/mizulegendsstudios/mizu-board@main/docs/assets/bibiye.webm';
     
-    // Estilos del video
+    // Estilos del video - ajustados para mayor transparencia
     this.videoBackground.style.cssText = `
       position: fixed;
       top: 0;
@@ -120,34 +122,24 @@ export default class SystemUI {
       height: 100%;
       object-fit: cover;
       z-index: -1;
-      opacity: 0.7;
+      opacity: 0.5; /* Reducido para mayor transparencia */
+      filter: blur(1px); /* Ligero desenfoque para efecto de profundidad */
     `;
     
     // Añadir video al body
     document.body.appendChild(this.videoBackground);
     
+    // Guardar referencia al elemento
+    this.elements.videoBackground = this.videoBackground;
+    
     // Verificar que el video se haya cargado correctamente
     this.videoBackground.addEventListener('loadeddata', () => {
       console.log('SystemUI: Video cargado correctamente');
-      console.log('SystemUI: Elemento de video:', this.videoBackground);
-      console.log('SystemUI: Video tiene src:', this.videoBackground.src);
-      console.log('SystemUI: Video está en el DOM:', document.body.contains(this.videoBackground));
     });
     
-    // Verificación posterior para asegurar que el video está en el DOM
-    setTimeout(() => {
-      console.log('SystemUI: Verificación posterior - Video encontrado en DOM:', document.getElementById('background-video') !== null);
-      if (this.videoBackground) {
-        console.log('SystemUI: Estado del video:', {
-          readyState: this.videoBackground.readyState,
-          networkState: this.videoBackground.networkState,
-          paused: this.videoBackground.paused,
-          ended: this.videoBackground.ended,
-          currentTime: this.videoBackground.currentTime,
-          duration: this.videoBackground.duration
-        });
-      }
-    }, 1000);
+    this.videoBackground.addEventListener('error', () => {
+      console.error('SystemUI: Error al cargar el video de fondo');
+    });
     
     console.log('SystemUI: Video de fondo creado correctamente');
   }
@@ -158,19 +150,26 @@ export default class SystemUI {
     // Crear barra roja
     this.redBar = document.createElement('div');
     this.redBar.id = 'red-bar';
+    
+    // Estilos ajustados para mayor transparencia y efecto de vidrio esmerilado
     this.redBar.style.cssText = `
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       height: 40px;
-      background: linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(220, 38, 38, 0.7));
-      backdrop-filter: blur(10px);
+      background: linear-gradient(90deg, 
+        rgba(220, 38, 38, 0.7), 
+        rgba(220, 38, 38, 0.5)
+      );
+      backdrop-filter: blur(15px); /* Aumentado para mayor efecto de desenfoque */
+      -webkit-backdrop-filter: blur(15px);
       z-index: 1000;
       display: flex;
       align-items: center;
       padding: 0 15px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     `;
     
     // Añadir controles de música a la barra roja
@@ -178,6 +177,9 @@ export default class SystemUI {
     
     // Añadir barra roja al body
     document.body.appendChild(this.redBar);
+    
+    // Guardar referencia al elemento
+    this.elements.redBar = this.redBar;
     
     console.log('SystemUI: Barra roja creada correctamente');
   }
@@ -199,9 +201,10 @@ export default class SystemUI {
     clockWidget.className = 'status-widget';
     clockWidget.id = 'clock-widget';
     clockWidget.style.cssText = `
-      color: white;
+      color: rgba(255, 255, 255, 0.9);
       font-size: 14px;
       font-weight: 500;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     `;
     clockWidget.textContent = '00:00';
     
@@ -210,11 +213,12 @@ export default class SystemUI {
     batteryWidget.className = 'status-widget';
     batteryWidget.id = 'battery-widget';
     batteryWidget.style.cssText = `
-      color: white;
+      color: rgba(255, 255, 255, 0.9);
       font-size: 14px;
       display: flex;
       align-items: center;
       gap: 5px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     `;
     batteryWidget.innerHTML = '<i class="fa-solid fa-battery-three-quarters"></i> 75%';
     
@@ -223,8 +227,9 @@ export default class SystemUI {
     wifiWidget.className = 'status-widget';
     wifiWidget.id = 'wifi-widget';
     wifiWidget.style.cssText = `
-      color: white;
+      color: rgba(255, 255, 255, 0.9);
       font-size: 14px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     `;
     wifiWidget.innerHTML = '<i class="fa-solid fa-wifi"></i>';
     
@@ -233,8 +238,9 @@ export default class SystemUI {
     volumeWidget.className = 'status-widget';
     volumeWidget.id = 'volume-widget';
     volumeWidget.style.cssText = `
-      color: white;
+      color: rgba(255, 255, 255, 0.9);
       font-size: 14px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     `;
     volumeWidget.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
     
@@ -254,14 +260,15 @@ export default class SystemUI {
       width: 30px;
       height: 30px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      color: white;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.9);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s ease;
+      backdrop-filter: blur(5px);
     `;
     playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
     playPauseBtn.addEventListener('click', () => {
@@ -275,14 +282,15 @@ export default class SystemUI {
       width: 30px;
       height: 30px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      color: white;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.9);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s ease;
+      backdrop-filter: blur(5px);
     `;
     prevBtn.innerHTML = '<i class="fa-solid fa-backward"></i>';
     prevBtn.addEventListener('click', () => {
@@ -296,14 +304,15 @@ export default class SystemUI {
       width: 30px;
       height: 30px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      color: white;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.9);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s ease;
+      backdrop-filter: blur(5px);
     `;
     nextBtn.innerHTML = '<i class="fa-solid fa-forward"></i>';
     nextBtn.addEventListener('click', () => {
@@ -400,21 +409,28 @@ export default class SystemUI {
     // Crear barra azul
     this.blueBar = document.createElement('div');
     this.blueBar.id = 'blue-bar';
+    
+    // Estilos ajustados para mayor transparencia y efecto de vidrio esmerilado
     this.blueBar.style.cssText = `
       position: fixed;
       top: 40px;
       left: 0;
       width: 60px;
       height: calc(100vh - 40px);
-      background: linear-gradient(180deg, rgba(37, 99, 235, 0.9), rgba(37, 99, 235, 0.7));
-      backdrop-filter: blur(10px);
+      background: linear-gradient(180deg, 
+        rgba(37, 99, 235, 0.7), 
+        rgba(37, 99, 235, 0.5)
+      );
+      backdrop-filter: blur(15px); /* Aumentado para mayor efecto de desenfoque */
+      -webkit-backdrop-filter: blur(15px);
       z-index: 999;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 15px 0;
       gap: 15px;
-      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+      box-shadow: 2px 0 15px rgba(0, 0, 0, 0.2);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
       overflow-y: auto;
     `;
     
@@ -437,6 +453,9 @@ export default class SystemUI {
     // Añadir barra azul al body
     document.body.appendChild(this.blueBar);
     
+    // Guardar referencia al elemento
+    this.elements.blueBar = this.blueBar;
+    
     console.log('SystemUI: Barra azul creada correctamente');
   }
   
@@ -446,6 +465,8 @@ export default class SystemUI {
     const button = document.createElement('button');
     button.className = 'app-button';
     button.dataset.appId = appId;
+    
+    // Estilos ajustados para mayor transparencia y efecto de vidrio esmerilado
     button.style.cssText = `
       display: flex;
       flex-direction: column;
@@ -456,10 +477,12 @@ export default class SystemUI {
       background: rgba(255, 255, 255, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 10px;
-      color: white;
+      color: rgba(255, 255, 255, 0.9);
       cursor: pointer;
       transition: all 0.2s ease;
       pointer-events: auto;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
     `;
     
     const icon = document.createElement('div');
@@ -525,14 +548,16 @@ export default class SystemUI {
       
       if (appId === this.activeAppId) {
         // Aplicación activa
-        button.style.background = 'rgba(255, 255, 255, 0.3)';
+        button.style.background = 'rgba(255, 255, 255, 0.25)';
         button.style.transform = 'scale(1.05)';
-        button.style.boxShadow = '0 0 10px rgba(255, 255, 255, 0.5)';
+        button.style.boxShadow = '0 0 15px rgba(255, 255, 255, 0.3)';
+        button.style.border = '1px solid rgba(255, 255, 255, 0.4)';
       } else {
         // Aplicación inactiva
         button.style.background = 'rgba(255, 255, 255, 0.1)';
         button.style.transform = 'scale(1)';
         button.style.boxShadow = 'none';
+        button.style.border = '1px solid rgba(255, 255, 255, 0.2)';
       }
     });
   }
@@ -543,23 +568,30 @@ export default class SystemUI {
     // Crear cuadrado amarillo
     this.yellowSquare = document.createElement('div');
     this.yellowSquare.id = 'yellow-square';
+    
+    // Estilos ajustados para mayor transparencia y efecto de vidrio esmerilado
     this.yellowSquare.style.cssText = `
       position: fixed;
       top: 50%;
       left: 50%;
       width: 200px;
       height: 200px;
-      background: linear-gradient(135deg, rgba(234, 179, 8, 0.9), rgba(234, 179, 8, 0.7));
-      backdrop-filter: blur(10px);
+      background: linear-gradient(135deg, 
+        rgba(234, 179, 8, 0.7), 
+        rgba(234, 179, 8, 0.5)
+      );
+      backdrop-filter: blur(15px); /* Aumentado para mayor efecto de desenfoque */
+      -webkit-backdrop-filter: blur(15px);
       border-radius: 20px;
       transform: translate(-50%, -50%);
       z-index: 998;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
+      box-shadow: 0 0 25px rgba(234, 179, 8, 0.3);
       opacity: 0;
       transition: opacity 0.5s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     `;
     
     // Contenido del cuadrado amarillo (holograma)
@@ -596,6 +628,9 @@ export default class SystemUI {
     // Añadir cuadrado amarillo al body
     document.body.appendChild(this.yellowSquare);
     
+    // Guardar referencia al elemento
+    this.elements.yellowSquare = this.yellowSquare;
+    
     // Mostrar cuadrado amarillo durante 3 segundos al inicio
     setTimeout(() => {
       this.yellowSquare.style.opacity = '1';
@@ -614,6 +649,8 @@ export default class SystemUI {
     // Crear barra negra
     this.blackBar = document.createElement('div');
     this.blackBar.id = 'black-bar';
+    
+    // Estilos ajustados para mayor transparencia y efecto de vidrio esmerilado
     this.blackBar.style.cssText = `
       position: absolute;
       top: 0;
@@ -621,7 +658,9 @@ export default class SystemUI {
       right: 0;
       bottom: 0;
       background-size: contain;
-      background-color: hsla(0, 0%, 0%, 0.2);
+      background-color: hsla(0, 0%, 0%, 0.3); /* Aumentada la transparencia */
+      backdrop-filter: blur(10px); /* Añadido efecto de desenfoque */
+      -webkit-backdrop-filter: blur(10px);
       padding: 1rem;
       display: flex;
       gap: 0.5rem;
@@ -629,11 +668,20 @@ export default class SystemUI {
       transition: top 0.5s ease, left 0.5s ease, right 0.5s ease, bottom 0.5s ease;
       overflow: hidden;
       cursor: grab;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     `;
     
     // Añadir barra negra al body
     document.body.appendChild(this.blackBar);
     
+    // Guardar referencia al elemento
+    this.elements.blackBar = this.blackBar;
+    
     console.log('SystemUI: Barra negra creada correctamente');
+  }
+  
+  // Método para obtener referencias a los elementos de la interfaz
+  getElement(elementId) {
+    return this.elements[elementId];
   }
 }
