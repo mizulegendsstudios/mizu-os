@@ -1,6 +1,6 @@
 /*
  * Mizu OS - Performance App - UI Module
- * Copyright (C) 2025 Mizu Legends Studios.
+ * Copyright (C) 2025 Mizu Legends Studios
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -17,6 +17,7 @@
  */
 /**
  * Módulo para crear y gestionar la interfaz de usuario
+ * docs/apps/performance/modules/ui.js
  */
 export default class UI {
   constructor() {
@@ -396,15 +397,20 @@ export default class UI {
   updateRAM(ramUsage) {
     const ramValue = this.ramElement.querySelector('span:last-child');
     if (ramValue) {
-      ramValue.textContent = `${ramUsage}%`;
-      
-      // Cambiar color según uso
-      if (ramUsage < 50) {
-        ramValue.style.color = '#10b981'; // Verde
-      } else if (ramUsage < 80) {
+      if (ramUsage === -1) {
+        ramValue.textContent = 'No disponible';
         ramValue.style.color = '#f59e0b'; // Amarillo
       } else {
-        ramValue.style.color = '#ef4444'; // Rojo
+        ramValue.textContent = `${ramUsage}%`;
+        
+        // Cambiar color según uso
+        if (ramUsage < 50) {
+          ramValue.style.color = '#10b981'; // Verde
+        } else if (ramUsage < 80) {
+          ramValue.style.color = '#f59e0b'; // Amarillo
+        } else {
+          ramValue.style.color = '#ef4444'; // Rojo
+        }
       }
     }
   }
@@ -413,28 +419,36 @@ export default class UI {
   updateCPU(cpuLoad) {
     const cpuValue = this.cpuElement.querySelector('span:last-child');
     if (cpuValue) {
-      cpuValue.textContent = `${cpuLoad}%`;
-      
-      // Cambiar color según uso
-      if (cpuLoad < 50) {
-        cpuValue.style.color = '#10b981'; // Verde
-      } else if (cpuLoad < 80) {
+      if (cpuLoad === -1) {
+        cpuValue.textContent = 'No disponible';
         cpuValue.style.color = '#f59e0b'; // Amarillo
       } else {
-        cpuValue.style.color = '#ef4444'; // Rojo
+        cpuValue.textContent = `${cpuLoad}%`;
+        
+        // Cambiar color según uso
+        if (cpuLoad < 50) {
+          cpuValue.style.color = '#10b981'; // Verde
+        } else if (cpuLoad < 80) {
+          cpuValue.style.color = '#f59e0b'; // Amarillo
+        } else {
+          cpuValue.style.color = '#ef4444'; // Rojo
+        }
       }
     }
   }
   
   // Actualizar problemas de video
-  updateVideo(videoLag) {
+  updateVideo(videoLag, videoLoadTime) {
     const videoValue = this.videoElement.querySelector('span:last-child');
     if (videoValue) {
-      if (videoLag) {
-        videoValue.textContent = 'Detectado';
+      if (videoLoadTime === -1) {
+        videoValue.textContent = 'Error de carga';
+        videoValue.style.color = '#ef4444'; // Rojo
+      } else if (videoLag) {
+        videoValue.textContent = `Detectado (${videoLoadTime}ms)`;
         videoValue.style.color = '#ef4444'; // Rojo
       } else {
-        videoValue.textContent = 'No detectado';
+        videoValue.textContent = `No detectado (${videoLoadTime}ms)`;
         videoValue.style.color = '#10b981'; // Verde
       }
     }
