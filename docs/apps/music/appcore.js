@@ -30,6 +30,7 @@ export default class MusicApp {
     this.audioElement = null;
     this.panel = null;
     this.isVisible = true; // Nuevo estado para controlar visibilidad
+    this.defaultTrackLoaded = false; // Nueva bandera para controlar si la pista por defecto ya se cargó
     
     // Suscribirse a eventos de música
     this.setupEventListeners();
@@ -80,16 +81,14 @@ export default class MusicApp {
   init() {
     console.log('MusicApp: Inicializando aplicación de música');
     
-    // Cargar la música por defecto si la playlist está vacía
-    if (this.playlist.length === 0) {
-      this.loadDefaultTrack();
-    }
-    
+    // NO cargar la pista por defecto aquí, se hará después de renderizar
     return Promise.resolve();
   }
   
   // Nuevo método para cargar la pista por defecto
   loadDefaultTrack() {
+    if (this.defaultTrackLoaded) return; // Evitar cargar múltiples veces
+    
     const defaultTrack = {
       title: 'Mare (Mizu OS Theme)',
       source: 'Local',
@@ -101,6 +100,7 @@ export default class MusicApp {
     
     // Reproducir automáticamente la pista por defecto
     this.playTrack(0);
+    this.defaultTrackLoaded = true; // Marcar como cargada
   }
   
   // Nuevo método para alternar la visibilidad del reproductor
@@ -368,6 +368,14 @@ export default class MusicApp {
       }
     });
     
+    // Cargar la pista por defecto después de renderizar la interfaz
+    // y solo si la playlist está vacía
+    if (this.playlist.length === 0 && !this.defaultTrackLoaded) {
+      setTimeout(() => {
+        this.loadDefaultTrack();
+      }, 100); // Pequeño retraso para asegurar que todo está renderizado
+    }
+    
     return panel;
   }
   
@@ -585,6 +593,12 @@ export default class MusicApp {
       this.stopAllMedia();
       this.currentTrackIndex = index;
       const track = this.playlist[this.currentTrackIndex];
+      
+      // Verificar si los elementos del DOM existen antes de usarlos
+      if (!this.mediaPlayerContainerEl || !this.dynamicPlayerEl) {
+        console.error('MusicApp: Los elementos del reproductor no están disponibles');
+        return;
+      }
       
       // Ocultar el reproductor de iframes por defecto
       this.mediaPlayerContainerEl.style.display = 'none';
