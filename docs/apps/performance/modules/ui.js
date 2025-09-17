@@ -445,10 +445,10 @@ export default class UI {
         videoValue.textContent = 'Error de carga';
         videoValue.style.color = '#ef4444'; // Rojo
       } else if (videoLag) {
-        videoValue.textContent = `Detectado (${videoLoadTime}ms)`;
+        videoValue.textContent = `Detectado (${videoLoadTime.toFixed(1)}ms)`;
         videoValue.style.color = '#ef4444'; // Rojo
       } else {
-        videoValue.textContent = `No detectado (${videoLoadTime}ms)`;
+        videoValue.textContent = `No detectado (${videoLoadTime.toFixed(1)}ms)`;
         videoValue.style.color = '#10b981'; // Verde
       }
     }
@@ -574,7 +574,7 @@ export default class UI {
       padding: 10px;
       border-radius: 5px;
       background: rgba(16, 185, 129, 0.2);
-      border-left: 3px solid #10b981;
+      border-left: 3px solid #10b981';
     `;
     
     const successTitle = document.createElement('div');
