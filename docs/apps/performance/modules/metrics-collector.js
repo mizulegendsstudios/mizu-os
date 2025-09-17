@@ -24,10 +24,14 @@ export default class MetricsCollector {
     this.fpsCounter = 0;
     this.lastTime = performance.now();
     this.fpsCallback = null;
+    this.fpsAnimationId = null;
   }
   
   // Iniciar medición de FPS
   startFPSMeasurement(callback) {
+    // Detener cualquier medición anterior
+    this.stopFPSMeasurement();
+    
     this.fpsCallback = callback;
     this.fpsCounter = 0;
     this.lastTime = performance.now();
@@ -51,14 +55,20 @@ export default class MetricsCollector {
         this.lastTime = currentTime;
       }
       
-      requestAnimationFrame(updateFPS);
+      // Continuar la animación
+      this.fpsAnimationId = requestAnimationFrame(updateFPS);
     };
     
-    requestAnimationFrame(updateFPS);
+    // Iniciar la animación
+    this.fpsAnimationId = requestAnimationFrame(updateFPS);
   }
   
   // Detener medición de FPS
   stopFPSMeasurement() {
+    if (this.fpsAnimationId) {
+      cancelAnimationFrame(this.fpsAnimationId);
+      this.fpsAnimationId = null;
+    }
     this.fpsCallback = null;
   }
   
@@ -90,67 +100,32 @@ export default class MetricsCollector {
   
   // Medir carga de CPU
   measureCPULoad(callback) {
-    // Intentar usar PerformanceObserver para medir el rendimiento
-    if (window.PerformanceObserver) {
-      try {
-        const observer = new PerformanceObserver((list) => {
-          const entries = list.getEntries();
-          let totalDuration = 0;
-          let count = 0;
-          
-          entries.forEach(entry => {
-            if (entry.entryType === 'measure') {
-              totalDuration += entry.duration;
-              count++;
-            }
-          });
-          
-          if (count > 0) {
-            // Calcular un porcentaje basado en el tiempo de ejecución
-            // Esto es una aproximación, pero no usa Math.random()
-            const avgDuration = totalDuration / count;
-            // Convertir a un porcentaje (valores típicos entre 0-100)
-            const cpuLoad = Math.min(100, Math.round(avgDuration / 10));
-            
-            if (callback) {
-              callback(cpuLoad);
-            }
-            observer.disconnect();
-          }
-        });
-        
-        observer.observe({ entryTypes: ['measure'] });
-        
-        // Realizar una tarea medible
-        performance.mark('cpu-test-start');
-        
-        // Tarea intensiva para medir
-        let result = 0;
-        for (let i = 0; i < 100000; i++) {
-          result += Math.sqrt(i);
+    // Intentar usar la API de Navigation Timing para medir el rendimiento
+    if (window.performance && performance.timing) {
+      const timing = performance.timing;
+      
+      // Calcular el tiempo que tardó la página en cargar
+      const pageLoadTime = timing.loadEventEnd - timing.navigationStart;
+      
+      // Calcular el tiempo que tardó en estar lista para la interacción
+      const domReadyTime = timing.domContentLoadedEventEnd - timing.navigationStart;
+      
+      // Calcular un índice de rendimiento basado en estos tiempos
+      // Valores más altos indican peor rendimiento
+      const performanceIndex = (pageLoadTime + domReadyTime) / 2;
+      
+      // Convertir a un porcentaje (valores típicos entre 0-100)
+      // Asumimos que un tiempo de carga de 5000ms es 100% de uso
+      const cpuLoad = Math.min(100, Math.round((performanceIndex / 5000) * 100));
+      
+      // Llamar al callback con el valor de carga de CPU
+      setTimeout(() => {
+        if (callback) {
+          callback(cpuLoad);
         }
-        
-        performance.mark('cpu-test-end');
-        performance.measure('cpu-test', 'cpu-test-start', 'cpu-test-end');
-        
-        // Si no recibimos resultados en 2 segundos, informar que no se puede medir
-        setTimeout(() => {
-          if (callback) {
-            callback(-1); // Usamos -1 para indicar que no se puede medir
-          }
-          observer.disconnect();
-        }, 2000);
-        
-      } catch (e) {
-        // Si hay un error con PerformanceObserver, informar explícitamente
-        setTimeout(() => {
-          if (callback) {
-            callback(-1); // Usamos -1 para indicar que no se puede medir
-          }
-        }, 1000);
-      }
+      }, 1000);
     } else {
-      // Si no hay PerformanceObserver, informar explícitamente
+      // Si no hay API disponible, informar explícitamente
       setTimeout(() => {
         if (callback) {
           callback(-1); // Usamos -1 para indicar que no se puede medir
