@@ -17,7 +17,6 @@
  */
 /**
  * Módulo para recopilar métricas de rendimiento
- * docs/apps/performance/modules/metrics-collector.js
  */
 export default class MetricsCollector {
   constructor() {
@@ -25,6 +24,10 @@ export default class MetricsCollector {
     this.lastTime = performance.now();
     this.fpsCallback = null;
     this.fpsAnimationId = null;
+    this.fpsHistory = [];
+    this.cpuHistory = [];
+    this.ramHistory = [];
+    this.maxHistoryLength = 60; // Mantener 60 puntos de datos para los gráficos
   }
   
   // Iniciar medición de FPS
@@ -45,9 +48,15 @@ export default class MetricsCollector {
       if (elapsed >= 1000) {
         const fps = Math.round((this.fpsCounter * 1000) / elapsed);
         
-        // Llamar al callback con el valor de FPS
+        // Guardar en el historial
+        this.fpsHistory.push(fps);
+        if (this.fpsHistory.length > this.maxHistoryLength) {
+          this.fpsHistory.shift();
+        }
+        
+        // Llamar al callback con el valor de FPS y el historial
         if (this.fpsCallback) {
-          this.fpsCallback(fps);
+          this.fpsCallback(fps, [...this.fpsHistory]);
         }
         
         // Reiniciar contador
@@ -74,64 +83,101 @@ export default class MetricsCollector {
   
   // Medir uso de memoria
   measureMemoryUsage(callback) {
-    if (performance.memory) {
-      // API de memoria disponible en navegadores basados en Chromium
-      const used = performance.memory.usedJSHeapSize;
-      const total = performance.memory.totalJSHeapSize;
-      const limit = performance.memory.jsHeapSizeLimit;
-      
-      const ramUsage = Math.round((used / limit) * 100);
-      
-      // Llamar al callback con el valor de uso de RAM
-      setTimeout(() => {
-        if (callback) {
-          callback(ramUsage);
+    const measureMemory = () => {
+      if (performance.memory) {
+        // API de memoria disponible en navegadores basados en Chromium
+        const used = performance.memory.usedJSHeapSize;
+        const total = performance.memory.totalJSHeapSize;
+        const limit = performance.memory.jsHeapSizeLimit;
+        
+        const ramUsage = Math.round((used / limit) * 100);
+        const usedMB = Math.round(used / 1048576);
+        const totalMB = Math.round(limit / 1048576);
+        
+        // Guardar en el historial
+        this.ramHistory.push(ramUsage);
+        if (this.ramHistory.length > this.maxHistoryLength) {
+          this.ramHistory.shift();
         }
-      }, 1000);
-    } else {
-      // Si no hay API disponible, informar explícitamente
-      setTimeout(() => {
-        if (callback) {
-          callback(-1); // Usamos -1 para indicar que no se puede medir
-        }
-      }, 1000);
-    }
+        
+        // Llamar al callback con el valor de uso de RAM y el historial
+        setTimeout(() => {
+          if (callback) {
+            callback(ramUsage, usedMB, totalMB, [...this.ramHistory]);
+          }
+        }, 1000);
+        
+        // Programar próxima medición
+        setTimeout(measureMemory, 2000);
+      } else {
+        // Si no hay API disponible, informar explícitamente
+        setTimeout(() => {
+          if (callback) {
+            callback(-1, 0, 0, []);
+          }
+        }, 1000);
+      }
+    };
+    
+    // Iniciar medición
+    measureMemory();
   }
   
   // Medir carga de CPU
   measureCPULoad(callback) {
-    // Intentar usar la API de Navigation Timing para medir el rendimiento
-    if (window.performance && performance.timing) {
-      const timing = performance.timing;
-      
-      // Calcular el tiempo que tardó la página en cargar
-      const pageLoadTime = timing.loadEventEnd - timing.navigationStart;
-      
-      // Calcular el tiempo que tardó en estar lista para la interacción
-      const domReadyTime = timing.domContentLoadedEventEnd - timing.navigationStart;
-      
-      // Calcular un índice de rendimiento basado en estos tiempos
-      // Valores más altos indican peor rendimiento
-      const performanceIndex = (pageLoadTime + domReadyTime) / 2;
-      
-      // Convertir a un porcentaje (valores típicos entre 0-100)
-      // Asumimos que un tiempo de carga de 5000ms es 100% de uso
-      const cpuLoad = Math.min(100, Math.round((performanceIndex / 5000) * 100));
-      
-      // Llamar al callback con el valor de carga de CPU
-      setTimeout(() => {
-        if (callback) {
-          callback(cpuLoad);
+    const measureCPU = () => {
+      // Intentar usar la API de Navigation Timing para medir el rendimiento
+      if (window.performance && performance.timing) {
+        const timing = performance.timing;
+        
+        // Calcular el tiempo que tardó la página en cargar
+        const pageLoadTime = timing.loadEventEnd - timing.navigationStart;
+        
+        // Calcular el tiempo que tardó en estar lista para la interacción
+        const domReadyTime = timing.domContentLoadedEventEnd - timing.navigationStart;
+        
+        // Calcular un índice de rendimiento basado en estos tiempos
+        // Valores más altos indican peor rendimiento
+        const performanceIndex = (pageLoadTime + domReadyTime) / 2;
+        
+        // Convertir a un porcentaje (valores típicos entre 0-100)
+        // Asumimos que un tiempo de carga de 5000ms es 100% de uso
+        let cpuLoad = Math.min(100, Math.round((performanceIndex / 5000) * 100));
+        
+        // Si hay información de núcleos de CPU, ajustar la carga
+        if (navigator.hardwareConcurrency) {
+          // Ajustar basado en el número de núcleos
+          const cores = navigator.hardwareConcurrency;
+          cpuLoad = Math.min(100, Math.round(cpuLoad / cores));
         }
-      }, 1000);
-    } else {
-      // Si no hay API disponible, informar explícitamente
-      setTimeout(() => {
-        if (callback) {
-          callback(-1); // Usamos -1 para indicar que no se puede medir
+        
+        // Guardar en el historial
+        this.cpuHistory.push(cpuLoad);
+        if (this.cpuHistory.length > this.maxHistoryLength) {
+          this.cpuHistory.shift();
         }
-      }, 1000);
-    }
+        
+        // Llamar al callback con el valor de carga de CPU y el historial
+        setTimeout(() => {
+          if (callback) {
+            callback(cpuLoad, [...this.cpuHistory]);
+          }
+        }, 1000);
+        
+        // Programar próxima medición
+        setTimeout(measureCPU, 2000);
+      } else {
+        // Si no hay API disponible, informar explícitamente
+        setTimeout(() => {
+          if (callback) {
+            callback(-1, []);
+          }
+        }, 1000);
+      }
+    };
+    
+    // Iniciar medición
+    measureCPU();
   }
   
   // Detectar problemas de video
@@ -209,5 +255,36 @@ export default class MetricsCollector {
         videoTest.parentNode.removeChild(videoTest);
       }
     }, 5000);
+  }
+  
+  // Obtener información de rendimiento del sistema
+  getPerformanceMetrics() {
+    const metrics = {
+      navigationStart: 0,
+      domContentLoaded: 0,
+      loadComplete: 0,
+      firstPaint: 0,
+      firstContentfulPaint: 0
+    };
+    
+    if (performance.timing) {
+      const timing = performance.timing;
+      metrics.navigationStart = timing.navigationStart;
+      metrics.domContentLoaded = timing.domContentLoadedEventEnd - timing.navigationStart;
+      metrics.loadComplete = timing.loadEventEnd - timing.navigationStart;
+    }
+    
+    if (performance.getEntriesByType) {
+      const paintEntries = performance.getEntriesByType('paint');
+      paintEntries.forEach(entry => {
+        if (entry.name === 'first-paint') {
+          metrics.firstPaint = Math.round(entry.startTime);
+        } else if (entry.name === 'first-contentful-paint') {
+          metrics.firstContentfulPaint = Math.round(entry.startTime);
+        }
+      });
+    }
+    
+    return metrics;
   }
 }
