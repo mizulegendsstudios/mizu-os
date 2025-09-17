@@ -60,6 +60,35 @@ export default class SystemUI {
       }
       this.updateAppButtonsState();
     });
+    
+    // NUEVO: Suscribirse a eventos de optimización del sistema
+    this.eventBus.on('system:optimization-applied', (data) => {
+      console.log(`SystemUI: Optimización aplicada: ${data.type}`, data);
+      
+      // Aplicar cambios visuales según el tipo de optimización
+      switch (data.type) {
+        case 'disable-video-background':
+          if (this.elements.videoBackground) {
+            this.elements.videoBackground.style.display = 'none';
+          }
+          break;
+          
+        case 'reduce-effects':
+          // Reducir efectos visuales
+          document.body.classList.add('reduced-effects');
+          break;
+          
+        case 'enable-low-power-mode':
+          // Activar modo de bajo consumo
+          document.body.classList.add('low-power-mode');
+          break;
+          
+        case 'enable-tv-mode':
+          // Activar modo TV
+          document.body.classList.add('tv-mode');
+          break;
+      }
+    });
   }
 
   updateAppButtonsState() {
@@ -175,6 +204,10 @@ export default class SystemUI {
     // Crear botón para la aplicación de spreadsheet
     const spreadsheetAppButton = this.createAppButton('spreadsheet', 'Hoja de cálculo', 'fa-table');
     blueBar.appendChild(spreadsheetAppButton);
+    
+    // NUEVO: Crear botón para la aplicación de rendimiento
+    const performanceAppButton = this.createAppButton('performance', 'Rendimiento', 'fa-tachometer-alt');
+    blueBar.appendChild(performanceAppButton);
     
     // Guardar referencia al elemento
     this.elements.blueBar = blueBar;
