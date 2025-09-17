@@ -48,7 +48,7 @@ export default class MusicApp {
     this.eventBus.on('music:toggleVolume', () => this.toggleVolume());
     
     // Nuevo evento para alternar visibilidad del reproductor
-    this.eventBus.on('music:toggleVisibility', () => this.toggleVisibility());
+    this.eventBus.on('music:toggleVisibility', (data) => this.toggleVisibility(data));
   }
   
   // Cargar el script de la API de YouTube Iframe
@@ -104,10 +104,17 @@ export default class MusicApp {
   }
   
   // Nuevo método para alternar la visibilidad del reproductor
-  toggleVisibility() {
+  toggleVisibility(data) {
     if (!this.panel) return;
     
-    this.isVisible = !this.isVisible;
+    // Si se especifica hide, ocultamos forzosamente
+    if (data && data.hide) {
+      this.isVisible = false;
+    } else {
+      // Alternar visibilidad
+      this.isVisible = !this.isVisible;
+    }
+    
     this.panel.style.display = this.isVisible ? 'flex' : 'none';
     
     // Notificar al sistema que la app está "oculta" pero no destruida
