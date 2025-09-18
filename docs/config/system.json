@@ -1,11 +1,9 @@
 {
   "version": "3.0.1",
   "debug": false,
-  "systemComponents": [
-    "cssManager"
-  ],
   "modules": [
     "core",
+    "css",
     "ui",
     "storage",
     "network"
