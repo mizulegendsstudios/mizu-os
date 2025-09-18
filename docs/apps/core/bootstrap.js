@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('Mizu OS: DOM listo, iniciando bootstrap...');
   
   // Bootstrap delega completamente la inicialización a BootSequence
-//  const bootSequence = new BootSequence();
-  //bootSequence.execute().catch(error => {
-    //console.error('Mizu OS: Error no manejado:', error);
- // });
+  const bootSequence = new BootSequence();
+  bootSequence.execute().catch(error => {
+    console.error('Mizu OS: Error no manejado:', error);
+  });
 });
