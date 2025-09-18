@@ -80,8 +80,9 @@ export default class Core {
       
       // Inicializar widgets de estado ANTES de SystemUI
       console.log('[DEBUG] Core: Inicializando StatusWidget');
-      this.modules.statusWidget = new StatusWidget(this.modules.eventBus);
-      await this.modules.statusWidget.init();
+      this.modules.statusWidget = new StatusWidget();
+      
+      // El StatusWidget no tiene método init, así que no lo llamamos
       
       // Inicializar interfaz de usuario DESPUÉS de los widgets
       console.log('[DEBUG] Core: Inicializando SystemUI');
