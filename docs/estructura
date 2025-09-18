@@ -3,7 +3,7 @@ docs/
 │   ├── system.json
 │   └── modules.json
 └── apps/
-    ├── core/
+    ├── core/          # Módulos del sistema
     │   ├── bootstrap.js
     │   ├── bootSequence.js
     │   ├── configManager.js
@@ -11,13 +11,17 @@ docs/
     │   ├── errorHandler.js
     │   ├── appLoader.js
     │   ├── styleEngine.js
-    │   └── messageBus.js      <-- NUEVO ARCHIVO
-    ├── ui/
-    │   └── ui.js
-    ├── storage/
-    │   └── storage.js
-    ├── network/
-    │   └── network.js
-    └── music/
+    │   └── messageBus.js
+    ├── ui/            # Aplicación de interfaz de usuario
+    │   ├── ui.js
+    │   └── ui.json    # Configuración específica de la app
+    ├── storage/       # Aplicación de almacenamiento
+    │   ├── storage.js
+    │   └── storage.json
+    ├── network/       # Aplicación de red
+    │   ├── network.js
+    │   └── network.json
+    └── music/        # Aplicación de música
         ├── music.js
+        ├── music.json
         └── musicStyle.js
