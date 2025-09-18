@@ -3,7 +3,7 @@
     "name": "CSS App",
     "description": "App de estilos CSS del sistema",
     "version": "1.0.0",
-    "dependencies": ["core"],
+    "dependencies": [],
     "enabled": true,
     "priority": 4
   },
@@ -11,7 +11,7 @@
     "name": "UI App",
     "description": "App de interfaz de usuario",
     "version": "1.0.0",
-    "dependencies": ["core", "css"],
+    "dependencies": [],
     "enabled": true,
     "priority": 1
   },
@@ -19,7 +19,7 @@
     "name": "Storage App",
     "description": "App de almacenamiento local",
     "version": "1.0.0",
-    "dependencies": ["core"],
+    "dependencies": [],
     "enabled": true,
     "priority": 2
   },
@@ -27,7 +27,7 @@
     "name": "Network App",
     "description": "App de comunicaciones de red",
     "version": "1.0.0",
-    "dependencies": ["core", "storage"],
+    "dependencies": ["storage"],
     "enabled": true,
     "priority": 3
   }
