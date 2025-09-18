@@ -31,7 +31,7 @@
 
 import { ConfigManager } from './configManager.js';
 import { StyleEngine } from './styleEngine.js';
-import AppLoader from './appLoader.js'; // CORREGIDO: Importación por defecto
+import AppLoader from './appLoader.js';
 import { DependencyManager } from './dependencyManager.js';
 import { ErrorHandler } from './errorHandler.js';
 
@@ -69,9 +69,13 @@ export class BootSequence {
       this.styleEngine.generateBaseStyles();
       this.dependencyManager.markAsLoaded('styleEngine');
       
-      // Paso 3: Cargar apps dinámicamente desde la configuración
-      console.log('BootSequence: Paso 3 - Cargando apps dinámicamente');
-      await this.appLoader.loadAppsFromConfig();
+      // Paso 3: Inicializar el cargador de aplicaciones
+      console.log('BootSequence: Paso 3 - Inicializando el cargador de aplicaciones');
+      await this.appLoader.init();
+      
+      // Paso 4: Cargar apps dinámicamente desde la configuración
+      console.log('BootSequence: Paso 4 - Cargando apps dinámicamente');
+      await this.appLoader.loadApps();  // CORREGIDO: loadApps en lugar de loadAppsFromConfig
       this.dependencyManager.markAsLoaded('appLoader');
       
       console.log(`BootSequence: Mizu OS v${this.config.get('version')} inicializado correctamente`);
