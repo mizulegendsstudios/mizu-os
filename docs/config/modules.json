@@ -1,0 +1,40 @@
+{
+  "core": {
+    "name": "Core Module",
+    "description": "Módulo principal del sistema",
+    "version": "1.0.0",
+    "dependencies": [],
+    "enabled": true,
+    "priority": 1
+  },
+  "ui": {
+    "name": "UI Module",
+    "description": "Módulo de interfaz de usuario",
+    "version": "1.0.0",
+    "dependencies": ["core"],
+    "enabled": true,
+    "priority": 2,
+    "components": ["header", "sidebar", "main", "footer"]
+  },
+  "storage": {
+    "name": "Storage Module",
+    "description": "Módulo de almacenamiento local",
+    "version": "1.0.0",
+    "dependencies": ["core"],
+    "enabled": true,
+    "priority": 3,
+    "storageTypes": ["localStorage", "sessionStorage", "indexedDB"]
+  },
+  "network": {
+    "name": "Network Module",
+    "description": "Módulo de comunicaciones de red",
+    "version": "1.0.0",
+    "dependencies": ["core", "storage"],
+    "enabled": true,
+    "priority": 4,
+    "endpoints": {
+      "api": "https://api.mizu-os.example.com",
+      "cdn": "https://cdn.mizu-os.example.com"
+    }
+  }
+}
