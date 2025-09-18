@@ -19,6 +19,8 @@
  * Aplicación de reproductor de música para Mizu OS
  * Soporta YouTube, SoundCloud, Mixcloud y archivos locales
  */
+import MusicStyleEngine from './musicStyle.js';
+
 class MusicApp {
   constructor() {
     this.playlist = [];
@@ -32,6 +34,19 @@ class MusicApp {
     this.isRendered = false;
     this.defaultTrackLoaded = false;
     
+    // Inicializar el motor de estilos
+    this.styleEngine = new MusicStyleEngine();
+    
+    // Verificar que MessageBus esté disponible
+    if (!window.MessageBus) {
+      console.error('MusicApp: MessageBus no está disponible. La aplicación no funcionará correctamente.');
+      // Crear un MessageBus temporal si no existe
+      window.MessageBus = {
+        subscribe: (event, callback) => console.warn(`MessageBus no inicializado. Evento '${event}' ignorado.`),
+        publish: (event, data) => console.warn(`MessageBus no inicializado. Evento '${event}' no publicado.`)
+      };
+    }
+    
     // Suscribirse a eventos de música
     this.setupEventListeners();
     
@@ -40,6 +55,12 @@ class MusicApp {
   }
   
   setupEventListeners() {
+    // Verificar nuevamente que MessageBus esté disponible
+    if (!window.MessageBus || !window.MessageBus.subscribe) {
+      console.error('MusicApp: MessageBus no está disponible para suscribir eventos.');
+      return;
+    }
+    
     // Eventos de control de música desde la barra roja
     window.MessageBus.subscribe('music:togglePlayPause', () => this.togglePlayPause());
     window.MessageBus.subscribe('music:playPrev', () => this.playPrev());
@@ -64,6 +85,18 @@ class MusicApp {
         console.log(`MusicApp: Recibido evento de cambio de contenedor: ${data.containerType}`);
         this.handleContainerChange(data.containerType);
       }
+    });
+    
+    // Suscribirse a eventos de cambio de tema
+    window.MessageBus.subscribe('music:changeTheme', (themeName) => {
+      this.styleEngine.applyPresetTheme(themeName);
+      this.showNotification(`Tema cambiado a: ${themeName}`);
+    });
+    
+    // Suscribirse a eventos de cambio de color de acento
+    window.MessageBus.subscribe('music:changeAccentColor', (color) => {
+      this.styleEngine.setAccentColor(color);
+      this.showNotification(`Color de acento cambiado a: ${color}`);
     });
   }
   
@@ -152,6 +185,10 @@ class MusicApp {
   // Método init requerido por el AppLoader
   init() {
     console.log('MusicApp: Inicializando aplicación de música');
+    
+    // Aplicar estilos dinámicos
+    this.styleEngine.applyStyles();
+    
     return Promise.resolve();
   }
   
@@ -190,10 +227,13 @@ class MusicApp {
       this.syncPlaybackState();
     }
     
-    window.MessageBus.publish('app:visibilityChanged', {
-      appId: 'music',
-      isVisible: this.isVisible
-    });
+    // Verificar que MessageBus esté disponible antes de publicar
+    if (window.MessageBus && window.MessageBus.publish) {
+      window.MessageBus.publish('app:visibilityChanged', {
+        appId: 'music',
+        isVisible: this.isVisible
+      });
+    }
     
     console.log(`MusicApp: Visibilidad cambiada a ${this.isVisible}`);
   }
@@ -216,45 +256,22 @@ class MusicApp {
     const panel = document.createElement('div');
     panel.id = 'music-player-panel';
     panel.className = 'music-player-panel';
-    panel.style.cssText = 
-      'width: 100%;' +
-      'height: 100%;' +
-      'background: rgba(30, 30, 30, 0.95);' +
-      'backdrop-filter: blur(10px);' +
-      'border: 1px solid rgba(255, 255, 255, 0.1);' +
-      'border-radius: 0.5rem;' +
-      'padding: 20px;' +
-      'display: flex;' +
-      'flex-direction: column;' +
-      'overflow-y: auto;';
     
     // Título del reproductor
     const title = document.createElement('h2');
     title.textContent = 'Reproductor de Música';
-    title.style.cssText = 
-      'color: white;' +
-      'margin-bottom: 20px;' +
-      'text-align: center;';
+    title.className = 'music-title';
     
     // Información de la canción actual
     const trackInfo = document.createElement('div');
     trackInfo.id = 'current-track-info';
-    trackInfo.style.cssText = 
-      'background: rgba(0, 0, 0, 0.3);' +
-      'border-radius: 10px;' +
-      'padding: 15px;' +
-      'margin-bottom: 20px;' +
-      'text-align: center;' +
-      'color: white;';
     
     const currentTrackTitle = document.createElement('div');
     currentTrackTitle.id = 'current-track-title';
-    currentTrackTitle.style.cssText = 'font-size: 18px; font-weight: bold; margin-bottom: 5px;';
     currentTrackTitle.textContent = 'No hay música reproduciéndose';
     
     const currentTrackSource = document.createElement('div');
     currentTrackSource.id = 'current-track-source';
-    currentTrackSource.style.cssText = 'font-size: 14px; opacity: 0.8;';
     
     trackInfo.appendChild(currentTrackTitle);
     trackInfo.appendChild(currentTrackSource);
@@ -262,13 +279,6 @@ class MusicApp {
     // Contenedor del reproductor de medios
     const mediaPlayerContainer = document.createElement('div');
     mediaPlayerContainer.id = 'media-player-container';
-    mediaPlayerContainer.style.cssText = 
-      'width: 100%;' +
-      'height: 200px;' +
-      'margin-bottom: 20px;' +
-      'border-radius: 10px;' +
-      'overflow: hidden;' +
-      'display: none;';
     
     const dynamicPlayer = document.createElement('div');
     dynamicPlayer.id = 'dynamic-player';
@@ -276,11 +286,7 @@ class MusicApp {
     
     // Controles del reproductor
     const controlsContainer = document.createElement('div');
-    controlsContainer.style.cssText = 
-      'display: flex;' +
-      'justify-content: center;' +
-      'gap: 15px;' +
-      'margin-bottom: 20px;';
+    controlsContainer.className = 'controls-container';
     
     // Botones de control
     const prevBtn = this.createControlButton('fa-backward', 'Anterior');
@@ -299,58 +305,29 @@ class MusicApp {
     
     // Sección para añadir música
     const addMusicSection = document.createElement('div');
-    addMusicSection.style.cssText = 
-      'background: rgba(0, 0, 0, 0.3);' +
-      'border-radius: 10px;' +
-      'padding: 15px;' +
-      'margin-bottom: 20px;';
+    addMusicSection.className = 'add-music-section';
     
     const addMusicTitle = document.createElement('h3');
     addMusicTitle.textContent = 'Añadir Música';
-    addMusicTitle.style.cssText = 
-      'color: white;' +
-      'margin-bottom: 10px;' +
-      'font-size: 16px;';
     
     const urlInputContainer = document.createElement('div');
-    urlInputContainer.style.cssText = 
-      'display: flex;' +
-      'gap: 10px;' +
-      'margin-bottom: 10px;';
+    urlInputContainer.className = 'url-input-container';
     
     const urlInput = document.createElement('input');
     urlInput.type = 'text';
     urlInput.id = 'music-url-input';
     urlInput.placeholder = 'URL de YouTube, SoundCloud o Mixcloud';
-    urlInput.style.cssText = 
-      'flex-grow: 1;' +
-      'padding: 10px;' +
-      'border-radius: 5px;' +
-      'border: 1px solid rgba(255, 255, 255, 0.2);' +
-      'background: rgba(255, 255, 255, 0.1);' +
-      'color: white;' +
-      'outline: none;';
     
     const addBtn = document.createElement('button');
     addBtn.textContent = 'Añadir';
-    addBtn.style.cssText = 
-      'padding: 10px 15px;' +
-      'border-radius: 5px;' +
-      'border: none;' +
-      'background: #6366f1;' +
-      'color: white;' +
-      'cursor: pointer;' +
-      'font-weight: bold;';
+    addBtn.className = 'add-btn';
     
     urlInputContainer.appendChild(urlInput);
     urlInputContainer.appendChild(addBtn);
     
     // Opción para cargar archivo local
     const loadFileContainer = document.createElement('div');
-    loadFileContainer.style.cssText = 
-      'display: flex;' +
-      'align-items: center;' +
-      'gap: 10px;';
+    loadFileContainer.className = 'load-file-container';
     
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -359,14 +336,7 @@ class MusicApp {
     
     const loadFileBtn = document.createElement('button');
     loadFileBtn.textContent = 'Cargar archivo local';
-    loadFileBtn.style.cssText = 
-      'padding: 8px 12px;' +
-      'border-radius: 5px;' +
-      'border: none;' +
-      'background: rgba(255, 255, 255, 0.1);' +
-      'color: white;' +
-      'cursor: pointer;' +
-      'font-size: 14px;';
+    loadFileBtn.className = 'load-file-btn';
     
     loadFileContainer.appendChild(loadFileBtn);
     loadFileContainer.appendChild(fileInput);
@@ -375,35 +345,81 @@ class MusicApp {
     addMusicSection.appendChild(urlInputContainer);
     addMusicSection.appendChild(loadFileContainer);
     
+    // Sección de personalización
+    const customizationSection = document.createElement('div');
+    customizationSection.className = 'customization-section';
+
+    const customizationTitle = document.createElement('h3');
+    customizationTitle.textContent = 'Personalización';
+
+    const themeSelectorContainer = document.createElement('div');
+    themeSelectorContainer.className = 'theme-selector-container';
+
+    const themeLabel = document.createElement('label');
+    themeLabel.textContent = 'Tema: ';
+
+    const themeSelector = document.createElement('select');
+    themeSelector.className = 'theme-selector';
+
+    const themes = [
+      { value: 'default', text: 'Predeterminado' },
+      { value: 'ocean', text: 'Océano' },
+      { value: 'forest', text: 'Bosque' },
+      { value: 'sunset', text: 'Atardecer' },
+      { value: 'minimal', text: 'Minimalista' }
+    ];
+
+    themes.forEach(theme => {
+      const option = document.createElement('option');
+      option.value = theme.value;
+      option.textContent = theme.text;
+      themeSelector.appendChild(option);
+    });
+
+    themeSelectorContainer.appendChild(themeLabel);
+    themeSelectorContainer.appendChild(themeSelector);
+
+    const colorPickerContainer = document.createElement('div');
+    colorPickerContainer.className = 'color-picker-container';
+
+    const colorLabel = document.createElement('label');
+    colorLabel.textContent = 'Color de acento: ';
+
+    const colorPicker = document.createElement('input');
+    colorPicker.type = 'color';
+    colorPicker.value = '#6366f1';
+    colorPicker.className = 'color-picker';
+
+    colorPickerContainer.appendChild(colorLabel);
+    colorPickerContainer.appendChild(colorPicker);
+
+    customizationSection.appendChild(customizationTitle);
+    customizationSection.appendChild(themeSelectorContainer);
+    customizationSection.appendChild(colorPickerContainer);
+
+    // Adjuntar eventos
+    themeSelector.addEventListener('change', (e) => {
+      this.styleEngine.applyPresetTheme(e.target.value);
+      this.showNotification(`Tema cambiado a: ${e.target.options[e.target.selectedIndex].text}`);
+    });
+
+    colorPicker.addEventListener('input', (e) => {
+      this.styleEngine.setAccentColor(e.target.value);
+    });
+    
     // Playlist
     const playlistSection = document.createElement('div');
-    playlistSection.style.cssText = 
-      'background: rgba(0, 0, 0, 0.3);' +
-      'border-radius: 10px;' +
-      'padding: 15px;' +
-      'flex-grow: 1;' +
-      'overflow-y: auto;';
+    playlistSection.className = 'playlist-section';
     
     const playlistTitle = document.createElement('h3');
     playlistTitle.textContent = 'Playlist';
-    playlistTitle.style.cssText = 
-      'color: white;' +
-      'margin-bottom: 10px;' +
-      'font-size: 16px;';
     
     const playlistContainer = document.createElement('div');
     playlistContainer.id = 'playlist-container';
-    playlistContainer.style.cssText = 
-      'display: flex;' +
-      'flex-direction: column;' +
-      'gap: 10px;';
     
     const emptyPlaylistMessage = document.createElement('div');
     emptyPlaylistMessage.textContent = 'Tu playlist está vacía';
-    emptyPlaylistMessage.style.cssText = 
-      'color: rgba(255, 255, 255, 0.5);' +
-      'text-align: center;' +
-      'padding: 20px;';
+    emptyPlaylistMessage.className = 'empty-message';
     playlistContainer.appendChild(emptyPlaylistMessage);
     
     playlistSection.appendChild(playlistTitle);
@@ -420,6 +436,7 @@ class MusicApp {
     panel.appendChild(mediaPlayerContainer);
     panel.appendChild(controlsContainer);
     panel.appendChild(addMusicSection);
+    panel.appendChild(customizationSection);
     panel.appendChild(playlistSection);
     panel.appendChild(this.audioElement);
     
@@ -480,32 +497,25 @@ class MusicApp {
       this.isVisible = false;
     }
     
-    window.MessageBus.publish('app:visibilityChanged', {
-      appId: 'music',
-      isVisible: false
-    });
+    // Eliminar estilos dinámicos
+    this.styleEngine.removeStyles();
+    
+    // Verificar que MessageBus esté disponible antes de publicar
+    if (window.MessageBus && window.MessageBus.publish) {
+      window.MessageBus.publish('app:visibilityChanged', {
+        appId: 'music',
+        isVisible: false
+      });
+    }
   }
   
   // Crear botón de control
   createControlButton(iconClass, title) {
     const button = document.createElement('button');
-    button.style.cssText = 
-      'width: 50px;' +
-      'height: 50px;' +
-      'border-radius: 50%;' +
-      'background: rgba(255, 255, 255, 0.1);' +
-      'border: 1px solid rgba(255, 255, 255, 0.2);' +
-      'color: white;' +
-      'display: flex;' +
-      'align-items: center;' +
-      'justify-content: center;' +
-      'cursor: pointer;' +
-      'transition: all 0.2s ease;' +
-      'pointer-events: auto;';
+    button.className = 'control-button';
     
     const icon = document.createElement('i');
     icon.className = 'fa-solid ' + iconClass;
-    icon.style.cssText = 'font-size: 20px;';
     
     button.appendChild(icon);
     button.title = title;
@@ -598,29 +608,16 @@ class MusicApp {
     if (this.playlist.length === 0) {
       const emptyMessage = document.createElement('div');
       emptyMessage.textContent = 'Tu playlist está vacía';
-      emptyMessage.style.cssText = 
-        'color: rgba(255, 255, 255, 0.5);' +
-        'text-align: center;' +
-        'padding: 20px;';
+      emptyMessage.className = 'empty-message';
       this.playlistContainerEl.appendChild(emptyMessage);
       return;
     }
     
     this.playlist.forEach((track, index) => {
       const item = document.createElement('div');
-      item.style.cssText = 
-        'background: rgba(255, 255, 255, 0.1);' +
-        'border-radius: 8px;' +
-        'padding: 10px;' +
-        'display: flex;' +
-        'justify-content: space-between;' +
-        'align-items: center;' +
-        'cursor: pointer;' +
-        'transition: background 0.2s ease;' +
-        'pointer-events: auto;';
       
       if (index === this.currentTrackIndex) {
-        item.style.background = 'rgba(99, 102, 241, 0.3)';
+        item.className = 'active';
       }
       
       const info = document.createElement('div');
@@ -630,15 +627,6 @@ class MusicApp {
       
       const deleteBtn = document.createElement('button');
       deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-      deleteBtn.style.cssText = 
-        'background: none;' +
-        'border: none;' +
-        'color: rgba(255, 255, 255, 0.7);' +
-        'cursor: pointer;' +
-        'padding: 5px;' +
-        'border-radius: 50%;' +
-        'transition: all 0.2s ease;' +
-        'pointer-events: auto;';
       
       item.appendChild(info);
       item.appendChild(deleteBtn);
@@ -872,17 +860,6 @@ class MusicApp {
     const notification = document.createElement('div');
     notification.className = 'config-notification';
     notification.textContent = message;
-    notification.style.cssText = 
-      'position: fixed;' +
-      'bottom: 20px;' +
-      'right: 20px;' +
-      'background: rgba(0, 0, 0, 0.8);' +
-      'color: white;' +
-      'padding: 12px 20px;' +
-      'border-radius: 8px;' +
-      'font-size: 14px;' +
-      'z-index: 10000;' +
-      'animation: slideIn 0.3s ease;';
     
     document.body.appendChild(notification);
     
@@ -896,3 +873,5 @@ class MusicApp {
 // Inicializar la aplicación
 const musicApp = new MusicApp();
 window.musicApp = musicApp;
+
+export default musicApp;
