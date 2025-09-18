@@ -45,11 +45,7 @@ export default class AppLoader {
     
     try {
       // Inicializar el sistema bootstrap con el EventBus existente
-      this.systemBootstrap = new SystemBootstrap();
-      
-      // Pasar el EventBus existente al SystemBootstrap antes de inicializar
-      this.systemBootstrap.eventBus = this.eventBus;
-      
+      this.systemBootstrap = new SystemBootstrap(this.eventBus);
       await this.systemBootstrap.init();
       
       // Configurar manejadores de eventos para compatibilidad
