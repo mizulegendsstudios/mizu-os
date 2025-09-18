@@ -29,6 +29,7 @@ export default class AppRegistry {
     this.loadedApps = new Map(); // Aplicaciones cargadas
     this.activeApps = new Map(); // Aplicaciones activas
     this.persistentApps = ['music', 'core']; // Aplicaciones que deben persistir
+    this.persistentAppState = new Map(); // Almacena el estado de las aplicaciones persistentes
     
     console.log('[DEBUG] AppRegistry: Constructor llamado con EventBus:', !!eventBus);
   }
@@ -144,7 +145,6 @@ export default class AppRegistry {
     
     try {
       const loader = new appInfo.loader(this.eventBus);
-      // MODIFICADO: Pasar el nombre de la aplicación al método load
       const appData = await loader.load(appInfo.manifest, appName);
       
       if (appData) {
@@ -201,24 +201,33 @@ export default class AppRegistry {
     }
     
     try {
-      // Inicializar y renderizar la aplicación
+      // Inicializar la aplicación
       if (typeof appData.instance.init === 'function') {
         await appData.instance.init();
       }
       
-      if (typeof appData.instance.render === 'function') {
-        const appElement = appData.instance.render();
-        appElement.setAttribute('data-app-id', appName);
-        
-        // Determinar contenedor según persistencia
-        const container = this.persistentApps.includes(appName) 
-          ? this.getPersistentContainer() 
-          : this.getMainContainer();
-        
-        container.appendChild(appElement);
-        
-        if (this.persistentApps.includes(appName)) {
-          this.showPersistentApp(appName);
+      // Para aplicaciones persistentes, verificar si ya tenemos estado guardado
+      if (this.persistentApps.includes(appName) && this.persistentAppState.has(appName)) {
+        console.log(`[DEBUG] AppRegistry: Restaurando estado persistente para ${appName}`);
+        // Restaurar el estado en lugar de renderizar desde cero
+        this.restorePersistentApp(appName, appData);
+      } else {
+        // Renderizar la aplicación normalmente
+        if (typeof appData.instance.render === 'function') {
+          const appElement = appData.instance.render();
+          appElement.setAttribute('data-app-id', appName);
+          
+          // Determinar contenedor según persistencia
+          const container = this.persistentApps.includes(appName) 
+            ? this.getPersistentContainer() 
+            : this.getMainContainer();
+          
+          container.appendChild(appElement);
+          
+          // Si es una aplicación persistente, guardar su estado inicial
+          if (this.persistentApps.includes(appName)) {
+            this.savePersistentAppState(appName, appData);
+          }
         }
       }
       
@@ -227,6 +236,93 @@ export default class AppRegistry {
       console.log(`✅ App ${appName} activada correctamente`);
     } catch (error) {
       console.error(`❌ Error activando ${appName}:`, error);
+    }
+  }
+  
+  /**
+   * Guarda el estado de una aplicación persistente
+   * @param {string} appName - Nombre de la aplicación
+   * @param {object} appData - Datos de la aplicación
+   */
+  savePersistentAppState(appName, appData) {
+    console.log(`[DEBUG] AppRegistry: Guardando estado persistente para ${appName}`);
+    
+    // Para la aplicación de música, guardar la playlist y el estado actual
+    if (appName === 'music' && appData.instance.playlist) {
+      const state = {
+        playlist: appData.instance.playlist,
+        currentTrackIndex: appData.instance.currentTrackIndex,
+        isPlaying: appData.instance.isPlaying,
+        defaultTrackLoaded: appData.instance.defaultTrackLoaded
+      };
+      
+      this.persistentAppState.set(appName, state);
+      console.log(`[DEBUG] AppRegistry: Estado guardado para ${appName}:`, state);
+    }
+  }
+  
+  /**
+   * Restaura el estado de una aplicación persistente
+   * @param {string} appName - Nombre de la aplicación
+   * @param {object} appData - Datos de la aplicación
+   */
+  restorePersistentApp(appName, appData) {
+    console.log(`[DEBUG] AppRegistry: Restaurando aplicación persistente ${appName}`);
+    
+    // Obtener el estado guardado
+    const savedState = this.persistentAppState.get(appName);
+    if (!savedState) {
+      console.log(`[DEBUG] AppRegistry: No hay estado guardado para ${appName}, renderizando normalmente`);
+      
+      // Si no hay estado guardado, renderizar normalmente
+      if (typeof appData.instance.render === 'function') {
+        const appElement = appData.instance.render();
+        appElement.setAttribute('data-app-id', appName);
+        this.getPersistentContainer().appendChild(appElement);
+      }
+      return;
+    }
+    
+    // Para la aplicación de música, restaurar la playlist y el estado
+    if (appName === 'music') {
+      console.log(`[DEBUG] AppRegistry: Restaurando estado de música:`, savedState);
+      
+      // Restaurar el estado en la instancia
+      appData.instance.playlist = savedState.playlist || [];
+      appData.instance.currentTrackIndex = savedState.currentTrackIndex || -1;
+      appData.instance.isPlaying = savedState.isPlaying || false;
+      appData.instance.defaultTrackLoaded = savedState.defaultTrackLoaded || false;
+      
+      // Renderizar la interfaz
+      if (typeof appData.instance.render === 'function') {
+        const appElement = appData.instance.render();
+        appElement.setAttribute('data-app-id', appName);
+        
+        // Añadir al contenedor principal
+        this.getMainContainer().appendChild(appElement);
+        
+        // Actualizar la interfaz con el estado restaurado
+        if (typeof appData.instance.updateTrackInfo === 'function') {
+          appData.instance.updateTrackInfo();
+        }
+        
+        if (typeof appData.instance.updatePlaylist === 'function') {
+          appData.instance.updatePlaylist();
+        }
+        
+        if (typeof appData.instance.updatePlayPauseButton === 'function') {
+          appData.instance.updatePlayPauseButton();
+        }
+        
+        // Si estaba reproduciendo, reanudar la reproducción
+        if (savedState.isPlaying && savedState.currentTrackIndex >= 0) {
+          setTimeout(() => {
+            if (typeof appData.instance.playTrack === 'function') {
+              appData.instance.playTrack(savedState.currentTrackIndex);
+            }
+          }, 100);
+        }
+      }
     }
   }
   
@@ -244,6 +340,9 @@ export default class AppRegistry {
     
     try {
       if (this.persistentApps.includes(appName)) {
+        // Para aplicaciones persistentes, guardar el estado antes de ocultar
+        const appData = this.activeApps.get(appName);
+        this.savePersistentAppState(appName, appData);
         this.hidePersistentApp(appName);
       } else {
         this.eventBus.emit(`${appName}:toggleVisibility`, { appName, hide: true });
@@ -270,19 +369,24 @@ export default class AppRegistry {
     const mainContainer = this.getMainContainer();
     mainContainer.innerHTML = '';
     
+    // Buscar la aplicación en el contenedor persistente
     const appElement = this.getPersistentContainer().querySelector(`[data-app-id="${appName}"]`);
     
     if (appElement) {
+      // Mover la aplicación al contenedor principal
       mainContainer.appendChild(appElement);
       appElement.style.display = '';
       appElement.style.visibility = 'visible';
       appElement.style.opacity = '1';
+      
+      console.log(`[DEBUG] AppRegistry: Aplicación persistente ${appName} movida al contenedor principal`);
     } else {
+      console.log(`[DEBUG] AppRegistry: No se encontró el elemento de la aplicación persistente ${appName}`);
+      
+      // Si no se encuentra el elemento, intentar restaurar el estado
       const appData = this.activeApps.get(appName);
-      if (appData && typeof appData.instance.render === 'function') {
-        const newAppElement = appData.instance.render();
-        newAppElement.setAttribute('data-app-id', appName);
-        mainContainer.appendChild(newAppElement);
+      if (appData) {
+        this.restorePersistentApp(appName, appData);
       }
     }
     
@@ -301,9 +405,15 @@ export default class AppRegistry {
     const mainContainer = this.getMainContainer();
     mainContainer.innerHTML = '';
     
+    // Buscar la aplicación en el contenedor principal
     const appElement = mainContainer.querySelector(`[data-app-id="${appName}"]`);
+    
     if (appElement) {
+      // Mover la aplicación al contenedor persistente
       this.getPersistentContainer().appendChild(appElement);
+      console.log(`[DEBUG] AppRegistry: Aplicación persistente ${appName} movida al contenedor persistente`);
+    } else {
+      console.log(`[DEBUG] AppRegistry: No se encontró el elemento de la aplicación persistente ${appName} en el contenedor principal`);
     }
     
     this.eventBus.emit(`${appName}:toggleVisibility`, { appName, hide: true });
