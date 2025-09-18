@@ -30,6 +30,14 @@
 
 // Importación de módulos esenciales
 import { BootSequence } from './bootSequence.js';
+import { MessageBus } from './messageBus.js';
+
+class Bootstrap {
+  constructor() {
+    console.log('Mizu OS: Iniciando sistema...');
+    
+    // El MessageBus ya se inicializa al importarse
+    console.log('MessageBus: Sistema de mensajería inicializado');
 
 // Punto de entrada: Bootstrap solo activa el sistema cuando está listo
 document.addEventListener('DOMContentLoaded', () => {
