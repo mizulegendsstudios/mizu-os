@@ -50,6 +50,100 @@ export default class MusicApp {
     
     // Evento para alternar visibilidad del reproductor
     this.eventBus.on('music:toggleVisibility', (data) => this.toggleVisibility(data));
+    
+    // NUEVO: Suscribirse a eventos de cambio de visibilidad del contenedor
+    this.eventBus.on('app:visibility-changed', (data) => {
+      if (data.appId === 'music') {
+        console.log(`MusicApp: Recibido evento de cambio de visibilidad: ${data.isVisible}`);
+        this.handleVisibilityChange(data.isVisible);
+      }
+    });
+    
+    // NUEVO: Suscribirse a eventos de cambio de contenedor
+    this.eventBus.on('app:container-changed', (data) => {
+      if (data.appId === 'music') {
+        console.log(`MusicApp: Recibido evento de cambio de contenedor: ${data.containerType}`);
+        this.handleContainerChange(data.containerType);
+      }
+    });
+  }
+  
+  // NUEVO: Manejar cambios de visibilidad
+  handleVisibilityChange(isVisible) {
+    console.log(`MusicApp: Manejando cambio de visibilidad a: ${isVisible}`);
+    
+    // Actualizar el estado interno de visibilidad
+    this.isVisible = isVisible;
+    
+    if (isVisible) {
+      // Cuando la aplicación se hace visible, sincronizar el estado real
+      this.syncPlaybackState();
+    }
+    
+    // Actualizar la visibilidad del panel si existe
+    if (this.panel) {
+      this.panel.style.display = isVisible ? 'flex' : 'none';
+    }
+  }
+  
+  // NUEVO: Manejar cambios de contenedor
+  handleContainerChange(containerType) {
+    console.log(`MusicApp: Manejando cambio de contenedor a: ${containerType}`);
+    
+    // Si el contenedor es 'main', la aplicación es visible
+    // Si el contenedor es 'persistent', la aplicación está oculta
+    const isVisible = containerType === 'main';
+    
+    // Actualizar el estado de visibilidad
+    this.isVisible = isVisible;
+    
+    if (isVisible) {
+      // Cuando se mueve al contenedor principal, sincronizar el estado
+      this.syncPlaybackState();
+    }
+    
+    // Actualizar la visibilidad del panel si existe
+    if (this.panel) {
+      this.panel.style.display = isVisible ? 'flex' : 'none';
+    }
+  }
+  
+  // NUEVO: Sincronizar el estado real de reproducción con la interfaz
+  syncPlaybackState() {
+    console.log('MusicApp: Sincronizando estado de reproducción');
+    
+    if (this.currentTrackIndex !== -1) {
+      const track = this.playlist[this.currentTrackIndex];
+      
+      if (track.source === 'YouTube' && this.youtubePlayer) {
+        try {
+          // Verificar el estado real del reproductor de YouTube
+          const playerState = this.youtubePlayer.getPlayerState();
+          console.log(`MusicApp: Estado del reproductor de YouTube: ${playerState}`);
+          
+          // Actualizar el estado interno basado en el estado real
+          this.isPlaying = (playerState === YT.PlayerState.PLAYING);
+          
+          // Actualizar la interfaz
+          this.updatePlayPauseButton();
+          this.updateTrackInfo();
+          this.updatePlaylist();
+        } catch (e) {
+          console.error('MusicApp: Error al obtener estado del reproductor de YouTube:', e);
+        }
+      } else if (track.source === 'Local' && this.audioElement) {
+        // Verificar el estado real del reproductor de audio
+        console.log(`MusicApp: Estado del reproductor de audio: paused=${this.audioElement.paused}, currentTime=${this.audioElement.currentTime}`);
+        
+        // Actualizar el estado interno basado en el estado real
+        this.isPlaying = !this.audioElement.paused;
+        
+        // Actualizar la interfaz
+        this.updatePlayPauseButton();
+        this.updateTrackInfo();
+        this.updatePlaylist();
+      }
+    }
   }
   
   // Cargar el script de la API de YouTube Iframe
@@ -120,6 +214,11 @@ export default class MusicApp {
     
     this.panel.style.display = this.isVisible ? 'flex' : 'none';
     
+    // Si se está haciendo visible, sincronizar el estado
+    if (this.isVisible) {
+      this.syncPlaybackState();
+    }
+    
     // Notificar al sistema que la app está "oculta" pero no destruida
     this.eventBus.emit('app:visibilityChanged', {
       appId: 'music',
@@ -136,6 +235,12 @@ export default class MusicApp {
     // Si ya está renderizado, devolver el panel existente
     if (this.isRendered && this.panel) {
       console.log('MusicApp: La interfaz ya está renderizada, reutilizando panel existente');
+      
+      // Si la aplicación es visible, actualizar el estado de reproducción
+      if (this.isVisible) {
+        this.syncPlaybackState();
+      }
+      
       return this.panel;
     }
     
