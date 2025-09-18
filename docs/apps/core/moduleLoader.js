@@ -85,7 +85,7 @@ export class ModuleLoader {
       console.log(`ModuleLoader: Cargando módulo '${moduleName}'...`);
       
       // Construir la ruta del módulo
-      const modulePath = `./apps/modules/${moduleName}/${moduleName}.js`;
+      const modulePath = `../${moduleName}/${moduleName}.js`;
       
       // Importar dinámicamente el módulo
       const module = await import(modulePath);
