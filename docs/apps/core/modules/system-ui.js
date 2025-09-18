@@ -59,12 +59,8 @@ export default class SystemUI {
       this.currentActiveApp = data.appId;
       this.updateAppButtonsState();
       
-      // Si volvemos a la aplicación de música y estaba reproduciendo antes, reanudar
-      if (data.appId === 'music' && this.musicAppState.wasPlayingBeforeSwitch) {
-        console.log('SystemUI: Reanudando música al volver a la aplicación');
-        this.eventBus.emit('music:togglePlayPause');
-        this.musicAppState.wasPlayingBeforeSwitch = false;
-      }
+      // Eliminamos la lógica de reanudación automática de música
+      // La aplicación de música ahora gestiona su propio estado a través de eventos
     });
     
     this.eventBus.on('app:deactivated', (data) => {
@@ -286,15 +282,16 @@ export default class SystemUI {
           
           // Si hay una aplicación activa diferente, manejarla según sea persistente o no
           if (this.currentActiveApp) {
-            console.log(`[DEBUG] Desactivando aplicación actual: ${this.currentActiveApp}`);
+            console.log(`[DEBUG] Manejando aplicación activa actual: ${this.currentActiveApp}`);
             
-            // Si la aplicación actual es persistente (como music), no ocultarla
+            // Si la aplicación actual es persistente (como music), no desactivarla, solo ocultarla
             if (this.persistentApps.includes(this.currentActiveApp)) {
-              console.log(`[DEBUG] La aplicación ${this.currentActiveApp} es persistente, no se ocultará`);
-              // Solo emitir evento de desactivación para actualizar el estado del sistema
-              this.eventBus.emit('app:deactivated', { appId: this.currentActiveApp });
+              console.log(`[DEBUG] La aplicación ${this.currentActiveApp} es persistente, ocultando sin desactivar`);
+              // Emitir evento para ocultar la aplicación persistente (no desactivar)
+              this.eventBus.emit(`${this.currentActiveApp}:toggleVisibility`, { hide: true });
             } else {
               // Si no es persistente, desactivarla normalmente
+              console.log(`[DEBUG] La aplicación ${this.currentActiveApp} no es persistente, desactivando`);
               this.eventBus.emit('app:deactivate', { appId: this.currentActiveApp });
             }
           }
