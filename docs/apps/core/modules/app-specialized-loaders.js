@@ -36,8 +36,9 @@ export class WebAppLoader extends AppLoaderBase {
   /**
    * Carga una aplicación web
    * @param {object} manifest - Manifiesto de la aplicación
+   * @param {string} appName - Nombre de la aplicación
    */
-  async load(manifest) {
+  async load(manifest, appName) {
     console.log(`[DEBUG] WebAppLoader: Cargando aplicación web: ${manifest.name}`);
     
     try {
@@ -46,7 +47,7 @@ export class WebAppLoader extends AppLoaderBase {
       
       // Obtener punto de entrada
       const entryPoint = manifest.entry || manifest.main;
-      const scriptPath = `./apps/${manifest.name}/${entryPoint}`;
+      const scriptPath = `./apps/${appName}/${entryPoint}`;
       console.log(`[DEBUG] WebAppLoader: Punto de entrada: ${scriptPath}`);
       
       // Cargar recursos CSS si existen
@@ -92,8 +93,9 @@ export class PersistentAppLoader extends AppLoaderBase {
   /**
    * Carga una aplicación persistente
    * @param {object} manifest - Manifiesto de la aplicación
+   * @param {string} appName - Nombre de la aplicación
    */
-  async load(manifest) {
+  async load(manifest, appName) {
     console.log(`[DEBUG] PersistentAppLoader: Cargando aplicación persistente: ${manifest.name}`);
     
     try {
@@ -102,7 +104,8 @@ export class PersistentAppLoader extends AppLoaderBase {
       
       // Obtener punto de entrada
       const entryPoint = manifest.entry || manifest.main;
-      const scriptPath = `./apps/${manifest.name}/${entryPoint}`;
+      const scriptPath = `./apps/${appName}/${entryPoint}`;
+      console.log(`[DEBUG] PersistentAppLoader: Punto de entrada: ${scriptPath}`);
       
       // Cargar CSS específico para apps persistentes
       if (manifest.persistentStyles && Array.isArray(manifest.persistentStyles)) {
@@ -140,8 +143,9 @@ export class WidgetLoader extends AppLoaderBase {
   /**
    * Carga un widget
    * @param {object} manifest - Manifiesto del widget
+   * @param {string} appName - Nombre de la aplicación
    */
-  async load(manifest) {
+  async load(manifest, appName) {
     console.log(`[DEBUG] WidgetLoader: Cargando widget: ${manifest.name}`);
     
     try {
@@ -150,7 +154,7 @@ export class WidgetLoader extends AppLoaderBase {
       
       // Obtener punto de entrada
       const entryPoint = manifest.entry || manifest.main;
-      const scriptPath = `./apps/${manifest.name}/${entryPoint}`;
+      const scriptPath = `./apps/${appName}/${entryPoint}`;
       
       // Los widgets suelen tener CSS minimalista
       if (manifest.widgetStyles && Array.isArray(manifest.widgetStyles)) {
@@ -189,8 +193,9 @@ export class ServiceLoader extends AppLoaderBase {
   /**
    * Carga un servicio
    * @param {object} manifest - Manifiesto del servicio
+   * @param {string} appName - Nombre de la aplicación
    */
-  async load(manifest) {
+  async load(manifest, appName) {
     console.log(`[DEBUG] ServiceLoader: Cargando servicio: ${manifest.name}`);
     
     try {
@@ -205,7 +210,7 @@ export class ServiceLoader extends AppLoaderBase {
       
       // Obtener punto de entrada
       const entryPoint = manifest.entry || manifest.main;
-      const scriptPath = `./apps/${manifest.name}/${entryPoint}`;
+      const scriptPath = `./apps/${appName}/${entryPoint}`;
       
       // Los servicios no suelen tener CSS
       // Cargar el módulo principal
@@ -270,8 +275,9 @@ export class SystemAppLoader extends AppLoaderBase {
   /**
    * Carga una aplicación de sistema
    * @param {object} manifest - Manifiesto de la aplicación
+   * @param {string} appName - Nombre de la aplicación
    */
-  async load(manifest) {
+  async load(manifest, appName) {
     console.log(`[DEBUG] SystemAppLoader: Cargando aplicación de sistema: ${manifest.name}`);
     
     try {
@@ -280,7 +286,7 @@ export class SystemAppLoader extends AppLoaderBase {
       
       // Obtener punto de entrada
       const entryPoint = manifest.entry || manifest.main;
-      const scriptPath = `./apps/${manifest.name}/${entryPoint}`;
+      const scriptPath = `./apps/${appName}/${entryPoint}`;
       
       // Las apps de sistema tienen prioridad en la carga de recursos
       if (manifest.systemStyles && Array.isArray(manifest.systemStyles)) {
