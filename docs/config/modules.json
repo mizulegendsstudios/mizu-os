@@ -1,5 +1,5 @@
 {
-  "css": {
+  "cssManager": {
     "name": "CSS App",
     "description": "App de estilos CSS del sistema",
     "version": "1.0.0",
