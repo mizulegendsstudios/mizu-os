@@ -29,8 +29,9 @@ export default class MusicApp {
     this.isYouTubeApiReady = false;
     this.audioElement = null;
     this.panel = null;
-    this.isVisible = true; // Nuevo estado para controlar visibilidad
-    this.defaultTrackLoaded = false; // Nueva bandera para controlar si la pista por defecto ya se cargó
+    this.isVisible = true; // Estado para controlar visibilidad
+    this.isRendered = false; // Nueva bandera para saber si ya está renderizado
+    this.defaultTrackLoaded = false; // Bandera para controlar si la pista por defecto ya se cargó
     
     // Suscribirse a eventos de música
     this.setupEventListeners();
@@ -47,7 +48,7 @@ export default class MusicApp {
     this.eventBus.on('music:toggleRepeat', () => this.toggleRepeat());
     this.eventBus.on('music:toggleVolume', () => this.toggleVolume());
     
-    // Nuevo evento para alternar visibilidad del reproductor
+    // Evento para alternar visibilidad del reproductor
     this.eventBus.on('music:toggleVisibility', (data) => this.toggleVisibility(data));
   }
   
@@ -85,7 +86,7 @@ export default class MusicApp {
     return Promise.resolve();
   }
   
-  // Nuevo método para cargar la pista por defecto
+  // Método para cargar la pista por defecto
   loadDefaultTrack() {
     if (this.defaultTrackLoaded) return; // Evitar cargar múltiples veces
     
@@ -103,8 +104,10 @@ export default class MusicApp {
     this.defaultTrackLoaded = true; // Marcar como cargada
   }
   
-  // Nuevo método para alternar la visibilidad del reproductor
+  // Método para alternar la visibilidad del reproductor
   toggleVisibility(data) {
+    console.log(`MusicApp: toggleVisibility llamado con datos:`, data);
+    
     if (!this.panel) return;
     
     // Si se especifica hide, ocultamos forzosamente
@@ -122,11 +125,19 @@ export default class MusicApp {
       appId: 'music',
       isVisible: this.isVisible
     });
+    
+    console.log(`MusicApp: Visibilidad cambiada a ${this.isVisible}`);
   }
   
   // Método render requerido por el AppLoader
   render() {
     console.log('MusicApp: Renderizando interfaz de música');
+    
+    // Si ya está renderizado, devolver el panel existente
+    if (this.isRendered && this.panel) {
+      console.log('MusicApp: La interfaz ya está renderizada, reutilizando panel existente');
+      return this.panel;
+    }
     
     // Crear el panel del reproductor
     const panel = document.createElement('div');
@@ -204,14 +215,14 @@ export default class MusicApp {
     const stopBtn = this.createControlButton('fa-stop', 'Detener');
     const nextBtn = this.createControlButton('fa-forward', 'Siguiente');
     const openLinkBtn = this.createControlButton('fa-up-right-from-square', 'Abrir');
-    const hideBtn = this.createControlButton('fa-eye-slash', 'Ocultar'); // Nuevo botón para ocultar
+    const hideBtn = this.createControlButton('fa-eye-slash', 'Ocultar');
     
     controlsContainer.appendChild(prevBtn);
     controlsContainer.appendChild(playPauseBtn);
     controlsContainer.appendChild(stopBtn);
     controlsContainer.appendChild(nextBtn);
     controlsContainer.appendChild(openLinkBtn);
-    controlsContainer.appendChild(hideBtn); // Añadir el nuevo botón
+    controlsContainer.appendChild(hideBtn);
     
     // Sección para añadir música
     const addMusicSection = document.createElement('div');
@@ -354,7 +365,7 @@ export default class MusicApp {
     stopBtn.addEventListener('click', () => this.stop());
     nextBtn.addEventListener('click', () => this.playNext());
     openLinkBtn.addEventListener('click', () => this.openInNewTab());
-    hideBtn.addEventListener('click', () => this.toggleVisibility()); // Evento para el nuevo botón
+    hideBtn.addEventListener('click', () => this.toggleVisibility());
     
     addBtn.addEventListener('click', () => {
       const url = urlInput.value.trim();
@@ -375,6 +386,9 @@ export default class MusicApp {
       }
     });
     
+    // Marcar como renderizado
+    this.isRendered = true;
+    
     // Cargar la pista por defecto después de renderizar la interfaz
     // y solo si la playlist está vacía
     if (this.playlist.length === 0 && !this.defaultTrackLoaded) {
@@ -383,6 +397,7 @@ export default class MusicApp {
       }, 100); // Pequeño retraso para asegurar que todo está renderizado
     }
     
+    console.log('MusicApp: Interfaz de música renderizada por primera vez');
     return panel;
   }
   
