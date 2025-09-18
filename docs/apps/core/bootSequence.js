@@ -1,5 +1,5 @@
 /*
- * Mizu OS - Core/BootSequence v1.1.0
+ * Mizu OS - Core/BootSequence
  * Copyright (C) 2025 Mizu Legends Studios
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -69,12 +69,8 @@ export class BootSequence {
       this.styleEngine.generateBaseStyles();
       this.dependencyManager.markAsLoaded('styleEngine');
       
-      // Paso 3: Cargar componentes del sistema dinámicamente
-      console.log('BootSequence: Paso 3 - Cargando componentes del sistema');
-      await this.loadSystemComponents();
-      
-      // Paso 4: Cargar apps dinámicamente desde la configuración
-      console.log('BootSequence: Paso 4 - Cargando apps dinámicamente');
+      // Paso 3: Cargar apps dinámicamente desde la configuración
+      console.log('BootSequence: Paso 3 - Cargando apps dinámicamente');
       await this.appLoader.loadAppsFromConfig();
       this.dependencyManager.markAsLoaded('appLoader');
       
@@ -82,48 +78,6 @@ export class BootSequence {
     } catch (error) {
       console.error('BootSequence: Error durante la secuencia de arranque:', error);
       this.errorHandler.handleBootError(error, 'BootSequence');
-      throw error;
-    }
-  }
-  
-  // Cargar componentes del sistema dinámicamente desde la configuración
-  async loadSystemComponents() {
-    console.log('BootSequence: Cargando componentes del sistema...');
-    
-    try {
-      // Obtener la lista de componentes del sistema desde la configuración
-      const systemComponents = this.config.get('systemComponents') || [];
-      
-      console.log('BootSequence: Componentes del sistema a cargar:', systemComponents);
-      
-      // Cargar cada componente dinámicamente
-      for (const componentName of systemComponents) {
-        try {
-          console.log(`BootSequence: Cargando componente del sistema '${componentName}'...`);
-          
-          // Importar dinámicamente el componente
-          const componentModule = await import(`./${componentName}.js`);
-          
-          // Crear una instancia del componente
-          const component = new componentModule.default();
-          
-          // Si el componente tiene una función de inicialización, llamarla
-          if (typeof component.init === 'function') {
-            await component.init();
-          }
-          
-          // Registrar el componente en el DependencyManager
-          this.dependencyManager.register(componentName, component);
-          
-          console.log(`BootSequence: Componente del sistema '${componentName}' cargado correctamente`);
-        } catch (error) {
-          console.error(`BootSequence: Error cargando componente del sistema '${componentName}':`, error);
-        }
-      }
-      
-      console.log('BootSequence: Componentes del sistema cargados');
-    } catch (error) {
-      console.error('BootSequence: Error durante la carga de componentes del sistema:', error);
       throw error;
     }
   }
