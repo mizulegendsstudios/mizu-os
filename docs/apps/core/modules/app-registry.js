@@ -144,7 +144,8 @@ export default class AppRegistry {
     
     try {
       const loader = new appInfo.loader(this.eventBus);
-      const appData = await loader.load(appInfo.manifest);
+      // MODIFICADO: Pasar el nombre de la aplicación al método load
+      const appData = await loader.load(appInfo.manifest, appName);
       
       if (appData) {
         this.loadedApps.set(appName, appData);
