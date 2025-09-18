@@ -43,6 +43,13 @@ export class BootSequence {
     this.dependencyManager = new DependencyManager();
     this.errorHandler = new ErrorHandler();
     
+    // Exponer los servicios globalmente para que otros módulos puedan acceder a ellos
+    window.configManager = this.config;
+    window.styleEngine = this.styleEngine;
+    window.appLoader = this.appLoader;
+    window.dependencyManager = this.dependencyManager;
+    window.errorHandler = this.errorHandler;
+    
     // Registrar las dependencias principales
     this.dependencyManager.register('config', this.config);
     this.dependencyManager.register('styleEngine', this.styleEngine);
@@ -75,7 +82,7 @@ export class BootSequence {
       
       // Paso 4: Cargar apps dinámicamente desde la configuración
       console.log('BootSequence: Paso 4 - Cargando apps dinámicamente');
-      await this.appLoader.loadApps();  // CORREGIDO: loadApps en lugar de loadAppsFromConfig
+      await this.appLoader.loadApps();
       this.dependencyManager.markAsLoaded('appLoader');
       
       console.log(`BootSequence: Mizu OS v${this.config.get('version')} inicializado correctamente`);
