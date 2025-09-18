@@ -11,7 +11,7 @@
     "name": "UI App",
     "description": "App de interfaz de usuario",
     "version": "1.0.0",
-    "dependencies": ["css"],
+    "dependencies": ["cssManager"],
     "enabled": true,
     "priority": 2
   },
