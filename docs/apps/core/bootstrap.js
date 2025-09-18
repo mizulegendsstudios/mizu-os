@@ -39,5 +39,5 @@ document.addEventListener('DOMContentLoaded', () => {
 //  const bootSequence = new BootSequence();
   //bootSequence.execute().catch(error => {
     //console.error('Mizu OS: Error no manejado:', error);
-  });
+ // });
 });
