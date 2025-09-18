@@ -38,14 +38,26 @@ class Bootstrap {
     
     // El MessageBus ya se inicializa al importarse
     console.log('MessageBus: Sistema de mensajería inicializado');
+  }
+
+  // Método para ejecutar el arranque
+  async execute() {
+    try {
+      const bootSequence = new BootSequence();
+      await bootSequence.execute();
+    } catch (error) {
+      console.error('Mizu OS: Error no manejado:', error);
+      throw error;
+    }
+  }
+}
 
 // Punto de entrada: Bootstrap solo activa el sistema cuando está listo
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Mizu OS: DOM listo, iniciando bootstrap...');
   
-  // Bootstrap delega completamente la inicialización a BootSequence
-  const bootSequence = new BootSequence();
-  bootSequence.execute().catch(error => {
+  const bootstrap = new Bootstrap();
+  bootstrap.execute().catch(error => {
     console.error('Mizu OS: Error no manejado:', error);
   });
 });
