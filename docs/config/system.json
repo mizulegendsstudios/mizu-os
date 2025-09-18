@@ -3,6 +3,7 @@
   "debug": false,
   "modules": [
     "ui",
+    "music",
     "storage",
     "network"
   ],
