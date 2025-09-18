@@ -132,4 +132,4 @@ window.MessageBus.on = window.MessageBus.subscribe;
 window.MessageBus.emit = window.MessageBus.publish;
 window.MessageBus.off = window.MessageBus.unsubscribe;
 
-export default messageBus;
+export { messageBus as MessageBus };
