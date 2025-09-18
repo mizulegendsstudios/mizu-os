@@ -18,7 +18,7 @@
 /*
  * Sistema principal de Mizu OS
  * Punto de entrada para inicializar todos los componentes del sistema
- * // apps/core/bootstrap.js
+ * // docs/apps/core/bootstrap.js
  * Rol: Presentador minimalista que inicia el sistema y desaparece
  * Filosofía: Solo orquesta la llamada inicial sin gestionar dependencias, errores o secuenciamiento
  *Principios:
