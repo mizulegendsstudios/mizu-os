@@ -1,5 +1,4 @@
 docs/
-├── index.html
 ├── config/
 │   ├── system.json
 │   └── modules.json
@@ -11,12 +10,14 @@ docs/
     │   ├── dependencyManager.js
     │   ├── errorHandler.js
     │   ├── appLoader.js
-    │   └── styleEngine.js
-    ├── css/
-    │   └── cssManager.js
+    │   ├── styleEngine.js
+    │   └── messageBus.js      <-- NUEVO ARCHIVO
     ├── ui/
     │   └── ui.js
     ├── storage/
     │   └── storage.js
-    └── network/
-        └── network.js
+    ├── network/
+    │   └── network.js
+    └── music/
+        ├── music.js
+        └── musicStyle.js
