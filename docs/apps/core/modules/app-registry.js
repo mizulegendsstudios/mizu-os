@@ -1,6 +1,6 @@
 /*
- * Mizu OS - App Registry Module
- * Copyright (C) 2025 Mizu Legends Studios.
+ * Mizu OS - Music App
+ * Copyright (C) 2025 Mizu Legends Studios
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,525 +15,929 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
- * Sistema de registro descentralizado de aplicaciones para Mizu OS
- * Permite que las aplicaciones se auto-registren y se carguen bajo demanda
- * // apps/core/modules/app-registry.js
+ * Aplicación de reproductor de música para Mizu OS
+ * Soporta YouTube, SoundCloud, Mixcloud y archivos locales
  */
-export default class AppRegistry {
+export default class MusicApp {
   constructor(eventBus) {
     this.eventBus = eventBus;
-    this.registeredApps = new Map(); // Mapa de aplicaciones registradas
-    this.manifestCache = new Map(); // Caché de manifiestos
-    this.loadedApps = new Map(); // Aplicaciones cargadas
-    this.activeApps = new Map(); // Aplicaciones activas
-    this.persistentApps = ['music', 'core']; // Aplicaciones que deben persistir
-    this.persistentAppState = new Map(); // Almacena el estado de las aplicaciones persistentes
+    this.playlist = [];
+    this.currentTrackIndex = -1;
+    this.isPlaying = false;
+    this.youtubePlayer = null;
+    this.isYouTubeApiReady = false;
+    this.audioElement = null;
+    this.panel = null;
+    this.isVisible = true; // Estado para controlar visibilidad
+    this.isRendered = false; // Nueva bandera para saber si ya está renderizado
+    this.defaultTrackLoaded = false; // Bandera para controlar si la pista por defecto ya se cargó
     
-    console.log('[DEBUG] AppRegistry: Constructor llamado con EventBus:', !!eventBus);
+    // Suscribirse a eventos de música
+    this.setupEventListeners();
+    
+    // Cargar el script de la API de YouTube Iframe
+    this.loadYouTubeAPI();
   }
   
-  /**
-   * Inicializa el registro de aplicaciones
-   */
+  setupEventListeners() {
+    // Eventos de control de música desde la barra roja
+    this.eventBus.on('music:togglePlayPause', () => this.togglePlayPause());
+    this.eventBus.on('music:playPrev', () => this.playPrev());
+    this.eventBus.on('music:playNext', () => this.playNext());
+    this.eventBus.on('music:toggleRepeat', () => this.toggleRepeat());
+    this.eventBus.on('music:toggleVolume', () => this.toggleVolume());
+    
+    // Evento para alternar visibilidad del reproductor
+    this.eventBus.on('music:toggleVisibility', (data) => this.toggleVisibility(data));
+    
+    // NUEVO: Suscribirse a eventos de cambio de visibilidad del contenedor
+    this.eventBus.on('app:visibility-changed', (data) => {
+      if (data.appId === 'music') {
+        console.log(`MusicApp: Recibido evento de cambio de visibilidad: ${data.isVisible}`);
+        this.handleVisibilityChange(data.isVisible);
+      }
+    });
+    
+    // NUEVO: Suscribirse a eventos de cambio de contenedor
+    this.eventBus.on('app:container-changed', (data) => {
+      if (data.appId === 'music') {
+        console.log(`MusicApp: Recibido evento de cambio de contenedor: ${data.containerType}`);
+        this.handleContainerChange(data.containerType);
+      }
+    });
+  }
+  
+  // NUEVO: Manejar cambios de visibilidad
+  handleVisibilityChange(isVisible) {
+    console.log(`MusicApp: Manejando cambio de visibilidad a: ${isVisible}`);
+    
+    // Actualizar el estado interno de visibilidad
+    this.isVisible = isVisible;
+    
+    if (isVisible) {
+      // Cuando la aplicación se hace visible, sincronizar el estado real
+      this.syncPlaybackState();
+    }
+    
+    // Actualizar la visibilidad del panel si existe
+    if (this.panel) {
+      this.panel.style.display = isVisible ? 'flex' : 'none';
+    }
+  }
+  
+  // NUEVO: Manejar cambios de contenedor
+  handleContainerChange(containerType) {
+    console.log(`MusicApp: Manejando cambio de contenedor a: ${containerType}`);
+    
+    // Si el contenedor es 'main', la aplicación es visible
+    // Si el contenedor es 'persistent', la aplicación está oculta
+    const isVisible = containerType === 'main';
+    
+    // Actualizar el estado de visibilidad
+    this.isVisible = isVisible;
+    
+    if (isVisible) {
+      // Cuando se mueve al contenedor principal, sincronizar el estado
+      this.syncPlaybackState();
+    }
+    
+    // Actualizar la visibilidad del panel si existe
+    if (this.panel) {
+      this.panel.style.display = isVisible ? 'flex' : 'none';
+    }
+  }
+  
+  // NUEVO: Sincronizar el estado real de reproducción con la interfaz
+  syncPlaybackState() {
+    console.log('MusicApp: Sincronizando estado de reproducción');
+    
+    if (this.currentTrackIndex !== -1) {
+      const track = this.playlist[this.currentTrackIndex];
+      
+      if (track.source === 'YouTube' && this.youtubePlayer) {
+        try {
+          // Verificar el estado real del reproductor de YouTube
+          const playerState = this.youtubePlayer.getPlayerState();
+          console.log(`MusicApp: Estado del reproductor de YouTube: ${playerState}`);
+          
+          // Actualizar el estado interno basado en el estado real
+          this.isPlaying = (playerState === YT.PlayerState.PLAYING);
+          
+          // Actualizar la interfaz
+          this.updatePlayPauseButton();
+          this.updateTrackInfo();
+          this.updatePlaylist();
+        } catch (e) {
+          console.error('MusicApp: Error al obtener estado del reproductor de YouTube:', e);
+        }
+      } else if (track.source === 'Local' && this.audioElement) {
+        // Verificar el estado real del reproductor de audio
+        console.log(`MusicApp: Estado del reproductor de audio: paused=${this.audioElement.paused}, currentTime=${this.audioElement.currentTime}`);
+        
+        // Actualizar el estado interno basado en el estado real
+        this.isPlaying = !this.audioElement.paused;
+        
+        // Actualizar la interfaz
+        this.updatePlayPauseButton();
+        this.updateTrackInfo();
+        this.updatePlaylist();
+      }
+    }
+  }
+  
+  // Cargar el script de la API de YouTube Iframe
+  loadYouTubeAPI() {
+    // Verificar si ya se ha cargado la API
+    if (window.YT && window.YT.Player) {
+      this.isYouTubeApiReady = true;
+      return;
+    }
+    
+    // Verificar si ya se está cargando
+    if (document.getElementById('youtube-iframe-api')) {
+      return;
+    }
+    
+    const tag = document.createElement('script');
+    tag.id = 'youtube-iframe-api';
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    
+    // Esta función es llamada por la API de YouTube cuando está lista
+    window.onYouTubeIframeAPIReady = () => {
+      console.log("YouTube Iframe Player API is ready.");
+      this.isYouTubeApiReady = true;
+    };
+  }
+  
+  // Método init requerido por el AppLoader
   init() {
-    console.log('AppRegistry: Inicializando registro de aplicaciones');
+    console.log('MusicApp: Inicializando aplicación de música');
     
-    // Suscribirse a eventos del sistema
-    this.eventBus.on('app:activate', (data) => {
-      console.log('[DEBUG] AppRegistry: Evento app:activate recibido:', data);
-      this.activateApp(data.appId);
-    });
-    
-    this.eventBus.on('app:deactivate', (data) => {
-      console.log('AppRegistry: Evento app:deactivate recibido:', data);
-      this.deactivateApp(data.appId);
-    });
-    
-    // Eventos de optimización del sistema
-    this.eventBus.on('system:reduce-effects', (data) => {
-      console.log('AppRegistry: Evento system:reduce-effects recibido:', data);
-      this.applySystemOptimization('reduce-effects', data);
-    });
-    
-    this.eventBus.on('system:disable-video-background', (data) => {
-      console.log('AppRegistry: Evento system:disable-video-background recibido:', data);
-      this.applySystemOptimization('disable-video-background', data);
-    });
-    
-    this.eventBus.on('system:enable-low-power-mode', (data) => {
-      console.log('AppRegistry: Evento system:enable-low-power-mode recibido:', data);
-      this.applySystemOptimization('enable-low-power-mode', data);
-    });
-    
-    this.eventBus.on('system:enable-tv-mode', (data) => {
-      console.log('AppRegistry: Evento system:enable-tv-mode recibido:', data);
-      this.applySystemOptimization('enable-tv-mode', data);
-    });
-    
-    console.log('AppRegistry: Registro de aplicaciones inicializado correctamente');
-    return true;
+    // NO cargar la pista por defecto aquí, se hará después de renderizar
+    return Promise.resolve();
   }
   
-  /**
-   * Permite que una aplicación se registre a sí misma
-   * @param {string} appName - Nombre de la aplicación
-   * @param {string} manifestUrl - URL del manifiesto
-   * @param {class} loaderClass - Clase del loader especializado
-   */
-  async registerApp(appName, manifestUrl, loaderClass) {
-    try {
-      console.log(`[DEBUG] AppRegistry: Registrando aplicación ${appName}`);
-      
-      const manifest = await this.fetchManifest(manifestUrl);
-      this.registeredApps.set(appName, {
-        manifest,
-        loader: loaderClass,
-        status: 'registered'
-      });
-      
-      console.log(`✅ App ${appName} registrada correctamente`);
-      this.eventBus.emit('app:registered', { appName, manifest });
-      return true;
-    } catch (error) {
-      console.error(`❌ Error registrando ${appName}:`, error);
-      return false;
-    }
+  // Método para cargar la pista por defecto
+  loadDefaultTrack() {
+    if (this.defaultTrackLoaded) return; // Evitar cargar múltiples veces
+    
+    const defaultTrack = {
+      title: 'Mare (Mizu OS Theme)',
+      source: 'Local',
+      url: 'https://raw.githubusercontent.com/mizulegendsstudios/mizu-os/main/docs/assets/Mare.mp3'
+    };
+    
+    this.playlist.push(defaultTrack);
+    this.updatePlaylist();
+    
+    // Reproducir automáticamente la pista por defecto
+    this.playTrack(0);
+    this.defaultTrackLoaded = true; // Marcar como cargada
   }
   
-  /**
-   * Obtiene el manifiesto de una aplicación, usando caché si está disponible
-   * @param {string} url - URL del manifiesto
-   */
-  async fetchManifest(url) {
-    if (this.manifestCache.has(url)) {
-      console.log(`[DEBUG] AppRegistry: Usando manifiesto en caché para ${url}`);
-      return this.manifestCache.get(url);
-    }
-
-    console.log(`[DEBUG] AppRegistry: Cargando manifiesto desde ${url}`);
-    const response = await fetch(url);
+  // Método para alternar la visibilidad del reproductor
+  toggleVisibility(data) {
+    console.log(`MusicApp: toggleVisibility llamado con datos:`, data);
     
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status} al cargar ${url}`);
+    if (!this.panel) return;
+    
+    // Si se especifica hide, ocultamos forzosamente
+    if (data && data.hide) {
+      this.isVisible = false;
+    } else {
+      // Alternar visibilidad
+      this.isVisible = !this.isVisible;
     }
     
-    const manifest = await response.json();
-    this.manifestCache.set(url, manifest);
-    return manifest;
+    this.panel.style.display = this.isVisible ? 'flex' : 'none';
+    
+    // Si se está haciendo visible, sincronizar el estado
+    if (this.isVisible) {
+      this.syncPlaybackState();
+    }
+    
+    // Notificar al sistema que la app está "oculta" pero no destruida
+    this.eventBus.emit('app:visibilityChanged', {
+      appId: 'music',
+      isVisible: this.isVisible
+    });
+    
+    console.log(`MusicApp: Visibilidad cambiada a ${this.isVisible}`);
   }
   
-  /**
-   * Carga una aplicación bajo demanda
-   * @param {string} appName - Nombre de la aplicación
-   */
-  async loadApp(appName) {
-    console.log(`[DEBUG] AppRegistry: Cargando aplicación ${appName}`);
+  // Método render requerido por el AppLoader
+  render() {
+    console.log('MusicApp: Renderizando interfaz de música');
     
-    // Verificar si ya está cargada
-    if (this.loadedApps.has(appName)) {
-      console.log(`[DEBUG] AppRegistry: La aplicación ${appName} ya está cargada`);
-      return this.loadedApps.get(appName);
-    }
-    
-    const appInfo = this.registeredApps.get(appName);
-    if (!appInfo) {
-      console.error(`❌ App ${appName} no está registrada`);
-      return null;
-    }
-    
-    try {
-      const loader = new appInfo.loader(this.eventBus);
-      const appData = await loader.load(appInfo.manifest, appName);
+    // Si ya está renderizado, devolver el panel existente
+    if (this.isRendered && this.panel) {
+      console.log('MusicApp: La interfaz ya está renderizada, reutilizando panel existente');
       
-      if (appData) {
-        this.loadedApps.set(appName, appData);
-        console.log(`✅ App ${appName} cargada correctamente`);
-        this.eventBus.emit('app:loaded', { appName });
+      // Si la aplicación es visible, actualizar el estado de reproducción
+      if (this.isVisible) {
+        this.syncPlaybackState();
       }
       
-      return appData;
-    } catch (error) {
-      console.error(`❌ Error cargando ${appName}:`, error);
-      return null;
+      return this.panel;
     }
+    
+    // Crear el panel del reproductor
+    const panel = document.createElement('div');
+    panel.id = 'music-player-panel';
+    panel.className = 'music-player-panel';
+    panel.style.cssText = 
+      'width: 100%;' +
+      'height: 100%;' +
+      'background: rgba(30, 30, 30, 0.95);' +
+      'backdrop-filter: blur(10px);' +
+      'border: 1px solid rgba(255, 255, 255, 0.1);' +
+      'border-radius: 0.5rem;' +
+      'padding: 20px;' +
+      'display: flex;' +
+      'flex-direction: column;' +
+      'overflow-y: auto;';
+    
+    // Título del reproductor
+    const title = document.createElement('h2');
+    title.textContent = 'Reproductor de Música';
+    title.style.cssText = 
+      'color: white;' +
+      'margin-bottom: 20px;' +
+      'text-align: center;';
+    
+    // Información de la canción actual
+    const trackInfo = document.createElement('div');
+    trackInfo.id = 'current-track-info';
+    trackInfo.style.cssText = 
+      'background: rgba(0, 0, 0, 0.3);' +
+      'border-radius: 10px;' +
+      'padding: 15px;' +
+      'margin-bottom: 20px;' +
+      'text-align: center;' +
+      'color: white;';
+    
+    const currentTrackTitle = document.createElement('div');
+    currentTrackTitle.id = 'current-track-title';
+    currentTrackTitle.style.cssText = 'font-size: 18px; font-weight: bold; margin-bottom: 5px;';
+    currentTrackTitle.textContent = 'No hay música reproduciéndose';
+    
+    const currentTrackSource = document.createElement('div');
+    currentTrackSource.id = 'current-track-source';
+    currentTrackSource.style.cssText = 'font-size: 14px; opacity: 0.8;';
+    
+    trackInfo.appendChild(currentTrackTitle);
+    trackInfo.appendChild(currentTrackSource);
+    
+    // Contenedor del reproductor de medios (YouTube/SoundCloud/Mixcloud)
+    const mediaPlayerContainer = document.createElement('div');
+    mediaPlayerContainer.id = 'media-player-container';
+    mediaPlayerContainer.style.cssText = 
+      'width: 100%;' +
+      'height: 200px;' +
+      'margin-bottom: 20px;' +
+      'border-radius: 10px;' +
+      'overflow: hidden;' +
+      'display: none;';
+    
+    const dynamicPlayer = document.createElement('div');
+    dynamicPlayer.id = 'dynamic-player';
+    mediaPlayerContainer.appendChild(dynamicPlayer);
+    
+    // Controles del reproductor
+    const controlsContainer = document.createElement('div');
+    controlsContainer.style.cssText = 
+      'display: flex;' +
+      'justify-content: center;' +
+      'gap: 15px;' +
+      'margin-bottom: 20px;';
+    
+    // Botones de control
+    const prevBtn = this.createControlButton('fa-backward', 'Anterior');
+    const playPauseBtn = this.createControlButton('fa-play', 'Reproducir');
+    const stopBtn = this.createControlButton('fa-stop', 'Detener');
+    const nextBtn = this.createControlButton('fa-forward', 'Siguiente');
+    const openLinkBtn = this.createControlButton('fa-up-right-from-square', 'Abrir');
+    const hideBtn = this.createControlButton('fa-eye-slash', 'Ocultar');
+    
+    controlsContainer.appendChild(prevBtn);
+    controlsContainer.appendChild(playPauseBtn);
+    controlsContainer.appendChild(stopBtn);
+    controlsContainer.appendChild(nextBtn);
+    controlsContainer.appendChild(openLinkBtn);
+    controlsContainer.appendChild(hideBtn);
+    
+    // Sección para añadir música
+    const addMusicSection = document.createElement('div');
+    addMusicSection.style.cssText = 
+      'background: rgba(0, 0, 0, 0.3);' +
+      'border-radius: 10px;' +
+      'padding: 15px;' +
+      'margin-bottom: 20px;';
+    
+    const addMusicTitle = document.createElement('h3');
+    addMusicTitle.textContent = 'Añadir Música';
+    addMusicTitle.style.cssText = 
+      'color: white;' +
+      'margin-bottom: 10px;' +
+      'font-size: 16px;';
+    
+    const urlInputContainer = document.createElement('div');
+    urlInputContainer.style.cssText = 
+      'display: flex;' +
+      'gap: 10px;' +
+      'margin-bottom: 10px;';
+    
+    const urlInput = document.createElement('input');
+    urlInput.type = 'text';
+    urlInput.id = 'music-url-input';
+    urlInput.placeholder = 'URL de YouTube, SoundCloud o Mixcloud';
+    urlInput.style.cssText = 
+      'flex-grow: 1;' +
+      'padding: 10px;' +
+      'border-radius: 5px;' +
+      'border: 1px solid rgba(255, 255, 255, 0.2);' +
+      'background: rgba(255, 255, 255, 0.1);' +
+      'color: white;' +
+      'outline: none;';
+    
+    const addBtn = document.createElement('button');
+    addBtn.textContent = 'Añadir';
+    addBtn.style.cssText = 
+      'padding: 10px 15px;' +
+      'border-radius: 5px;' +
+      'border: none;' +
+      'background: #6366f1;' +
+      'color: white;' +
+      'cursor: pointer;' +
+      'font-weight: bold;';
+    
+    urlInputContainer.appendChild(urlInput);
+    urlInputContainer.appendChild(addBtn);
+    
+    // Opción para cargar archivo local
+    const loadFileContainer = document.createElement('div');
+    loadFileContainer.style.cssText = 
+      'display: flex;' +
+      'align-items: center;' +
+      'gap: 10px;';
+    
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'audio/*';
+    fileInput.style.display = 'none';
+    
+    const loadFileBtn = document.createElement('button');
+    loadFileBtn.textContent = 'Cargar archivo local';
+    loadFileBtn.style.cssText = 
+      'padding: 8px 12px;' +
+      'border-radius: 5px;' +
+      'border: none;' +
+      'background: rgba(255, 255, 255, 0.1);' +
+      'color: white;' +
+      'cursor: pointer;' +
+      'font-size: 14px;';
+    
+    loadFileContainer.appendChild(loadFileBtn);
+    loadFileContainer.appendChild(fileInput);
+    
+    addMusicSection.appendChild(addMusicTitle);
+    addMusicSection.appendChild(urlInputContainer);
+    addMusicSection.appendChild(loadFileContainer);
+    
+    // Playlist
+    const playlistSection = document.createElement('div');
+    playlistSection.style.cssText = 
+      'background: rgba(0, 0, 0, 0.3);' +
+      'border-radius: 10px;' +
+      'padding: 15px;' +
+      'flex-grow: 1;' +
+      'overflow-y: auto;';
+    
+    const playlistTitle = document.createElement('h3');
+    playlistTitle.textContent = 'Playlist';
+    playlistTitle.style.cssText = 
+      'color: white;' +
+      'margin-bottom: 10px;' +
+      'font-size: 16px;';
+    
+    const playlistContainer = document.createElement('div');
+    playlistContainer.id = 'playlist-container';
+    playlistContainer.style.cssText = 
+      'display: flex;' +
+      'flex-direction: column;' +
+      'gap: 10px;';
+    
+    const emptyPlaylistMessage = document.createElement('div');
+    emptyPlaylistMessage.textContent = 'Tu playlist está vacía';
+    emptyPlaylistMessage.style.cssText = 
+      'color: rgba(255, 255, 255, 0.5);' +
+      'text-align: center;' +
+      'padding: 20px;';
+    playlistContainer.appendChild(emptyPlaylistMessage);
+    
+    playlistSection.appendChild(playlistTitle);
+    playlistSection.appendChild(playlistContainer);
+    
+    // Elemento de audio (oculto)
+    this.audioElement = document.createElement('audio');
+    this.audioElement.style.display = 'none';
+    this.audioElement.addEventListener('ended', () => this.playNext());
+    
+    // Ensamblar el panel
+    panel.appendChild(title);
+    panel.appendChild(trackInfo);
+    panel.appendChild(mediaPlayerContainer);
+    panel.appendChild(controlsContainer);
+    panel.appendChild(addMusicSection);
+    panel.appendChild(playlistSection);
+    panel.appendChild(this.audioElement);
+    
+    // Guardar referencias a elementos importantes
+    this.panel = panel;
+    this.currentTrackTitleEl = currentTrackTitle;
+    this.currentTrackSourceEl = currentTrackSource;
+    this.playlistContainerEl = playlistContainer;
+    this.playPauseBtnEl = playPauseBtn;
+    this.mediaPlayerContainerEl = mediaPlayerContainer;
+    this.dynamicPlayerEl = dynamicPlayer;
+    
+    // Adjuntar eventos después de crear todos los elementos
+    prevBtn.addEventListener('click', () => this.playPrev());
+    playPauseBtn.addEventListener('click', () => this.togglePlayPause());
+    stopBtn.addEventListener('click', () => this.stop());
+    nextBtn.addEventListener('click', () => this.playNext());
+    openLinkBtn.addEventListener('click', () => this.openInNewTab());
+    hideBtn.addEventListener('click', () => this.toggleVisibility());
+    
+    addBtn.addEventListener('click', () => {
+      const url = urlInput.value.trim();
+      if (url) {
+        this.addTrack(url);
+        urlInput.value = '';
+      }
+    });
+    
+    loadFileBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        this.addLocalTrack(file);
+      }
+    });
+    
+    // Marcar como renderizado
+    this.isRendered = true;
+    
+    // Cargar la pista por defecto después de renderizar la interfaz
+    // y solo si la playlist está vacía
+    if (this.playlist.length === 0 && !this.defaultTrackLoaded) {
+      setTimeout(() => {
+        this.loadDefaultTrack();
+      }, 100); // Pequeño retraso para asegurar que todo está renderizado
+    }
+    
+    console.log('MusicApp: Interfaz de música renderizada por primera vez');
+    return panel;
   }
   
-  /**
-   * Activa una aplicación
-   * @param {string} appName - Nombre de la aplicación
-   */
-  async activateApp(appName) {
-    console.log(`[DEBUG] AppRegistry: Activando aplicación ${appName}`);
+  // Método destroy modificado para ocultar en lugar de destruir
+  destroy() {
+    console.log('MusicApp: Ocultando aplicación de música (no destruyendo)');
     
-    // Verificar si ya está activa
-    if (this.activeApps.has(appName)) {
-      console.log(`[DEBUG] AppRegistry: La aplicación ${appName} ya está activa, alternando visibilidad`);
-      
-      if (this.persistentApps.includes(appName)) {
-        this.showPersistentApp(appName);
-      } else {
-        this.eventBus.emit(`${appName}:toggleVisibility`, { appName });
-      }
-      return;
+    // En lugar de destruir, ocultar el panel
+    if (this.panel) {
+      this.panel.style.display = 'none';
+      this.isVisible = false;
     }
     
-    // Si hay una aplicación activa, ocultarla
-    if (this.activeApps.size > 0) {
-      const currentActiveAppId = Array.from(this.activeApps.keys())[0];
-      if (currentActiveAppId && currentActiveAppId !== appName) {
-        console.log(`[DEBUG] AppRegistry: Ocultando aplicación activa actual: ${currentActiveAppId}`);
-        
-        if (this.persistentApps.includes(currentActiveAppId)) {
-          this.hidePersistentApp(currentActiveAppId);
-        } else {
-          this.deactivateApp(currentActiveAppId);
+    // Notificar al sistema que la app está oculta pero no destruida
+    this.eventBus.emit('app:visibilityChanged', {
+      appId: 'music',
+      isVisible: false
+    });
+    
+    // NO detener la música ni eliminar elementos del DOM
+  }
+  
+  // Crear botón de control
+  createControlButton(iconClass, title) {
+    const button = document.createElement('button');
+    button.style.cssText = 
+      'width: 50px;' +
+      'height: 50px;' +
+      'border-radius: 50%;' +
+      'background: rgba(255, 255, 255, 0.1);' +
+      'border: 1px solid rgba(255, 255, 255, 0.2);' +
+      'color: white;' +
+      'display: flex;' +
+      'align-items: center;' +
+      'justify-content: center;' +
+      'cursor: pointer;' +
+      'transition: all 0.2s ease;' +
+      'pointer-events: auto;';
+    
+    const icon = document.createElement('i');
+    icon.className = 'fa-solid ' + iconClass;
+    icon.style.cssText = 'font-size: 20px;';
+    
+    button.appendChild(icon);
+    button.title = title;
+    
+    return button;
+  }
+  
+  // Extraer el ID de video de YouTube
+  extractYoutubeId(url) {
+    let videoId = null;
+    try {
+      const urlObj = new URL(url);
+      if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be') || urlObj.hostname.includes('music.youtube.com')) {
+        const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/;
+        const match = url.match(regExp);
+        if (match && match[1].length === 11) {
+          videoId = match[1];
         }
       }
+    } catch (e) {
+      return null;
     }
-    
-    // Cargar la aplicación si no está cargada
-    const appData = await this.loadApp(appName);
-    if (!appData) {
-      console.error(`❌ No se pudo cargar la aplicación ${appName}`);
-      return;
-    }
-    
-    try {
-      // Inicializar la aplicación
-      if (typeof appData.instance.init === 'function') {
-        await appData.instance.init();
-      }
-      
-      // Para aplicaciones persistentes, verificar si ya tenemos estado guardado
-      if (this.persistentApps.includes(appName) && this.persistentAppState.has(appName)) {
-        console.log(`[DEBUG] AppRegistry: Restaurando estado persistente para ${appName}`);
-        // Restaurar el estado en lugar de renderizar desde cero
-        this.restorePersistentApp(appName, appData);
-      } else {
-        // Renderizar la aplicación normalmente
-        if (typeof appData.instance.render === 'function') {
-          const appElement = appData.instance.render();
-          appElement.setAttribute('data-app-id', appName);
-          
-          // Determinar contenedor según persistencia
-          const container = this.persistentApps.includes(appName) 
-            ? this.getPersistentContainer() 
-            : this.getMainContainer();
-          
-          container.appendChild(appElement);
-          
-          // Si es una aplicación persistente, guardar su estado inicial
-          if (this.persistentApps.includes(appName)) {
-            this.savePersistentAppState(appName, appData);
-          }
-        }
-      }
-      
-      this.activeApps.set(appName, appData);
-      this.eventBus.emit('app:activated', { appName });
-      console.log(`✅ App ${appName} activada correctamente`);
-    } catch (error) {
-      console.error(`❌ Error activando ${appName}:`, error);
-    }
+    return videoId;
   }
   
-  /**
-   * Guarda el estado de una aplicación persistente
-   * @param {string} appName - Nombre de la aplicación
-   * @param {object} appData - Datos de la aplicación
-   */
-  savePersistentAppState(appName, appData) {
-    console.log(`[DEBUG] AppRegistry: Guardando estado persistente para ${appName}`);
+  // Añadir una pista a la playlist
+  async addTrack(url) {
+    const youtubeId = this.extractYoutubeId(url);
+    const isSoundcloud = url.includes('soundcloud.com');
+    const isMixcloud = url.includes('mixcloud.com');
     
-    // Para la aplicación de música, guardar la playlist y el estado actual
-    if (appName === 'music' && appData.instance.playlist) {
-      const state = {
-        playlist: appData.instance.playlist,
-        currentTrackIndex: appData.instance.currentTrackIndex,
-        isPlaying: appData.instance.isPlaying,
-        defaultTrackLoaded: appData.instance.defaultTrackLoaded
+    let track = null;
+    
+    if (youtubeId) {
+      track = {
+        title: 'Video de YouTube',
+        source: 'YouTube',
+        url: url,
+        videoId: youtubeId
       };
-      
-      this.persistentAppState.set(appName, state);
-      console.log(`[DEBUG] AppRegistry: Estado guardado para ${appName}:`, state);
-    }
-  }
-  
-  /**
-   * Restaura el estado de una aplicación persistente
-   * @param {string} appName - Nombre de la aplicación
-   * @param {object} appData - Datos de la aplicación
-   */
-  restorePersistentApp(appName, appData) {
-    console.log(`[DEBUG] AppRegistry: Restaurando aplicación persistente ${appName}`);
-    
-    // Obtener el estado guardado
-    const savedState = this.persistentAppState.get(appName);
-    if (!savedState) {
-      console.log(`[DEBUG] AppRegistry: No hay estado guardado para ${appName}, renderizando normalmente`);
-      
-      // Si no hay estado guardado, renderizar normalmente
-      if (typeof appData.instance.render === 'function') {
-        const appElement = appData.instance.render();
-        appElement.setAttribute('data-app-id', appName);
-        this.getPersistentContainer().appendChild(appElement);
-      }
+    } else if (isSoundcloud) {
+      track = {
+        title: 'Track de SoundCloud',
+        source: 'SoundCloud',
+        url: url
+      };
+    } else if (isMixcloud) {
+      track = {
+        title: 'Mix de Mixcloud',
+        source: 'Mixcloud',
+        url: url
+      };
+    } else {
+      this.showNotification('Enlace no válido. Por favor, ingresa un enlace de YouTube, SoundCloud o Mixcloud');
       return;
     }
     
-    // Para la aplicación de música, restaurar la playlist y el estado
-    if (appName === 'music') {
-      console.log(`[DEBUG] AppRegistry: Restaurando estado de música:`, savedState);
-      
-      // Restaurar el estado en la instancia
-      appData.instance.playlist = savedState.playlist || [];
-      appData.instance.currentTrackIndex = savedState.currentTrackIndex || -1;
-      appData.instance.isPlaying = savedState.isPlaying || false;
-      appData.instance.defaultTrackLoaded = savedState.defaultTrackLoaded || false;
-      
-      // Renderizar la interfaz
-      if (typeof appData.instance.render === 'function') {
-        const appElement = appData.instance.render();
-        appElement.setAttribute('data-app-id', appName);
-        
-        // Añadir al contenedor principal
-        this.getMainContainer().appendChild(appElement);
-        
-        // Actualizar la interfaz con el estado restaurado
-        if (typeof appData.instance.updateTrackInfo === 'function') {
-          appData.instance.updateTrackInfo();
-        }
-        
-        if (typeof appData.instance.updatePlaylist === 'function') {
-          appData.instance.updatePlaylist();
-        }
-        
-        if (typeof appData.instance.updatePlayPauseButton === 'function') {
-          appData.instance.updatePlayPauseButton();
-        }
-        
-        // Si estaba reproduciendo, reanudar la reproducción
-        if (savedState.isPlaying && savedState.currentTrackIndex >= 0) {
-          setTimeout(() => {
-            if (typeof appData.instance.playTrack === 'function') {
-              appData.instance.playTrack(savedState.currentTrackIndex);
-            }
-          }, 100);
-        }
-      }
+    this.playlist.push(track);
+    this.updatePlaylist();
+    this.showNotification('Añadido a la playlist');
+    
+    // Si es la primera canción, reproducirla automáticamente
+    if (this.playlist.length === 1) {
+      this.playTrack(0);
     }
   }
   
-  /**
-   * Desactiva una aplicación
-   * @param {string} appName - Nombre de la aplicación
-   */
-  deactivateApp(appName) {
-    console.log(`AppRegistry: Desactivando aplicación ${appName}`);
+  // Añadir pista local
+  addLocalTrack(file) {
+    const track = {
+      title: file.name,
+      source: 'Local',
+      file: file
+    };
     
-    if (!this.activeApps.has(appName)) {
-      console.log(`AppRegistry: La aplicación ${appName} no está activa`);
+    this.playlist.push(track);
+    this.updatePlaylist();
+    this.showNotification('Archivo local añadido a la playlist');
+    
+    // Si es la primera canción, reproducirla automáticamente
+    if (this.playlist.length === 1) {
+      this.playTrack(0);
+    }
+  }
+  
+  // Actualizar la playlist en la interfaz
+  updatePlaylist() {
+    if (!this.playlistContainerEl) return;
+    
+    this.playlistContainerEl.innerHTML = '';
+    
+    if (this.playlist.length === 0) {
+      const emptyMessage = document.createElement('div');
+      emptyMessage.textContent = 'Tu playlist está vacía';
+      emptyMessage.style.cssText = 
+        'color: rgba(255, 255, 255, 0.5);' +
+        'text-align: center;' +
+        'padding: 20px;';
+      this.playlistContainerEl.appendChild(emptyMessage);
       return;
     }
     
-    try {
-      if (this.persistentApps.includes(appName)) {
-        // Para aplicaciones persistentes, guardar el estado antes de ocultar
-        const appData = this.activeApps.get(appName);
-        this.savePersistentAppState(appName, appData);
-        this.hidePersistentApp(appName);
-      } else {
-        this.eventBus.emit(`${appName}:toggleVisibility`, { appName, hide: true });
-        this.activeApps.delete(appName);
-        this.getMainContainer().innerHTML = '';
+    this.playlist.forEach((track, index) => {
+      const item = document.createElement('div');
+      item.style.cssText = 
+        'background: rgba(255, 255, 255, 0.1);' +
+        'border-radius: 8px;' +
+        'padding: 10px;' +
+        'display: flex;' +
+        'justify-content: space-between;' +
+        'align-items: center;' +
+        'cursor: pointer;' +
+        'transition: background 0.2s ease;' +
+        'pointer-events: auto;';
+      
+      if (index === this.currentTrackIndex) {
+        item.style.background = 'rgba(99, 102, 241, 0.3)';
       }
       
-      this.eventBus.emit('app:deactivated', { appName });
-      console.log(`✅ App ${appName} desactivada correctamente`);
-    } catch (error) {
-      console.error(`❌ Error desactivando ${appName}:`, error);
-    }
-  }
-  
-  /**
-   * Muestra una aplicación persistente
-   * @param {string} appName - Nombre de la aplicación
-   */
-  showPersistentApp(appName) {
-    console.log(`[DEBUG] AppRegistry: Mostrando aplicación persistente ${appName}`);
-    
-    if (!this.activeApps.has(appName)) return;
-    
-    const mainContainer = this.getMainContainer();
-    mainContainer.innerHTML = '';
-    
-    // Buscar la aplicación en el contenedor persistente
-    const appElement = this.getPersistentContainer().querySelector(`[data-app-id="${appName}"]`);
-    
-    if (appElement) {
-      // Mover la aplicación al contenedor principal
-      mainContainer.appendChild(appElement);
-      appElement.style.display = '';
-      appElement.style.visibility = 'visible';
-      appElement.style.opacity = '1';
+      const info = document.createElement('div');
+      info.innerHTML = 
+        '<div style="font-weight: bold;">' + track.title + '</div>' +
+        '<div style="font-size: 12px; opacity: 0.7;">' + track.source + '</div>';
       
-      console.log(`[DEBUG] AppRegistry: Aplicación persistente ${appName} movida al contenedor principal`);
-    } else {
-      console.log(`[DEBUG] AppRegistry: No se encontró el elemento de la aplicación persistente ${appName}`);
+      const deleteBtn = document.createElement('button');
+      deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+      deleteBtn.style.cssText = 
+        'background: none;' +
+        'border: none;' +
+        'color: rgba(255, 255, 255, 0.7);' +
+        'cursor: pointer;' +
+        'padding: 5px;' +
+        'border-radius: 50%;' +
+        'transition: all 0.2s ease;' +
+        'pointer-events: auto;';
       
-      // Si no se encuentra el elemento, intentar restaurar el estado
-      const appData = this.activeApps.get(appName);
-      if (appData) {
-        this.restorePersistentApp(appName, appData);
-      }
-    }
-    
-    this.eventBus.emit(`${appName}:toggleVisibility`, { appName, hide: false });
-  }
-  
-  /**
-   * Oculta una aplicación persistente
-   * @param {string} appName - Nombre de la aplicación
-   */
-  hidePersistentApp(appName) {
-    console.log(`[DEBUG] AppRegistry: Ocultando aplicación persistente ${appName}`);
-    
-    if (!this.activeApps.has(appName)) return;
-    
-    const mainContainer = this.getMainContainer();
-    mainContainer.innerHTML = '';
-    
-    // Buscar la aplicación en el contenedor principal
-    const appElement = mainContainer.querySelector(`[data-app-id="${appName}"]`);
-    
-    if (appElement) {
-      // Mover la aplicación al contenedor persistente
-      this.getPersistentContainer().appendChild(appElement);
-      console.log(`[DEBUG] AppRegistry: Aplicación persistente ${appName} movida al contenedor persistente`);
-    } else {
-      console.log(`[DEBUG] AppRegistry: No se encontró el elemento de la aplicación persistente ${appName} en el contenedor principal`);
-    }
-    
-    this.eventBus.emit(`${appName}:toggleVisibility`, { appName, hide: true });
-  }
-  
-  /**
-   * Aplica optimizaciones del sistema
-   * @param {string} type - Tipo de optimización
-   * @param {object} data - Datos de la optimización
-   */
-  applySystemOptimization(type, data) {
-    console.log(`AppRegistry: Aplicando optimización del sistema: ${type}`, data);
-    
-    try {
-      switch (type) {
-        case 'reduce-effects':
-          document.body.style.setProperty('--animation-speed', '0');
-          document.body.style.setProperty('--blur-intensity', '0');
-          document.body.style.setProperty('--transition-duration', '0ms');
-          break;
-          
-        case 'disable-video-background':
-          const videoBackground = document.getElementById('background-video');
-          if (videoBackground) videoBackground.style.display = 'none';
-          break;
-          
-        case 'enable-low-power-mode':
-          document.body.classList.add('low-power-mode');
-          break;
-          
-        case 'enable-tv-mode':
-          document.body.classList.add('tv-mode');
-          break;
-      }
+      item.appendChild(info);
+      item.appendChild(deleteBtn);
       
-      // Notificar a todas las aplicaciones activas
-      this.activeApps.forEach((appData, appName) => {
-        if (typeof appData.instance.onSystemOptimization === 'function') {
-          appData.instance.onSystemOptimization(type, data);
-        }
+      // Adjuntar eventos después de crear los elementos
+      item.addEventListener('click', () => {
+        this.playTrack(index);
       });
       
-      this.eventBus.emit('system:optimization-applied', { type, data });
-    } catch (error) {
-      console.error(`❌ Error aplicando optimización ${type}:`, error);
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.removeTrack(index);
+      });
+      
+      this.playlistContainerEl.appendChild(item);
+    });
+  }
+  
+  // Eliminar una pista de la playlist
+  removeTrack(index) {
+    this.playlist.splice(index, 1);
+    
+    if (index === this.currentTrackIndex) {
+      this.stop();
+      this.currentTrackIndex = -1;
+      this.updateTrackInfo();
+    } else if (index < this.currentTrackIndex) {
+      this.currentTrackIndex--;
+    }
+    
+    this.updatePlaylist();
+    this.showNotification('Pista eliminada de la playlist');
+  }
+  
+  // Reproducir una pista específica
+  playTrack(index) {
+    if (index >= 0 && index < this.playlist.length) {
+      this.stopAllMedia();
+      this.currentTrackIndex = index;
+      const track = this.playlist[this.currentTrackIndex];
+      
+      // Verificar si los elementos del DOM existen antes de usarlos
+      if (!this.mediaPlayerContainerEl || !this.dynamicPlayerEl) {
+        console.error('MusicApp: Los elementos del reproductor no están disponibles');
+        return;
+      }
+      
+      // Ocultar el reproductor de iframes por defecto
+      this.mediaPlayerContainerEl.style.display = 'none';
+      
+      if (track.source === 'YouTube' && track.videoId) {
+        if (this.isYouTubeApiReady) {
+          this.mediaPlayerContainerEl.style.display = 'block';
+          
+          if (this.youtubePlayer) {
+            this.youtubePlayer.loadVideoById(track.videoId);
+          } else {
+            this.youtubePlayer = new YT.Player('dynamic-player', {
+              height: '200',
+              width: '100%',
+              videoId: track.videoId,
+              playerVars: { 'playsinline': 1 },
+              events: {
+                'onReady': (event) => {
+                  event.target.playVideo();
+                },
+                'onStateChange': (event) => {
+                  if (event.data === YT.PlayerState.ENDED) {
+                    this.playNext();
+                  }
+                  if (event.data === YT.PlayerState.PLAYING) {
+                    this.isPlaying = true;
+                    this.updatePlayPauseButton();
+                  }
+                }
+              }
+            });
+          }
+          this.isPlaying = true;
+          this.updatePlayPauseButton();
+        } else {
+          this.showNotification("Error: La API de YouTube no está lista. Inténtalo de nuevo en unos segundos.");
+          this.isPlaying = false;
+        }
+      } else if (track.source === 'Local' && track.file) {
+        const fileUrl = URL.createObjectURL(track.file);
+        this.audioElement.src = fileUrl;
+        this.audioElement.play();
+        this.isPlaying = true;
+        this.updatePlayPauseButton();
+      } else if (track.source === 'Local' && track.url) {
+        // Para URLs de audio local
+        this.audioElement.src = track.url;
+        this.audioElement.play();
+        this.isPlaying = true;
+        this.updatePlayPauseButton();
+      } else {
+        // Para SoundCloud y Mixcloud, abrimos en una nueva pestaña
+        window.open(track.url, '_blank');
+        this.isPlaying = true;
+        this.updatePlayPauseButton();
+      }
+      
+      this.updateTrackInfo();
+      this.updatePlaylist();
     }
   }
   
-  /**
-   * Obtiene el contenedor principal de aplicaciones
-   */
-  getMainContainer() {
-    let container = document.getElementById('black-bar');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'black-bar';
-      container.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-size: contain;
-        background-color: hsla(0, 0%, 0%, 0.2);
-        padding: 1rem;
-        display: flex;
-        gap: 0.5rem;
-        z-index: 641;
-        transition: top 0.5s ease, left 0.5s ease, right 0.5s ease, bottom 0.5s ease;
-        overflow: hidden;
-        cursor: grab;
-      `;
-      document.body.appendChild(container);
+  // Actualizar información de la pista actual
+  updateTrackInfo() {
+    if (this.currentTrackIndex !== -1) {
+      const track = this.playlist[this.currentTrackIndex];
+      this.currentTrackTitleEl.textContent = track.title;
+      this.currentTrackSourceEl.textContent = 'Fuente: ' + track.source;
+    } else {
+      this.currentTrackTitleEl.textContent = 'No hay música reproduciéndose';
+      this.currentTrackSourceEl.textContent = '';
     }
-    return container;
   }
   
-  /**
-   * Obtiene el contenedor de aplicaciones persistentes
-   */
-  getPersistentContainer() {
-    let container = document.getElementById('persistent-apps-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'persistent-apps-container';
-      container.style.cssText = `
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        z-index: 1;
-        visibility: hidden;
-      `;
-      document.body.appendChild(container);
+  // Actualizar botón de play/pause
+  updatePlayPauseButton() {
+    if (this.playPauseBtnEl) {
+      const icon = this.playPauseBtnEl.querySelector('i');
+      if (icon) {
+        if (this.isPlaying) {
+          icon.className = 'fa-solid fa-pause';
+        } else {
+          icon.className = 'fa-solid fa-play';
+        }
+      }
     }
-    return container;
+    
+    // También actualizar el botón en la barra roja si existe
+    const redBarPlayBtn = document.querySelector('.music-control-button i.fa-play, .music-control-button i.fa-pause');
+    if (redBarPlayBtn) {
+      if (this.isPlaying) {
+        redBarPlayBtn.className = 'fa-solid fa-pause';
+      } else {
+        redBarPlayBtn.className = 'fa-solid fa-play';
+      }
+    }
   }
   
-  /**
-   * Verifica si una aplicación es persistente
-   * @param {string} appName - Nombre de la aplicación
-   */
-  isPersistentApp(appName) {
-    return this.persistentApps.includes(appName);
+  // Alternar play/pause
+  togglePlayPause() {
+    console.log('MusicApp: togglePlayPause llamado');
+    
+    if (this.currentTrackIndex === -1) {
+      if (this.playlist.length > 0) {
+        this.playTrack(0);
+      }
+      return;
+    }
+    
+    const track = this.playlist[this.currentTrackIndex];
+    if (track.source === 'YouTube' && this.youtubePlayer) {
+      if (this.isPlaying) {
+        this.youtubePlayer.pauseVideo();
+      } else {
+        this.youtubePlayer.playVideo();
+      }
+    } else if (track.source === 'Local') {
+      if (this.isPlaying) {
+        this.audioElement.pause();
+      } else {
+        this.audioElement.play();
+      }
+    }
+    
+    this.isPlaying = !this.isPlaying;
+    this.updatePlayPauseButton();
   }
   
-  /**
-   * Obtiene la lista de aplicaciones registradas
-   */
-  getRegisteredApps() {
-    return Array.from(this.registeredApps.keys());
+  // Detener reproducción
+  stop() {
+    console.log('MusicApp: stop llamado');
+    this.stopAllMedia();
+    this.isPlaying = false;
+    this.updatePlayPauseButton();
   }
   
-  /**
-   * Obtiene la información de una aplicación registrada
-   * @param {string} appName - Nombre de la aplicación
-   */
-  getAppInfo(appName) {
-    return this.registeredApps.get(appName);
+  // Detener todos los medios
+  stopAllMedia() {
+    if (this.audioElement && !this.audioElement.paused) {
+      this.audioElement.pause();
+      this.audioElement.removeAttribute('src');
+    }
+    if (this.youtubePlayer && typeof this.youtubePlayer.stopVideo === 'function') {
+      this.youtubePlayer.stopVideo();
+      this.youtubePlayer.destroy();
+      this.youtubePlayer = null;
+    }
+  }
+  
+  // Reproducir siguiente pista
+  playNext() {
+    console.log('MusicApp: playNext llamado');
+    if (this.playlist.length > 0) {
+      this.currentTrackIndex = (this.currentTrackIndex + 1) % this.playlist.length;
+      this.playTrack(this.currentTrackIndex);
+    }
+  }
+  
+  // Reproducir pista anterior
+  playPrev() {
+    console.log('MusicApp: playPrev llamado');
+    if (this.playlist.length > 0) {
+      this.currentTrackIndex = (this.currentTrackIndex - 1 + this.playlist.length) % this.playlist.length;
+      this.playTrack(this.currentTrackIndex);
+    }
+  }
+  
+  // Alternar modo de repetición
+  toggleRepeat() {
+    console.log('MusicApp: toggleRepeat llamado');
+    // Implementar lógica de repetición aquí
+    this.showNotification('Modo de repetición alternado');
+  }
+  
+  // Alternar control de volumen
+  toggleVolume() {
+    console.log('MusicApp: toggleVolume llamado');
+    // Implementar control de volumen aquí
+    this.showNotification('Control de volumen alternado');
+  }
+  
+  // Abrir en nueva pestaña
+  openInNewTab() {
+    console.log('MusicApp: openInNewTab llamado');
+    if (this.currentTrackIndex !== -1) {
+      const track = this.playlist[this.currentTrackIndex];
+      window.open(track.url, '_blank');
+    }
+  }
+  
+  // Mostrar notificación
+  showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'config-notification';
+    notification.textContent = message;
+    notification.style.cssText = 
+      'position: fixed;' +
+      'bottom: 20px;' +
+      'right: 20px;' +
+      'background: rgba(0, 0, 0, 0.8);' +
+      'color: white;' +
+      'padding: 12px 20px;' +
+      'border-radius: 8px;' +
+      'font-size: 14px;' +
+      'z-index: 10000;' +
+      'animation: slideIn 0.3s ease;';
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.animation = 'slideOut 0.3s ease';
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
   }
 }
