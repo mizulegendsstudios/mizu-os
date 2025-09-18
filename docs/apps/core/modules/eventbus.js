@@ -62,12 +62,14 @@ export default class EventBus {
     if (!this.events[eventName].includes(callback)) {
       this.events[eventName].push(callback);
       
-      // Emitir evento de depuración
-      this.emit('eventbus:subscribe', {
-        eventName,
-        component: this.getCallbackName(callback),
-        timestamp: Date.now()
-      });
+      // Emitir evento de depuración solo si no es un evento de depuración para evitar recursión
+      if (!eventName.startsWith('eventbus:')) {
+        this.emit('eventbus:subscribe', {
+          eventName,
+          component: this.getCallbackName(callback),
+          timestamp: Date.now()
+        });
+      }
     }
     
     console.log(`[DEBUG] EventBus: Suscripción a ${eventName} completada. Total suscriptores: ${this.events[eventName].length}`);
@@ -93,7 +95,7 @@ export default class EventBus {
     );
     
     // Emitir evento de depuración si se canceló alguna suscripción
-    if (this.events[eventName].length < initialLength) {
+    if (this.events[eventName].length < initialLength && !eventName.startsWith('eventbus:')) {
       this.emit('eventbus:unsubscribe', {
         eventName,
         component: this.getCallbackName(callback),
@@ -132,13 +134,20 @@ export default class EventBus {
       } catch (error) {
         console.error(`[ERROR] EventBus: Error al ejecutar callback para ${eventName}:`, error);
         
-        // Emitir evento de error para que otros componentes puedan manejarlo
-        this.emit('eventbus:error', {
-          eventName,
-          error: error.message,
-          component: this.getCallbackName(callback),
-          timestamp: Date.now()
-        });
+        // Evitar recursión infinita al emitir eventos de error
+        if (eventName !== 'eventbus:error') {
+          try {
+            // Emitir evento de error para que otros componentes puedan manejarlo
+            this.emit('eventbus:error', {
+              eventName,
+              error: error.message,
+              component: this.getCallbackName(callback),
+              timestamp: Date.now()
+            });
+          } catch (innerError) {
+            console.error(`[ERROR] EventBus: Error al emitir evento de error:`, innerError);
+          }
+        }
       }
     });
     
@@ -225,4 +234,15 @@ export default class EventBus {
   }
   
   /**
-   *
+   * Obtiene el nombre de un callback para depuración
+   */
+  getCallbackName(callback) {
+    if (callback.name) {
+      return callback.name;
+    }
+    // Si la función no tiene nombre, intentamos obtenerla del toString
+    const callbackStr = callback.toString();
+    const match = callbackStr.match(/^function\s*([^\s(]+)/);
+    return match ? match[1] : 'anonymous';
+  }
+}
