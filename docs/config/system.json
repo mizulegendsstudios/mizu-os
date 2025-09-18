@@ -1,6 +1,9 @@
 {
   "version": "3.0.1",
   "debug": false,
+  "systemComponents": [
+    "cssManager"
+  ],
   "modules": [
     "core",
     "ui",
@@ -26,7 +29,7 @@
     "gestureControl": false
   },
   "paths": {
-    "modules": "./apps/modules/",
+    "modules": "./apps/",
     "assets": "./assets/",
     "themes": "./themes/",
     "fonts": "./assets/fonts/"
