@@ -15,37 +15,38 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-/*
- * Gestor de configuración de Mizu OS
- * Responsable de cargar y mantener la configuración global del sistema
- * // docs/apps/core/configManager.js
- * Rol: Gestión centralizada de la configuración del sistema
- * Filosofía: Proporcionar un punto único de acceso a la configuración global
- *Principios:
- *Cloud-Native: Ejecución 100% en navegador (GitHub Pages + jsDelivr) — sin build, sin bundlers, sin node_modules, sin servidores locales.
- *Extensible por diseño: cada app es un módulo independiente con su propio bootstrap.
- *Licencia libre: GNU AGPL-3.0 — cualquier modificación públicada en la red debe compartirse la fuente.
- *Stack Tecnológico/Zero Dependencies: ES6+ JavaScript vainilla (módulos nativos), CSS3 con Custom Properties, HTML5 APIs (Canvas, WebAudio, etc.). Sin frameworks, sin Tailwind.
-*/
 
 export class ConfigManager {
   constructor() {
     this.config = {};
+    this.modulesConfig = {}; // Añadimos esta propiedad para almacenar la configuración de módulos
     this.loaded = false;
     console.log('ConfigManager: Inicializado');
   }
 
-  // Cargar la configuración desde un archivo JSON
+  // Cargar la configuración desde archivos JSON
   async load() {
     try {
       console.log('ConfigManager: Cargando configuración...');
-      const response = await fetch('./config/system.json');
       
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      // Cargar configuración del sistema
+      const systemResponse = await fetch('./config/system.json');
+      
+      if (!systemResponse.ok) {
+        throw new Error(`Error ${systemResponse.status}: ${systemResponse.statusText}`);
       }
       
-      this.config = await response.json();
+      this.config = await systemResponse.json();
+      
+      // Cargar configuración de módulos
+      const modulesResponse = await fetch('./config/modules.json');
+      
+      if (!modulesResponse.ok) {
+        throw new Error(`Error ${modulesResponse.status}: ${modulesResponse.statusText}`);
+      }
+      
+      this.modulesConfig = await modulesResponse.json();
+      
       this.loaded = true;
       console.log('ConfigManager: Configuración cargada correctamente');
       
@@ -67,6 +68,17 @@ export class ConfigManager {
           language: 'es'
         }
       };
+      
+      // Configuración por defecto para módulos
+      this.modulesConfig = {
+        ui: {
+          name: "UI App",
+          dependencies: [],
+          enabled: true,
+          priority: 1
+        }
+      };
+      
       this.loaded = true;
       console.log('ConfigManager: Usando configuración por defecto');
     }
@@ -77,6 +89,11 @@ export class ConfigManager {
     if (!this.loaded) {
       console.warn('ConfigManager: Configuración no cargada aún');
       return undefined;
+    }
+    
+    // Si se solicita la configuración de módulos, devolver la configuración detallada
+    if (key === 'modules') {
+      return this.modulesConfig;
     }
     
     // Permitir acceso anidado con notación de puntos (ej: 'settings.theme')
@@ -127,7 +144,10 @@ export class ConfigManager {
       return {};
     }
     
-    return { ...this.config }; // Devolver una copia para evitar mutaciones externas
+    return { 
+      ...this.config,
+      modules: this.modulesConfig // Incluir la configuración de módulos
+    }; // Devolver una copia para evitar mutaciones externas
   }
 
   // Verificar si la configuración está cargada
@@ -138,6 +158,7 @@ export class ConfigManager {
   // Reiniciar la configuración
   reset() {
     this.config = {};
+    this.modulesConfig = {};
     this.loaded = false;
     console.log('ConfigManager: Configuración reiniciada');
   }
