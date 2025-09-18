@@ -1,19 +1,11 @@
 {
-  "core": {
-    "name": "Core Module",
-    "description": "Módulo principal del sistema",
-    "version": "1.0.0",
-    "dependencies": [],
-    "enabled": true,
-    "priority": 1
-  },
   "css": {
     "name": "CSS App",
     "description": "App de estilos CSS del sistema",
     "version": "1.0.0",
     "dependencies": ["core"],
     "enabled": true,
-    "priority": 2
+    "priority": 4
   },
   "ui": {
     "name": "UI App",
@@ -21,7 +13,7 @@
     "version": "1.0.0",
     "dependencies": ["core", "css"],
     "enabled": true,
-    "priority": 3
+    "priority": 1
   },
   "storage": {
     "name": "Storage App",
@@ -29,7 +21,7 @@
     "version": "1.0.0",
     "dependencies": ["core"],
     "enabled": true,
-    "priority": 4
+    "priority": 2
   },
   "network": {
     "name": "Network App",
@@ -37,6 +29,6 @@
     "version": "1.0.0",
     "dependencies": ["core", "storage"],
     "enabled": true,
-    "priority": 5
+    "priority": 3
   }
 }
