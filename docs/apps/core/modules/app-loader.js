@@ -163,6 +163,7 @@ export default class AppLoader {
         height: 1px;
         overflow: hidden;
         z-index: 1;
+        visibility: hidden;
       `;
       
       // Añadir el contenedor al body
@@ -395,10 +396,16 @@ export default class AppLoader {
         const appElement = appData.instance.render();
         console.log(`[DEBUG] AppLoader: Elemento de aplicación obtenido:`, !!appElement);
         
+        // MODIFICACIÓN: Añadir atributo data-app-id para identificar la aplicación
+        appElement.setAttribute('data-app-id', appId);
+        
         // MODIFICACIÓN: Si es una aplicación persistente, añadirla al contenedor persistente
         if (this.persistentApps.includes(appId)) {
           this.persistentAppsContainer.appendChild(appElement);
           console.log(`[DEBUG] AppLoader: Aplicación persistente ${appId} añadida al contenedor persistente`);
+          
+          // Si es una aplicación persistente, mostrarla inmediatamente
+          this.showPersistentApp(appId);
         } else {
           // Limpiar el contenedor principal
           this.appsContainer.innerHTML = '';
@@ -481,8 +488,23 @@ export default class AppLoader {
       // Mover la aplicación al contenedor principal
       this.appsContainer.appendChild(appElement);
       console.log(`[DEBUG] AppLoader: Aplicación persistente ${appId} movida al contenedor principal`);
+      
+      // Forzar que la aplicación sea visible
+      appElement.style.display = '';
+      appElement.style.visibility = 'visible';
+      appElement.style.opacity = '1';
     } else {
       console.log(`[DEBUG] AppLoader: No se encontró el elemento de la aplicación persistente ${appId}`);
+      
+      // Si no se encuentra el elemento, intentar renderizarlo nuevamente
+      const appData = this.activeApps.get(appId);
+      if (appData && typeof appData.instance.render === 'function') {
+        console.log(`[DEBUG] AppLoader: Renderizando nuevamente la aplicación persistente ${appId}`);
+        const newAppElement = appData.instance.render();
+        newAppElement.setAttribute('data-app-id', appId);
+        this.appsContainer.appendChild(newAppElement);
+        console.log(`[DEBUG] AppLoader: Aplicación persistente ${appId} renderizada nuevamente en el contenedor principal`);
+      }
     }
     
     // Notificar a la aplicación que se está mostrando
