@@ -44,8 +44,12 @@ export default class AppLoader {
     }
     
     try {
-      // Inicializar el sistema bootstrap
+      // Inicializar el sistema bootstrap con el EventBus existente
       this.systemBootstrap = new SystemBootstrap();
+      
+      // Pasar el EventBus existente al SystemBootstrap antes de inicializar
+      this.systemBootstrap.eventBus = this.eventBus;
+      
       await this.systemBootstrap.init();
       
       // Configurar manejadores de eventos para compatibilidad
@@ -75,7 +79,7 @@ export default class AppLoader {
     });
     
     this.eventBus.on('app:deactivate', (data) => {
-      console.log('AppLoader: Evento app:deactivate recibido (compatibilidad):', data);
+      console.log('[DEBUG] AppLoader: Evento app:deactivate recibido (compatibilidad):', data);
       if (window.AppRegistry) {
         window.AppRegistry.deactivateApp(data.appId);
       }
