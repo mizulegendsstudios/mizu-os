@@ -31,7 +31,7 @@
 
 import { ConfigManager } from './configManager.js';
 import { StyleEngine } from './styleEngine.js';
-import { AppLoader } from './appLoader.js';
+import AppLoader from './appLoader.js'; // CORREGIDO: Importación por defecto
 import { DependencyManager } from './dependencyManager.js';
 import { ErrorHandler } from './errorHandler.js';
 
