@@ -18,7 +18,6 @@
 
 /**
  * Cargador dinámico de aplicaciones para Mizu OS
- * //docs/apps/core/appLoader.js
  */
 class AppLoader {
   constructor() {
@@ -65,7 +64,8 @@ class AppLoader {
     
     try {
       // Obtener la configuración de aplicaciones desde el ConfigManager
-      const config = window.configManager.getConfig('modules');
+      // CORREGIDO: Usar el método correcto del ConfigManager
+      const config = window.configManager.get('modules');
       
       if (!config) {
         throw new Error('No se encontró la configuración de aplicaciones');
