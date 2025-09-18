@@ -5,15 +5,15 @@
     "version": "1.0.0",
     "dependencies": [],
     "enabled": true,
-    "priority": 4
+    "priority": 1
   },
   "ui": {
     "name": "UI App",
     "description": "App de interfaz de usuario",
     "version": "1.0.0",
-    "dependencies": [],
+    "dependencies": ["css"],
     "enabled": true,
-    "priority": 1
+    "priority": 2
   },
   "storage": {
     "name": "Storage App",
@@ -21,7 +21,7 @@
     "version": "1.0.0",
     "dependencies": [],
     "enabled": true,
-    "priority": 2
+    "priority": 3
   },
   "network": {
     "name": "Network App",
@@ -29,6 +29,6 @@
     "version": "1.0.0",
     "dependencies": ["storage"],
     "enabled": true,
-    "priority": 3
+    "priority": 4
   }
 }
