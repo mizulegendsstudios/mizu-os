@@ -1,0 +1,22 @@
+docs/
+├── index.html
+├── config/
+│   ├── system.json
+│   └── modules.json
+└── apps/
+    ├── core/
+    │   ├── bootstrap.js
+    │   ├── bootSequence.js
+    │   ├── configManager.js
+    │   ├── dependencyManager.js
+    │   ├── errorHandler.js
+    │   ├── appLoader.js
+    │   └── styleEngine.js
+    ├── css/
+    │   └── cssManager.js
+    ├── ui/
+    │   └── ui.js
+    ├── storage/
+    │   └── storage.js
+    └── network/
+        └── network.js
