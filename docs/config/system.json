@@ -1,0 +1,59 @@
+{
+  "version": "3.0.1",
+  "debug": false,
+  "modules": [
+    "core",
+    "ui",
+    "storage",
+    "network"
+  ],
+  "settings": {
+    "theme": "light",
+    "language": "es",
+    "timezone": "America/Mexico_City",
+    "dateFormat": "DD/MM/YYYY",
+    "timeFormat": "24h",
+    "animations": true,
+    "notifications": true,
+    "autoSave": true,
+    "autoSaveInterval": 30000
+  },
+  "features": {
+    "darkMode": true,
+    "offlineMode": true,
+    "pwa": true,
+    "voiceControl": false,
+    "gestureControl": false
+  },
+  "paths": {
+    "modules": "./apps/modules/",
+    "assets": "./assets/",
+    "themes": "./themes/",
+    "fonts": "./assets/fonts/"
+  },
+  "security": {
+    "corsEnabled": true,
+    "contentSecurityPolicy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';",
+    "sanitizeInput": true
+  },
+  "performance": {
+    "lazyLoading": true,
+    "cacheEnabled": true,
+    "cacheTTL": 3600000,
+    "maxConcurrentRequests": 6
+  },
+  "ui": {
+    "defaultLayout": "desktop",
+    "responsiveBreakpoints": {
+      "mobile": 768,
+      "tablet": 1024,
+      "desktop": 1200
+    },
+    "components": {
+      "header": true,
+      "sidebar": true,
+      "footer": true,
+      "notifications": true
+    }
+  }
+}
