@@ -28,14 +28,14 @@ import AppOptimizer from './app-optimizer.js';
 import { LoaderFactory } from './app-specialized-loaders.js';
 
 export default class SystemBootstrap {
-  constructor() {
-    this.eventBus = null;
+  constructor(eventBus = null) {
+    this.eventBus = eventBus;
     this.appRegistry = null;
     this.containerManager = null;
     this.appOptimizer = null;
     this.initialized = false;
     
-    console.log('[DEBUG] SystemBootstrap: Constructor llamado');
+    console.log('[DEBUG] SystemBootstrap: Constructor llamado con EventBus:', !!eventBus);
   }
   
   /**
@@ -87,7 +87,11 @@ export default class SystemBootstrap {
   async initializeEventBus() {
     console.log('SystemBootstrap: Inicializando EventBus');
     
-    this.eventBus = new EventBus();
+    // Si no hay un EventBus asignado, crear uno nuevo
+    if (!this.eventBus) {
+      this.eventBus = new EventBus();
+    }
+    
     await this.eventBus.init();
     
     console.log('✅ SystemBootstrap: EventBus inicializado');
