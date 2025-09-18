@@ -1,32 +1,6 @@
 {
-  "ui": {
-    "name": "UI App",
-    "description": "App de interfaz de usuario",
-    "version": "1.0.0",
-    "dependencies": [],
-    "enabled": true,
-    "priority": 1
-  },
-  "storage": {
-    "name": "Storage App",
-    "description": "App de almacenamiento local",
-    "version": "1.0.0",
-    "dependencies": [],
-    "enabled": true,
-    "priority": 2
-  },
-  "network": {
-    "name": "Network App",
-    "description": "App de comunicaciones de red",
-    "version": "1.0.0",
-    "dependencies": ["storage"],
-    "enabled": true,
-    "priority": 3
-  },
-  "music": {
-    "name": "Music App",
-    "dependencies": ["ui"],
-    "enabled": true,
-    "priority": 4
-  }
+  "ui": "./apps/ui/ui.json",
+  "storage": "./apps/storage/storage.json",
+  "network": "./apps/network/network.json",
+  "music": "./apps/music/music.json"
 }
