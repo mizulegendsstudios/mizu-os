@@ -1,11 +1,12 @@
 # 🌐 Mizu OS - Entorno de productividad multimodal en la nube
 
-    “Sistema operativo web nativo construido con JavaScript puro, HTML5 y CSS3. Diseñado para ejecutar aplicaciones productivas directamente en el navegador, sin frameworks, sin dependencias, 100% en la nube".
+> "Sistema operativo web nativo construido con JavaScript puro, HTML5 y CSS3. Diseñado para ejecutar aplicaciones productivas directamente en el navegador, sin frameworks, sin dependencias, 100% en la nube".
 
 ![Versión](https://img.shields.io/badge/versión-3.0.1-green)
 ![Licencia](https://img.shields.io/badge/licencia-AGPL--3.0-blue)
 ![Tecnología](https://img.shields.io/badge/tecnología-Vanilla_JS_CSS_HTML-purple)
-![Estado](https://img.shields.io/badge/status/alpha-orange)
+![Estado](https://img.shields.io/badge/status/beta-orange)
+![Arquitectura](https://img.shields.io/badge/arquitectura-h%C3%ADbrida_descentralizada-blueviolet)
 
 ---
 
@@ -19,29 +20,70 @@
 
 Mizu OS es un sistema operativo web modular diseñado con prioridad absoluta en **compatibilidad**, **rendimiento** y **simplicidad técnica** para integrar múltiples aplicaciones productivas en una interfaz unificada y coherente. 
 
+La versión 3.0.1 introduce una arquitectura **híbrida-descentralizada** que elimina cuellos de botella y permite que las aplicaciones se auto-registren en el sistema.
+
 ---
 
 ### 📱 Apps / Roadmap
 
-| App         | Estado   | Notas clave                                                     |
-| ----------- | -------- | --------------------------------------------------------------- |
-| 📊 Diagramas   | ✅ Alpha  | Nodos + puertos anclados, líneas sin SVG, conexiones divisibles |
-| 📋 Texto       | ✅ Alpha  | Procesador de texto con formato plano, Markdown, WYSIWYG.       |
-| 📈 Tablas      | ✅ Alpha  | Tablas dinámicas + fórmulas matematicas, export CSV             |
-| 🎧 Reproductor | ✅ Alpha  | Audio + listas + visualizador de onda en tiempo real            |
-| 🎨 Gráficos 2D | 🚧 Plan  | Manipulación de imágenes y vectores por capas, PNG/SVG export    |
-| 🧊 Editor 3D   | 🚧 Plan  | modelado básico, rotación, iluminación, exportación OBJ          |
+| App           | Estado   | Notas clave                                                     |
+| ------------- | -------- | --------------------------------------------------------------- |
+| 🎵 Reproductor | ✅ Beta   | Reproduce links de YouTube y archivos locales con controles persistentes |
+| 📊 Diagramas   | 🚧 Plan   | Nodos + puertos anclados, líneas sin SVG, conexiones divisibles |
+| 📋 Editor      | 🚧 Plan   | Procesador de texto con formato plano, Markdown, WYSIWYG.       |
+| 📈 Hojas de Cálculo | 🚧 Plan  | Tablas dinámicas + fórmulas matemáticas, export CSV             |
+| ⚙️ Configuración | 🚧 Plan   | Sistema de configuración centralizado                           |
+| 🔍 Rendimiento | ✅ Beta   | Detección de capacidades y optimización automática               |
+| 🖼️ Fondos      | 🚧 Plan   | Gestor de fondos de pantalla (video, imagen, gradiente)         |
+| 👤 Cuentas     | 🚧 Plan   | Sistema de cuentas y perfiles de usuario                        |
+| 🔒 Privacidad   | 🚧 Plan   | Términos y política de privacidad                               |
+| 🔋 Energía      | 🚧 Plan   | Monitor de consumo y modo de bajo consumo                        |
 
 ---
 
-## 🏗️ Arquitectura Técnica
+## 🏗️ Arquitectura Técnica (v3.0.1)
 ### Principios Fundamentales
 
     ✅ Zero Dependencies: Solo HTML/CSS/JavaScript vanilla. Sin frameworks, sin Tailwind, sin SVG añadido.
     ✅ Cloud-Native: Ejecución 100% en navegador (GitHub Pages + jsDelivr) — sin build, sin bundlers, sin node_modules, sin servidores locales.
     ✅ Compatibilidad First: Sin breaking changes
-    ✅ Extensible por diseño: cada app es un módulo independiente.
+    ✅ Arquitectura Híbrida-Descentralizada: Eliminación de cuellos de botella mediante auto-registro de aplicaciones.
+    ✅ Extensible por diseño: cada app es un módulo independiente con su propio bootstrap.
     ✅ Licencia libre: GNU AGPL-3.0 — cualquier modificación públicada en la red debe compartirse la fuente.
+
+### 🔄 Nueva Arquitectura Descentralizada (v3.0.1)
+
+A partir de la versión 3.0.1, Mizu OS ha evolucionado de una arquitectura centralizada a una **arquitectura híbrida-descentralizada**:
+```text
+Antigua (Centralizada):
+index.html → appcore.js → app-loader.js (cuello de botella) → Apps 
+
+Nueva (Descentralizada):
+index.html → appcore.js → SystemBootstrap → AppRegistry → Apps (auto-registradas)
+                       │
+                       ├── EventBus (comunicación)
+                       ├── AppContainerManager (UI)
+                       ├── AppOptimizer (rendimiento)
+                       └── LoaderFactory (carga especializada) 
+```
+ 
+**Ventajas de la nueva arquitectura:**
+- ✅ **Descentralización real**: Cada aplicación gestiona su propio registro
+- ✅ **Eliminación del cuello de botella**: No más app-loader.js monolítico
+- ✅ **Carga bajo demanda**: Solo se carga lo necesario
+- ✅ **Escalabilidad**: Fácil añadir nuevos tipos de aplicaciones
+- ✅ **Mantenibilidad**: Loaders especializados por tipo
+- ✅ **Resiliencia**: Fallos aislados no colapsan el sistema
+
+### 📦 Stack Tecnológico
+```text
+// Tecnologías principales
+- ES6+ JavaScript (módulos nativos)
+- CSS3 con Custom Properties
+- HTML5 APIs (Canvas, WebAudio, etc.)
+
+// Estructura de módulos descentralizados
+Mizu OS → Core Framework → [AppRegistry, EventBus, ContainerManager, Optimizer] → Apps
 
 ### 📦 Stack Tecnológico
     // Tecnologías principales
@@ -51,40 +93,53 @@ Mizu OS es un sistema operativo web modular diseñado con prioridad absoluta en 
 
     // Estructura de módulos
     Mizu OS → Core Framework → [Diagramas, Texto, Tablas, Media, Gráficos, 3D]
+```
 ---
 
 ## 🗂️ Estructura del Proyecto
 ```text
 main/
-├─ LICENSE                         # GNU AGPL-3.0
+├─ LICENSE                                     # GNU AGPL-3.0
 │  ├─ docs/
-│  ├─ index.html                   # Entry-point
-│  ├─ apps/                        # Módulos
-│  │  ├─ core/                        # Motor
-│  │  │  ├─ assets/                   # video, imágenes
-│  │  │  ├─ js/
-│  │  │  │   ├── js/core.js           # Orquestador
-│  │  │  │   ├── js/loading.js        # Pantalla carga
-│  │  │  │   ├── js/monitor_axis.js   # Mouse/viewport
-│  │  │  │   ├── js/monitor_bars.js   # Auto-hide barras
-│  │  │  ├─ css/
-│  │  │  │   │   └── css/core.css     # Layout fijo (5 rem barras)
-│  │  │  └─ json/│  │  ├─ diagram/
-│  │  │  │   ├── js/
-│  │  │  │   │   ├── nodos.js         # Nodos tradicionales
-│  │  │  │   │   ├── nodos-puertos.js # Contenedores + 4 puertos
-│  │  │  │   │   └── drawlines.js     # Dibuja líneas con <div>
-│  │  │  │   └── css/
-│  │  │  │       └── nodos.css        # Estilos nodos y conexiones
-│  │  ├─ text/                     # (Próximo) Plantilla app
-│  │  ├─ table/                    # (Próximo) Plantilla app
-│  ├─ .nojekyll                       # -
-│  ├─ readme.md                    # -
-│  ├─ favicon.ico                  # -
-│  ├─ contribution.md              # Guía de contribución
-│  ├─ contribution.md              # Guía de contribución
-│  └─ architecture.md              # Documentación técnica
-└─ .gitignore                      # -
+│  │  ├─ index.html                            # Entry-point
+│  │  ├─ apps/                                 # Módulos de aplicaciones
+│  │  │  ├─ core/                              # Motor del sistema
+│  │  │  │  ├─ modules/                        # Módulos descentralizados
+│  │  │  │  │  ├── eventbus.js                 # Sistema de comunicación
+│  │  │  │  │  ├── app-registry.js             # Registro de aplicaciones
+│  │  │  │  │  ├── app-container-manager.js    # Gestor de contenedores
+│  │  │  │  │  ├── app-loader-base.js          # Clase base para loaders
+│  │  │  │  │  ├── app-specialized-loaders.js  # Loaders especializados
+│  │  │  │  │  ├── app-optimizer.js            # Optimizador del sistema
+│  │  │  │  │  ├── system-bootstrap.js         # Inicializador del sistema
+│  │  │  │  │  ├── css.js                      # Gestor de estilos
+│  │  │  │  │  ├── config.js                   # Configuración
+│  │  │  │  │  ├── status-widget.js            # Widgets de estado
+│  │  │  │  │  └── system-ui.js                # UI del sistema
+│  │  │  │  ├─ core.js                         # Orquestador principal
+│  │  │  │  └─ assets/                         # Recursos del sistema
+│  │  │  ├─ music/                             # Aplicación de música
+│  │  │  │  ├── manifest.json                  # Manifiesto de la app
+│  │  │  │  ├── appcore.js                     # Lógica de la app
+│  │  │  │  └── bootstrap.js                   # Auto-registro en el sistema
+│  │  │  ├─ performance/                       # Aplicación de rendimiento
+│  │  │  │  ├── manifest.json
+│  │  │  │  ├── appcore.js
+│  │  │  │  └── bootstrap.js
+│  │  │  ├─ diagram/                           # (Próximo) Aplicación de diagramas
+│  │  │  ├─ editor/                            # (Próximo) Editor de texto
+│  │  │  ├─ spreadsheet/                       # (Próximo) Hojas de cálculo
+│  │  │  ├─ settings/                          # (Próximo) Configuración
+│  │  │  ├─ wallpaper/                         # (Próximo) Gestor de fondos
+│  │  │  ├─ accounts/                          # (Próximo) Sistema de cuentas
+│  │  │  ├─ privacy/                           # (Próximo) Privacidad
+│  │  │  └─ energy/                            # (Próximo) Monitor de energía
+│  ├─ .nojekyll                                # -
+│  ├─ readme.md                                # Este archivo
+│  ├─ favicon.ico                              # -
+│  ├─ contribution.md                          # Guía de contribución
+│  └─ architecture.md                          # Documentación técnica
+└─ .gitignore                                  # -
 ```
 
 ---
@@ -92,41 +147,72 @@ main/
 ## 🎯 Características técnicas actuales (v3.0.1)
 ### ✅ Implementado
 
-**CORE**
+**SISTEMA DESCENTRALIZADO**
+       
+    - 🔄 Arquitectura híbrida-descentralizada con auto-registro de aplicaciones.
+    - 📦 AppRegistry: Sistema de registro y descubrimiento de aplicaciones.
+    - 🗂️ AppContainerManager: Gestión de contenedores para aplicaciones principales y persistentes.
+    - ⚡ LoaderFactory: Loaders especializados por tipo de aplicación (web, persistente, widget, servicio, sistema).
+    - 🔧 AppOptimizer: Sistema de optimización automática basada en capacidades del dispositivo.
+    - 📡 EventBus: Sistema de comunicación entre componentes desacoplado.
+    - 🚀 SystemBootstrap: Inicializador del sistema que coordina todos los módulos.
 
-    - 🖼️ Fondo de video inmersivo.
+**CORE**
+    
+    - 🖼️ Fondo de video inmersivo con optimización automática para dispositivos de gama baja.
     - 🖱️ Monitor de coordenadas y viewport en tiempo real.
     - 🎚️ Barras superior y lateral con ocultamiento automático tras 5s de inactividad.
-    - ✨ Efectos de transparencia, blur y sombras (estilo “glassmorphism”).
-    - 📦 Estructura modular: `core/`, `apps/`, `assets/`.
+    - ✨ Efectos de transparencia, blur y sombras (estilo "glassmorphism").
     - 🧊 Cubo holográfico 3D: Rotación continua en esquina superior izquierda.
     - 🔧 Área de trabajo expandible: Se agranda al ocultar las barras laterales.
+    - 📊 Widgets de estado: Reloj, batería, WiFi, volumen.
+    - 🎯 Detección automática de capacidades del dispositivo y optimización.
 
-**APP/DIAGRAM**
+**APP/MÚSICA**
 
-    - ➕ Sistema de nodos interactivos:
-      - Arrastrables.
-      - Íconos cambiables con doble clic.
-      - Conexiones con flechas (sin SVG, solo <div> y CSS).
-      - Eliminación de conexiones con clic derecho.
-    - 🔄 Conexiones dibujadas con `div` + CSS (sin SVG, compatible con zoom/pan futuro).
+    - 🎵 Reproductor con soporte para YouTube, SoundCloud, Mixcloud y archivos locales.
+    - 📝 Playlist con gestión completa (añadir, eliminar, reordenar).
+    - 🎛️ Controles persistentes (no se cierran al cambiar de aplicación).
+    - 🔄 Carga automática de pista por defecto (Mare - Mizu OS Theme).
+    - 👁️ Sistema de visibilidad (ocultar/mostrar sin destruir).
+    - 📱 Interfaz totalmente responsiva.
 
-### 🔄 En Desarrollo
-**CORE**
+**APP/RENDIMIENTO**
 
-    - [ ] Crear plantilla base para nuevas apps (`app-template.js`, `app-template.css`).
-    - [ ] Implementar sistema de persistencia (localStorage → luego IndexedDB).
+    - 📊 Diagnóstico completo del dispositivo (FPS, RAM, rendimiento).
+    - ⚡ Recomendaciones automáticas de optimización.
+    - 🔧 Modos predefinidos (gama baja, ahorro de batería, TV).
+    - 📈 Monitoreo en tiempo real de recursos del sistema.
 
-**APP/DIAGRAM**
-    
-    - [ ] Integrar zoom/pan sin conflictos con arrastre de nodos/puertos.
-    - [ ] Nuevo sistema de contenedores con puertos anclados.
+### 🔄 En Desarrollo 
 
+**SISTEMA**
+
+    - [ ] Navegación por teclado para Smart TVs.
+    - [ ] Sistema de persistencia mejorado (IndexedDB).
+    - [ ] Gestor de actualizaciones del sistema.
+
+**APLICACIONES**
+
+    - [ ] Diagramas: Sistema de nodos interactivos.
+    - [ ] Editor: Procesador de texto multi-formato.
+    - [ ] Hojas de Cálculo: Tablas dinámicas con fórmulas.
+    - [ ] Configuración: Panel centralizado de opciones.
+    - [ ] Fondos: Gestor de wallpapers dinámicos.
+    - [ ] Cuentas: Sistema de perfiles de usuario.
+    - [ ] Privacidad: Términos y políticas.
+    - [ ] Energía: Monitor de consumo.
 ---
+## 📜 Licencia 
+
+Este proyecto está bajo GNU Affero General Public License v3.0 — Usa, modifica y redistribuye libremente. Al redistribuir o ejecutar como servicio en red, mantén créditos, ofrece el código fuente y usa la misma licencia. ver [LICENSE](./LICENSE) para detalles completos.
+
+    "Si usas este software en un servidor público, debes ofrecer el código fuente modificado a los usuarios."
+
 Copyright / COPYING
 
     Mizu OS - Sistema operativo visual modular en la nube  
-    Copyright (C) 2024  Mizu Legends Studios  
+    Copyright (C) 2025  Mizu Legends Studios  
 
     This program is free software: you can redistribute it and/or modify  
     it under the terms of the GNU Affero General Public License as published by  
@@ -145,14 +231,6 @@ Copyright / COPYING
     1. Static assets (images, videos, fonts) may be served via public CDN.  
     2. The copyright notice must remain visible in the interface footer.  
     3. Modified versions must display “Based on Mizu OS” in the about dialog.  
-
----
-
-## 📜 Licencia 
-
-Este proyecto está bajo GNU Affero General Public License v3.0 — Usa, modifica y redistribuye libremente. Al redistribuir o ejecutar como servicio en red, mantén créditos, ofrece el código fuente y usa la misma licencia. ver [LICENSE](./LICENSE) para detalles completos.
-
-    "Si usas este software en un servidor público, debes ofrecer el código fuente modificado a los usuarios."
 
 ### Derechos y Obligaciones
 
@@ -217,10 +295,113 @@ Este proyecto está bajo GNU Affero General Public License v3.0 — Usa, modific
 
 ### Guía para Nuevas Aplicaciones
     
+**Estructura**
+
     apps/mi-app/
-    ├── css/mi-app.css
-    ├── js/mi-app.js
-    └── assets/
+    ├── manifest.json      # Metadatos de la aplicación
+    ├── appcore.js        # Lógica principal de la aplicación
+    └── bootstrap.js      # Auto-registro en el sistema
+
+**Manifiesto**
+```json
+{
+  "name": "Mi Aplicación",
+  "version": "1.0.0",
+  "description": "Descripción de mi aplicación",
+  "icon": "📱",
+  "entry": "appcore.js",
+  "type": "web-app",  // web-app, persistent, widget, service, system
+  "styles": [],
+  "scripts": [],
+  "permissions": [],
+  "dependencies": [],
+  "author": "Mizu Legends Studios",
+  "license": "GNU AGPL-3.0"
+}
+```
+**Bootstrap**
+```javascript
+/*
+ * Mizu OS - Mi App Bootstrap
+ * Copyright (C) 2025 Mizu Legends Studios.
+ */
+
+// Función autoejecutable para registrar la aplicación
+(async function() {
+  // Esperar a que el sistema esté disponible
+  const waitForSystem = () => {
+    return new Promise((resolve) => {
+      if (window.AppRegistry && window.LoaderFactory) {
+        resolve();
+      } else {
+        setTimeout(waitForSystem, 100);
+      }
+    });
+  };
+  
+  try {
+    await waitForSystem();
+    
+    // Importar la clase de la aplicación
+    const { default: MyApp } = await import('./appcore.js');
+    
+    // Obtener el loader adecuado para el tipo de aplicación
+    const loader = window.LoaderFactory.getLoader('web-app', window.EventBus);
+    
+    // Registrar la aplicación en el sistema
+    const success = await window.AppRegistry.registerApp(
+      'my-app', 
+      './apps/my-app/manifest.json', 
+      loader.constructor
+    );
+    
+    if (success) {
+      console.log('✅ Mi App: Registrada correctamente');
+    }
+  } catch (error) {
+    console.error('❌ Mi App Bootstrap: Error:', error);
+  }
+})();
+```
+
+**Appcore**
+```javascript
+/*
+ * Mizu OS - Mi App
+ * Copyright (C) 2025 Mizu Legends Studios.
+ */
+
+export default class MyApp {
+  constructor(eventBus) {
+    this.eventBus = eventBus;
+    this.panel = null;
+    this.isVisible = true;
+  }
+  
+  async init() {
+    console.log('MyApp: Inicializando');
+    return Promise.resolve();
+  }
+  
+  render() {
+    // Crear y retornar el elemento DOM principal
+    this.panel = document.createElement('div');
+    this.panel.className = 'my-app-panel';
+    // ... contenido de la aplicación
+    return this.panel;
+  }
+  
+  toggleVisibility(data) {
+    // Manejar visibilidad (para apps persistentes)
+    if (data && data.hide) {
+      this.isVisible = false;
+    } else {
+      this.isVisible = !this.isVisible;
+    }
+    this.panel.style.display = this.isVisible ? 'flex' : 'none';
+  }
+}
+```
 ---
 
 ## 🌐 Soporte y Comunidad
