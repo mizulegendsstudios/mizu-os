@@ -22,11 +22,12 @@
  * // apps/core/modules/app-container-manager.js
  */
 export default class AppContainerManager {
-  constructor() {
+  constructor(eventBus) {
     this.mainContainer = null;
     this.persistentContainer = null;
+    this.eventBus = eventBus;
     
-    console.log('[DEBUG] AppContainerManager: Constructor llamado');
+    console.log('[DEBUG] AppContainerManager: Constructor llamado con EventBus:', !!eventBus);
   }
   
   /**
@@ -185,6 +186,9 @@ export default class AppContainerManager {
     const container = this.getMainContainer();
     container.appendChild(element);
     console.log('AppContainerManager: Elemento movido al contenedor principal');
+    
+    // Notificar a la aplicación sobre el cambio de contenedor
+    this.notifyContainerChange(element, 'main');
   }
   
   /**
@@ -195,6 +199,9 @@ export default class AppContainerManager {
     const container = this.getPersistentContainer();
     container.appendChild(element);
     console.log('AppContainerManager: Elemento movido al contenedor persistente');
+    
+    // Notificar a la aplicación sobre el cambio de contenedor
+    this.notifyContainerChange(element, 'persistent');
   }
   
   /**
@@ -235,6 +242,9 @@ export default class AppContainerManager {
       element.style.visibility = 'visible';
       element.style.opacity = '1';
       console.log('AppContainerManager: Elemento de aplicación hecho visible');
+      
+      // Notificar a la aplicación sobre el cambio de visibilidad
+      this.notifyVisibilityChange(element, true);
     }
   }
   
@@ -248,6 +258,49 @@ export default class AppContainerManager {
       element.style.visibility = 'hidden';
       element.style.opacity = '0';
       console.log('AppContainerManager: Elemento de aplicación ocultado');
+      
+      // Notificar a la aplicación sobre el cambio de visibilidad
+      this.notifyVisibilityChange(element, false);
+    }
+  }
+  
+  /**
+   * Notifica a una aplicación sobre un cambio de visibilidad
+   * @param {HTMLElement} element - Elemento de la aplicación
+   * @param {boolean} isVisible - Nuevo estado de visibilidad
+   */
+  notifyVisibilityChange(element, isVisible) {
+    if (!this.eventBus || !element) return;
+    
+    const appId = element.getAttribute('data-app-id');
+    if (appId) {
+      console.log(`[DEBUG] AppContainerManager: Notificando cambio de visibilidad para ${appId}: ${isVisible}`);
+      
+      this.eventBus.emit('app:visibility-changed', {
+        appId: appId,
+        isVisible: isVisible,
+        timestamp: Date.now()
+      });
+    }
+  }
+  
+  /**
+   * Notifica a una aplicación sobre un cambio de contenedor
+   * @param {HTMLElement} element - Elemento de la aplicación
+   * @param {string} containerType - Tipo de contenedor ('main' o 'persistent')
+   */
+  notifyContainerChange(element, containerType) {
+    if (!this.eventBus || !element) return;
+    
+    const appId = element.getAttribute('data-app-id');
+    if (appId) {
+      console.log(`[DEBUG] AppContainerManager: Notificando cambio de contenedor para ${appId}: ${containerType}`);
+      
+      this.eventBus.emit('app:container-changed', {
+        appId: appId,
+        containerType: containerType,
+        timestamp: Date.now()
+      });
     }
   }
   
