@@ -22,5 +22,11 @@
     "dependencies": ["storage"],
     "enabled": true,
     "priority": 3
+  },
+  "music": {
+    "name": "Music App",
+    "dependencies": ["ui"],
+    "enabled": true,
+    "priority": 4
   }
 }
