@@ -81,7 +81,7 @@ export default class Core {
       // Inicializar widgets de estado ANTES de SystemUI
       console.log('[DEBUG] Core: Inicializando StatusWidget');
       this.modules.statusWidget = new StatusWidget(this.modules.eventBus);
-      this.modules.statusWidget.init();
+      await this.modules.statusWidget.init();
       
       // Inicializar interfaz de usuario DESPUÉS de los widgets
       console.log('[DEBUG] Core: Inicializando SystemUI');
@@ -91,7 +91,7 @@ export default class Core {
       // Inicializar cargador de aplicaciones DESPUÉS de la interfaz de usuario
       console.log('[DEBUG] Core: Inicializando AppLoader');
       this.modules.appLoader = new AppLoader(this.modules.eventBus);
-      this.modules.appLoader.init();
+      await this.modules.appLoader.init();
       
       this.initialized = true;
       console.log('[DEBUG] Core: Sistema inicializado correctamente');
