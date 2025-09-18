@@ -16,6 +16,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { PluginManager } from './pluginManager.js';
+
 /**
  * Cargador dinámico de aplicaciones para Mizu OS
  */
@@ -33,9 +35,9 @@ class AppLoader {
       };
     }
     
-    this.apps = {};
-    this.loadedApps = new Set();
+    this.apps = new Map();
     this.appConfigs = null;
+    this.pluginManager = new PluginManager();
   }
 
   /**
@@ -63,15 +65,35 @@ class AppLoader {
     console.log('AppLoader: Cargando configuración de apps...');
     
     try {
-      // Obtener la configuración de aplicaciones desde el ConfigManager
-      // CORREGIDO: Usar el método correcto del ConfigManager
-      const config = window.configManager.get('modules');
+      // Obtener la lista de módulos desde el ConfigManager
+      const modulesList = window.configManager.get('modules');
       
-      if (!config) {
-        throw new Error('No se encontró la configuración de aplicaciones');
+      if (!modulesList) {
+        throw new Error('No se encontró la lista de módulos');
       }
       
-      this.appConfigs = config;
+      this.appConfigs = {};
+      
+      // Cargar la configuración de cada módulo
+      for (const [moduleId, configPath] of Object.entries(modulesList)) {
+        try {
+          const response = await fetch(configPath);
+          if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+          }
+          const moduleConfig = await response.json();
+          
+          // Validar configuración
+          this.validateAppConfig(moduleId, moduleConfig);
+          
+          this.appConfigs[moduleId] = moduleConfig;
+          console.log(`AppLoader: Configuración cargada para ${moduleId}`);
+        } catch (error) {
+          console.error(`AppLoader: Error cargando configuración para ${moduleId}:`, error);
+          // Continuar con el siguiente módulo
+        }
+      }
+      
       console.log('AppLoader: Configuración de apps cargada');
       
       // Determinar el orden de carga basado en prioridades y dependencias
@@ -82,6 +104,30 @@ class AppLoader {
       console.error('AppLoader: Error cargando configuración de apps:', error);
       throw error;
     }
+  }
+  
+  /**
+   * Valida la configuración de una aplicación
+   */
+  validateAppConfig(moduleId, config) {
+    const requiredFields = ['name', 'enabled', 'priority'];
+    
+    for (const field of requiredFields) {
+      if (config[field] === undefined || config[field] === null) {
+        throw new Error(`Configuración inválida para ${moduleId}: falta el campo '${field}'`);
+      }
+    }
+    
+    // Validar que las dependencias existan
+    if (config.dependencies && Array.isArray(config.dependencies)) {
+      for (const depId of config.dependencies) {
+        if (!this.appConfigs[depId]) {
+          console.warn(`AppLoader: Dependencia '${depId}' no encontrada para la app '${moduleId}'`);
+        }
+      }
+    }
+    
+    return true;
   }
 
   /**
@@ -173,15 +219,15 @@ class AppLoader {
     
     try {
       // Verificar si la aplicación ya está cargada
-      if (this.loadedApps.has(appConfig.id)) {
+      if (this.pluginManager.isLoaded(appConfig.id)) {
         console.log(`AppLoader: App '${appConfig.id}' ya está cargada`);
-        return;
+        return this.pluginManager.getPlugin(appConfig.id);
       }
       
       // Verificar dependencias
       if (appConfig.dependencies && appConfig.dependencies.length > 0) {
         for (const depId of appConfig.dependencies) {
-          if (!this.loadedApps.has(depId)) {
+          if (!this.pluginManager.isLoaded(depId)) {
             console.warn(`AppLoader: Dependencia '${depId}' no está cargada para la app '${appConfig.id}'`);
             // Intentar cargar la dependencia
             const depConfig = this.loadOrder.find(app => app.id === depId);
@@ -198,47 +244,17 @@ class AppLoader {
       
       console.log(`AppLoader: Cargando app '${appConfig.id}'...`);
       
-      // Construir la URL del script de la aplicación
-      const scriptUrl = `apps/${appConfig.id}/${appConfig.id}.js`;
-      
       // Cargar el script de la aplicación
-      const appModule = await this.loadScript(scriptUrl);
+      const appModule = await this.loadScript(appConfig.entryPoint);
       
-      // Inicializar la aplicación si tiene un método init
-      let appInstance = null;
-      if (appModule && typeof appModule.init === 'function') {
-        await appModule.init();
-        appInstance = appModule;
-      } else if (appModule && appModule.default) {
-        // Si es un módulo ES6 con exportación por defecto
-        if (typeof appModule.default.init === 'function') {
-          await appModule.default.init();
-          appInstance = appModule.default;
-        } else {
-          // Si no tiene método init, asumimos que la clase ya se inicializa en el constructor
-          appInstance = new appModule.default();
-        }
-      } else if (appModule && typeof appModule === 'function') {
-        // Si es una función constructora
-        appInstance = new appModule();
-        if (typeof appInstance.init === 'function') {
-          await appInstance.init();
-        }
-      } else {
-        // Si no es un módulo válido, intentar cargarlo como script global
-        appInstance = window[appConfig.id];
-        if (appInstance && typeof appInstance.init === 'function') {
-          await appInstance.init();
-        }
-      }
+      // Registrar el plugin
+      this.pluginManager.register(appConfig.id, appModule.default || appModule);
+      
+      // Cargar el plugin
+      const appInstance = await this.pluginManager.load(appConfig.id);
       
       // Almacenar la instancia de la aplicación
-      if (appInstance) {
-        this.apps[appConfig.id] = appInstance;
-      }
-      
-      // Marcar la aplicación como cargada
-      this.loadedApps.add(appConfig.id);
+      this.apps.set(appConfig.id, appInstance);
       
       console.log(`AppLoader: App '${appConfig.id}' cargada correctamente`);
       
@@ -295,7 +311,7 @@ class AppLoader {
    * @returns {Object} - Instancia de la aplicación
    */
   getApp(appId) {
-    return this.apps[appId];
+    return this.apps.get(appId);
   }
 
   /**
@@ -304,7 +320,7 @@ class AppLoader {
    * @returns {boolean} - True si la aplicación está cargada
    */
   isAppLoaded(appId) {
-    return this.loadedApps.has(appId);
+    return this.pluginManager.isLoaded(appId);
   }
 
   /**
@@ -312,7 +328,7 @@ class AppLoader {
    * @returns {string[]} - Lista de IDs de aplicaciones cargadas
    */
   getLoadedApps() {
-    return Array.from(this.loadedApps);
+    return this.pluginManager.getLoadedPlugins();
   }
 }
 
