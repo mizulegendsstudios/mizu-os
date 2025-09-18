@@ -1,0 +1,10 @@
+{
+  "name": "UI App",
+  "description": "App de interfaz de usuario",
+  "version": "1.0.0",
+  "dependencies": [],
+  "enabled": true,
+  "priority": 1,
+  "entryPoint": "./apps/ui/ui.js",
+  "styles": []
+}
