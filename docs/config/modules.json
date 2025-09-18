@@ -22,13 +22,5 @@
     "dependencies": ["storage"],
     "enabled": true,
     "priority": 3
-  },
-  "music": {
-    "name": "Mizu Music",
-    "description": "App dpara reproducir musica",
-    "version": "1.0.0",
-    "dependencies": [],
-    "enabled": true,
-    "priority": 4
   }
 }
