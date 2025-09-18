@@ -103,8 +103,8 @@ export default class SystemBootstrap {
     this.appRegistry = new AppRegistry(this.eventBus);
     await this.appRegistry.init();
     
-    // Inicializar AppContainerManager
-    this.containerManager = new AppContainerManager();
+    // Inicializar AppContainerManager con EventBus
+    this.containerManager = new AppContainerManager(this.eventBus);
     await this.containerManager.init();
     
     // Inicializar AppOptimizer
