@@ -46,12 +46,12 @@ export class AppLoader {
       // Ordenar las apps por prioridad
       const sortedApps = this.sortAppsByPriority();
       
-      console.log('AppLoader: Orden de carga de apps:', sortedApps.map(app => app.name));
+      console.log('AppLoader: Orden de carga de apps:', sortedApps.map(app => `${app.name} (${app.key})`));
       
       // Cargar cada app en el orden correcto
       for (const appConfig of sortedApps) {
         if (appConfig.enabled) {
-          await this.loadAppWithDependencies(appConfig.name);
+          await this.loadAppWithDependencies(appConfig.key); // Usar la clave, no el nombre
         }
       }
       
@@ -69,8 +69,8 @@ export class AppLoader {
       const modulesConfig = await response.json();
       
       // Almacenar la configuración de cada app
-      for (const [appName, config] of Object.entries(modulesConfig)) {
-        this.appConfigs.set(appName, config);
+      for (const [key, config] of Object.entries(modulesConfig)) {
+        this.appConfigs.set(key, config);
       }
       
       console.log('AppLoader: Configuración de apps cargada');
@@ -83,7 +83,7 @@ export class AppLoader {
   // Ordenar las apps por prioridad
   sortAppsByPriority() {
     return Array.from(this.appConfigs.entries())
-      .map(([name, config]) => ({ name, ...config }))
+      .map(([key, config]) => ({ key, ...config })) // Incluir la clave
       .sort((a, b) => a.priority - b.priority);
   }
 
@@ -105,7 +105,7 @@ export class AppLoader {
       throw new Error(`AppLoader: Configuración no encontrada para la app '${appName}'`);
     }
     
-    console.log(`AppLoader: Cargando app '${appName}' con dependencias:`, appConfig.dependencies || []);
+    console.log(`AppLoader: Cargando app '${appName}' (${appConfig.name}) con dependencias:`, appConfig.dependencies || []);
     
     // Cargar dependencias primero
     if (appConfig.dependencies) {
