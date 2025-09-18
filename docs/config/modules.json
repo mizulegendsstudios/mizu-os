@@ -7,34 +7,36 @@
     "enabled": true,
     "priority": 1
   },
-  "ui": {
-    "name": "UI Module",
-    "description": "Módulo de interfaz de usuario",
+  "css": {
+    "name": "CSS App",
+    "description": "App de estilos CSS del sistema",
     "version": "1.0.0",
     "dependencies": ["core"],
     "enabled": true,
-    "priority": 2,
-    "components": ["header", "sidebar", "main", "footer"]
+    "priority": 2
+  },
+  "ui": {
+    "name": "UI App",
+    "description": "App de interfaz de usuario",
+    "version": "1.0.0",
+    "dependencies": ["core", "css"],
+    "enabled": true,
+    "priority": 3
   },
   "storage": {
-    "name": "Storage Module",
-    "description": "Módulo de almacenamiento local",
+    "name": "Storage App",
+    "description": "App de almacenamiento local",
     "version": "1.0.0",
     "dependencies": ["core"],
     "enabled": true,
-    "priority": 3,
-    "storageTypes": ["localStorage", "sessionStorage", "indexedDB"]
+    "priority": 4
   },
   "network": {
-    "name": "Network Module",
-    "description": "Módulo de comunicaciones de red",
+    "name": "Network App",
+    "description": "App de comunicaciones de red",
     "version": "1.0.0",
     "dependencies": ["core", "storage"],
     "enabled": true,
-    "priority": 4,
-    "endpoints": {
-      "api": "https://api.mizu-os.example.com",
-      "cdn": "https://cdn.mizu-os.example.com"
-    }
+    "priority": 5
   }
 }
