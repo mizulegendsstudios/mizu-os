@@ -1,5 +1,5 @@
 /*
- * Mizu OS - CSS/cssManager
+ * Mizu OS - Apps/CSS
  * Copyright (C) 2025 Mizu Legends Studios
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -18,7 +18,7 @@
 /*
  * App de estilos CSS de Mizu OS
  * Responsable de inyectar dinámicamente los estilos del sistema
- * // docs/apps/css/cssManager.js
+ * // docs/apps/css/css.js
  * Rol: Gestión centralizada de estilos CSS
  * Filosofía: Proporcionar una forma unificada de gestionar los estilos del sistema
  *Principios:
@@ -43,6 +43,9 @@ export default {
     // Inyectar estilos
     this.injectStyles();
     
+    // Configurar eventos para cambios de tema
+    this.setupThemeListeners();
+    
     console.log('CSSApp: App de estilos inicializada correctamente');
   },
   
@@ -55,10 +58,12 @@ export default {
         margin: 0;
         padding: 0;
       }
+      
       html, body {
         height: 100%;
         transition: opacity 2s ease-in;
       }
+      
       body {
         font-family: 'Inter', sans-serif;
         background-color: hsla(0, 0%, 0%, 1);
@@ -289,14 +294,149 @@ export default {
         transition: top 0.5s ease, left 0.5s ease, right 0.5s ease, bottom 0.5s ease;
         overflow: hidden;
       }
+      
+      /* Estilos para modo oscuro */
+      body.dark-mode {
+        background-color: hsla(0, 0%, 10%, 1);
+        color: hsla(0, 0%, 90%, 1);
+      }
+      
+      body.dark-mode .app-button {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      body.dark-mode .app-button:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      
+      /* Estilos para modo claro */
+      body.light-mode {
+        background-color: hsla(0, 0%, 95%, 1);
+        color: hsla(0, 0%, 10%, 1);
+      }
+      
+      body.light-mode #red-bar {
+        background: linear-gradient(180deg,hsla(0, 0%, 100%, 0.9),hsl(0, 0%, 90%, 0.9));
+        color: black;
+      }
+      
+      body.light-mode #blue-bar {
+        background: linear-gradient(90deg,hsla(0, 0%, 100%, 0.9),hsla(0, 0%, 95%, 0));
+      }
+      
+      /* Estilos responsivos */
+      @media (max-width: 768px) {
+        #blue-bar {
+          width: calc(3vw + 2rem);
+        }
+        
+        .app-button {
+          width: 35px;
+          height: 35px;
+        }
+        
+        #red-bar {
+          height: calc(1.5vh + 1rem);
+        }
+      }
+      
+      @media (max-width: 480px) {
+        #blue-bar {
+          width: calc(4vw + 1.5rem);
+        }
+        
+        .app-button {
+          width: 30px;
+          height: 30px;
+        }
+        
+        .status-widget {
+          font-size: 0.7rem;
+        }
+        
+        #red-bar {
+          height: calc(1vh + 1rem);
+        }
+      }
     `;
     
     this.styleElement.innerHTML = styles;
-    console.log('Estilos inyectados correctamente');s
+    console.log('CSSApp: Estilos inyectados correctamente');
+  },
+  
+  setupThemeListeners() {
+    console.log('CSSApp: Configurando listeners de tema...');
+    
+    // Escuchar cambios de tema
+    document.addEventListener('theme-changed', (event) => {
+      this.applyTheme(event.detail.theme);
+    });
+    
+    console.log('CSSApp: Listeners de tema configurados');
+  },
+  
+  applyTheme(theme) {
+    console.log(`CSSApp: Aplicando tema '${theme}'`);
+    
+    // Eliminar clases de tema existentes
+    document.body.classList.remove('light-mode', 'dark-mode');
+    
+    // Aplicar nueva clase de tema
+    if (theme === 'light' || theme === 'dark') {
+      document.body.classList.add(`${theme}-mode`);
+    }
+    
+    // Guardar preferencia de tema
+    try {
+      localStorage.setItem('mizu-os-theme', theme);
+    } catch (error) {
+      console.warn('CSSApp: No se pudo guardar la preferencia de tema:', error);
+    }
+  },
+  
+  loadSavedTheme() {
+    console.log('CSSApp: Cargando tema guardado...');
+    
+    try {
+      const savedTheme = localStorage.getItem('mizu-os-theme') || 'dark';
+      this.applyTheme(savedTheme);
+      
+      // Disparar evento para notificar a otras apps
+      document.dispatchEvent(new CustomEvent('theme-changed', {
+        detail: { theme: savedTheme }
+      }));
+    } catch (error) {
+      console.warn('CSSApp: No se pudo cargar el tema guardado:', error);
+    }
+  },
+  
+  updateStyles(newStyles) {
+    console.log('CSSApp: Actualizando estilos...');
+    
+    if (!this.styleElement) {
+      this.init();
+    }
+    
+    this.styleElement.innerHTML += newStyles;
+    console.log('CSSApp: Estilos actualizados correctamente');
+  },
+  
+  clearStyles() {
+    console.log('CSSApp: Limpiando estilos...');
+    
+    if (this.styleElement) {
+      this.styleElement.innerHTML = '';
+    }
+    
+    console.log('CSSApp: Estilos limpiados');
   },
   
   async destroy() {
     console.log('CSSApp: Destruyendo app de estilos...');
+    
+    // Eliminar listeners de eventos
+    document.removeEventListener('theme-changed', this.applyTheme);
     
     // Eliminar el elemento de estilos
     if (this.styleElement && this.styleElement.parentNode) {
