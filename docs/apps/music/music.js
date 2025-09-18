@@ -19,9 +19,8 @@
  * Aplicación de reproductor de música para Mizu OS
  * Soporta YouTube, SoundCloud, Mixcloud y archivos locales
  */
-export default class MusicApp {
-  constructor(eventBus) {
-    this.eventBus = eventBus;
+class MusicApp {
+  constructor() {
     this.playlist = [];
     this.currentTrackIndex = -1;
     this.isPlaying = false;
@@ -29,9 +28,9 @@ export default class MusicApp {
     this.isYouTubeApiReady = false;
     this.audioElement = null;
     this.panel = null;
-    this.isVisible = true; // Estado para controlar visibilidad
-    this.isRendered = false; // Nueva bandera para saber si ya está renderizado
-    this.defaultTrackLoaded = false; // Bandera para controlar si la pista por defecto ya se cargó
+    this.isVisible = true;
+    this.isRendered = false;
+    this.defaultTrackLoaded = false;
     
     // Suscribirse a eventos de música
     this.setupEventListeners();
@@ -42,25 +41,25 @@ export default class MusicApp {
   
   setupEventListeners() {
     // Eventos de control de música desde la barra roja
-    this.eventBus.on('music:togglePlayPause', () => this.togglePlayPause());
-    this.eventBus.on('music:playPrev', () => this.playPrev());
-    this.eventBus.on('music:playNext', () => this.playNext());
-    this.eventBus.on('music:toggleRepeat', () => this.toggleRepeat());
-    this.eventBus.on('music:toggleVolume', () => this.toggleVolume());
+    window.MessageBus.subscribe('music:togglePlayPause', () => this.togglePlayPause());
+    window.MessageBus.subscribe('music:playPrev', () => this.playPrev());
+    window.MessageBus.subscribe('music:playNext', () => this.playNext());
+    window.MessageBus.subscribe('music:toggleRepeat', () => this.toggleRepeat());
+    window.MessageBus.subscribe('music:toggleVolume', () => this.toggleVolume());
     
     // Evento para alternar visibilidad del reproductor
-    this.eventBus.on('music:toggleVisibility', (data) => this.toggleVisibility(data));
+    window.MessageBus.subscribe('music:toggleVisibility', (data) => this.toggleVisibility(data));
     
-    // NUEVO: Suscribirse a eventos de cambio de visibilidad del contenedor
-    this.eventBus.on('app:visibility-changed', (data) => {
+    // Suscribirse a eventos de cambio de visibilidad del contenedor
+    window.MessageBus.subscribe('app:visibility-changed', (data) => {
       if (data.appId === 'music') {
         console.log(`MusicApp: Recibido evento de cambio de visibilidad: ${data.isVisible}`);
         this.handleVisibilityChange(data.isVisible);
       }
     });
     
-    // NUEVO: Suscribirse a eventos de cambio de contenedor
-    this.eventBus.on('app:container-changed', (data) => {
+    // Suscribirse a eventos de cambio de contenedor
+    window.MessageBus.subscribe('app:container-changed', (data) => {
       if (data.appId === 'music') {
         console.log(`MusicApp: Recibido evento de cambio de contenedor: ${data.containerType}`);
         this.handleContainerChange(data.containerType);
@@ -68,47 +67,38 @@ export default class MusicApp {
     });
   }
   
-  // NUEVO: Manejar cambios de visibilidad
+  // Manejar cambios de visibilidad
   handleVisibilityChange(isVisible) {
     console.log(`MusicApp: Manejando cambio de visibilidad a: ${isVisible}`);
     
-    // Actualizar el estado interno de visibilidad
     this.isVisible = isVisible;
     
     if (isVisible) {
-      // Cuando la aplicación se hace visible, sincronizar el estado real
       this.syncPlaybackState();
     }
     
-    // Actualizar la visibilidad del panel si existe
     if (this.panel) {
       this.panel.style.display = isVisible ? 'flex' : 'none';
     }
   }
   
-  // NUEVO: Manejar cambios de contenedor
+  // Manejar cambios de contenedor
   handleContainerChange(containerType) {
     console.log(`MusicApp: Manejando cambio de contenedor a: ${containerType}`);
     
-    // Si el contenedor es 'main', la aplicación es visible
-    // Si el contenedor es 'persistent', la aplicación está oculta
     const isVisible = containerType === 'main';
-    
-    // Actualizar el estado de visibilidad
     this.isVisible = isVisible;
     
     if (isVisible) {
-      // Cuando se mueve al contenedor principal, sincronizar el estado
       this.syncPlaybackState();
     }
     
-    // Actualizar la visibilidad del panel si existe
     if (this.panel) {
       this.panel.style.display = isVisible ? 'flex' : 'none';
     }
   }
   
-  // NUEVO: Sincronizar el estado real de reproducción con la interfaz
+  // Sincronizar el estado real de reproducción con la interfaz
   syncPlaybackState() {
     console.log('MusicApp: Sincronizando estado de reproducción');
     
@@ -117,14 +107,9 @@ export default class MusicApp {
       
       if (track.source === 'YouTube' && this.youtubePlayer) {
         try {
-          // Verificar el estado real del reproductor de YouTube
           const playerState = this.youtubePlayer.getPlayerState();
           console.log(`MusicApp: Estado del reproductor de YouTube: ${playerState}`);
-          
-          // Actualizar el estado interno basado en el estado real
           this.isPlaying = (playerState === YT.PlayerState.PLAYING);
-          
-          // Actualizar la interfaz
           this.updatePlayPauseButton();
           this.updateTrackInfo();
           this.updatePlaylist();
@@ -132,13 +117,8 @@ export default class MusicApp {
           console.error('MusicApp: Error al obtener estado del reproductor de YouTube:', e);
         }
       } else if (track.source === 'Local' && this.audioElement) {
-        // Verificar el estado real del reproductor de audio
         console.log(`MusicApp: Estado del reproductor de audio: paused=${this.audioElement.paused}, currentTime=${this.audioElement.currentTime}`);
-        
-        // Actualizar el estado interno basado en el estado real
         this.isPlaying = !this.audioElement.paused;
-        
-        // Actualizar la interfaz
         this.updatePlayPauseButton();
         this.updateTrackInfo();
         this.updatePlaylist();
@@ -148,13 +128,11 @@ export default class MusicApp {
   
   // Cargar el script de la API de YouTube Iframe
   loadYouTubeAPI() {
-    // Verificar si ya se ha cargado la API
     if (window.YT && window.YT.Player) {
       this.isYouTubeApiReady = true;
       return;
     }
     
-    // Verificar si ya se está cargando
     if (document.getElementById('youtube-iframe-api')) {
       return;
     }
@@ -165,7 +143,6 @@ export default class MusicApp {
     const firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     
-    // Esta función es llamada por la API de YouTube cuando está lista
     window.onYouTubeIframeAPIReady = () => {
       console.log("YouTube Iframe Player API is ready.");
       this.isYouTubeApiReady = true;
@@ -175,14 +152,12 @@ export default class MusicApp {
   // Método init requerido por el AppLoader
   init() {
     console.log('MusicApp: Inicializando aplicación de música');
-    
-    // NO cargar la pista por defecto aquí, se hará después de renderizar
     return Promise.resolve();
   }
   
   // Método para cargar la pista por defecto
   loadDefaultTrack() {
-    if (this.defaultTrackLoaded) return; // Evitar cargar múltiples veces
+    if (this.defaultTrackLoaded) return;
     
     const defaultTrack = {
       title: 'Mare (Mizu OS Theme)',
@@ -193,9 +168,8 @@ export default class MusicApp {
     this.playlist.push(defaultTrack);
     this.updatePlaylist();
     
-    // Reproducir automáticamente la pista por defecto
     this.playTrack(0);
-    this.defaultTrackLoaded = true; // Marcar como cargada
+    this.defaultTrackLoaded = true;
   }
   
   // Método para alternar la visibilidad del reproductor
@@ -204,23 +178,19 @@ export default class MusicApp {
     
     if (!this.panel) return;
     
-    // Si se especifica hide, ocultamos forzosamente
     if (data && data.hide) {
       this.isVisible = false;
     } else {
-      // Alternar visibilidad
       this.isVisible = !this.isVisible;
     }
     
     this.panel.style.display = this.isVisible ? 'flex' : 'none';
     
-    // Si se está haciendo visible, sincronizar el estado
     if (this.isVisible) {
       this.syncPlaybackState();
     }
     
-    // Notificar al sistema que la app está "oculta" pero no destruida
-    this.eventBus.emit('app:visibilityChanged', {
+    window.MessageBus.publish('app:visibilityChanged', {
       appId: 'music',
       isVisible: this.isVisible
     });
@@ -232,11 +202,9 @@ export default class MusicApp {
   render() {
     console.log('MusicApp: Renderizando interfaz de música');
     
-    // Si ya está renderizado, devolver el panel existente
     if (this.isRendered && this.panel) {
       console.log('MusicApp: La interfaz ya está renderizada, reutilizando panel existente');
       
-      // Si la aplicación es visible, actualizar el estado de reproducción
       if (this.isVisible) {
         this.syncPlaybackState();
       }
@@ -291,7 +259,7 @@ export default class MusicApp {
     trackInfo.appendChild(currentTrackTitle);
     trackInfo.appendChild(currentTrackSource);
     
-    // Contenedor del reproductor de medios (YouTube/SoundCloud/Mixcloud)
+    // Contenedor del reproductor de medios
     const mediaPlayerContainer = document.createElement('div');
     mediaPlayerContainer.id = 'media-player-container';
     mediaPlayerContainer.style.cssText = 
@@ -464,7 +432,7 @@ export default class MusicApp {
     this.mediaPlayerContainerEl = mediaPlayerContainer;
     this.dynamicPlayerEl = dynamicPlayer;
     
-    // Adjuntar eventos después de crear todos los elementos
+    // Adjuntar eventos
     prevBtn.addEventListener('click', () => this.playPrev());
     playPauseBtn.addEventListener('click', () => this.togglePlayPause());
     stopBtn.addEventListener('click', () => this.stop());
@@ -491,15 +459,12 @@ export default class MusicApp {
       }
     });
     
-    // Marcar como renderizado
     this.isRendered = true;
     
-    // Cargar la pista por defecto después de renderizar la interfaz
-    // y solo si la playlist está vacía
     if (this.playlist.length === 0 && !this.defaultTrackLoaded) {
       setTimeout(() => {
         this.loadDefaultTrack();
-      }, 100); // Pequeño retraso para asegurar que todo está renderizado
+      }, 100);
     }
     
     console.log('MusicApp: Interfaz de música renderizada por primera vez');
@@ -510,19 +475,15 @@ export default class MusicApp {
   destroy() {
     console.log('MusicApp: Ocultando aplicación de música (no destruyendo)');
     
-    // En lugar de destruir, ocultar el panel
     if (this.panel) {
       this.panel.style.display = 'none';
       this.isVisible = false;
     }
     
-    // Notificar al sistema que la app está oculta pero no destruida
-    this.eventBus.emit('app:visibilityChanged', {
+    window.MessageBus.publish('app:visibilityChanged', {
       appId: 'music',
       isVisible: false
     });
-    
-    // NO detener la música ni eliminar elementos del DOM
   }
   
   // Crear botón de control
@@ -606,7 +567,6 @@ export default class MusicApp {
     this.updatePlaylist();
     this.showNotification('Añadido a la playlist');
     
-    // Si es la primera canción, reproducirla automáticamente
     if (this.playlist.length === 1) {
       this.playTrack(0);
     }
@@ -624,7 +584,6 @@ export default class MusicApp {
     this.updatePlaylist();
     this.showNotification('Archivo local añadido a la playlist');
     
-    // Si es la primera canción, reproducirla automáticamente
     if (this.playlist.length === 1) {
       this.playTrack(0);
     }
@@ -684,7 +643,6 @@ export default class MusicApp {
       item.appendChild(info);
       item.appendChild(deleteBtn);
       
-      // Adjuntar eventos después de crear los elementos
       item.addEventListener('click', () => {
         this.playTrack(index);
       });
@@ -721,13 +679,11 @@ export default class MusicApp {
       this.currentTrackIndex = index;
       const track = this.playlist[this.currentTrackIndex];
       
-      // Verificar si los elementos del DOM existen antes de usarlos
       if (!this.mediaPlayerContainerEl || !this.dynamicPlayerEl) {
         console.error('MusicApp: Los elementos del reproductor no están disponibles');
         return;
       }
       
-      // Ocultar el reproductor de iframes por defecto
       this.mediaPlayerContainerEl.style.display = 'none';
       
       if (track.source === 'YouTube' && track.videoId) {
@@ -771,13 +727,11 @@ export default class MusicApp {
         this.isPlaying = true;
         this.updatePlayPauseButton();
       } else if (track.source === 'Local' && track.url) {
-        // Para URLs de audio local
         this.audioElement.src = track.url;
         this.audioElement.play();
         this.isPlaying = true;
         this.updatePlayPauseButton();
       } else {
-        // Para SoundCloud y Mixcloud, abrimos en una nueva pestaña
         window.open(track.url, '_blank');
         this.isPlaying = true;
         this.updatePlayPauseButton();
@@ -813,7 +767,6 @@ export default class MusicApp {
       }
     }
     
-    // También actualizar el botón en la barra roja si existe
     const redBarPlayBtn = document.querySelector('.music-control-button i.fa-play, .music-control-button i.fa-pause');
     if (redBarPlayBtn) {
       if (this.isPlaying) {
@@ -896,14 +849,12 @@ export default class MusicApp {
   // Alternar modo de repetición
   toggleRepeat() {
     console.log('MusicApp: toggleRepeat llamado');
-    // Implementar lógica de repetición aquí
     this.showNotification('Modo de repetición alternado');
   }
   
   // Alternar control de volumen
   toggleVolume() {
     console.log('MusicApp: toggleVolume llamado');
-    // Implementar control de volumen aquí
     this.showNotification('Control de volumen alternado');
   }
   
@@ -941,3 +892,7 @@ export default class MusicApp {
     }, 3000);
   }
 }
+
+// Inicializar la aplicación
+const musicApp = new MusicApp();
+window.musicApp = musicApp;
