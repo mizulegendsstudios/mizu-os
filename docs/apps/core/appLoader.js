@@ -1,5 +1,5 @@
 /*
- * Mizu OS - Core/AppLoader
+ * Mizu OS - App Loader
  * Copyright (C) 2025 Mizu Legends Studios
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -15,240 +15,306 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-/*
- * Cargador de apps de Mizu OS
- * Responsable de cargar dinámicamente las apps del sistema desde la configuración
- * // docs/apps/core/appLoader.js
- * Rol: Carga dinámica de apps del sistema
- * Filosofía: Cargar solo las apps necesarias en el momento adecuado
- *Principios:
- *Cloud-Native: Ejecución 100% en navegador (GitHub Pages + jsDelivr) — sin build, sin bundlers, sin node_modules, sin servidores locales.
- *Extensible por diseño: cada app es un módulo independiente con su propio bootstrap.
- *Licencia libre: GNU AGPL-3.0 — cualquier modificación públicada en la red debe compartirse la fuente.
- *Stack Tecnológico/Zero Dependencies: ES6+ JavaScript vainilla (módulos nativos), CSS3 con Custom Properties, HTML5 APIs (Canvas, WebAudio, etc.). Sin frameworks, sin Tailwind.
-*/
 
-export class AppLoader {
+/**
+ * Cargador dinámico de aplicaciones para Mizu OS
+ * //docs/apps/core/appLoader.js
+ */
+class AppLoader {
   constructor() {
-    this.loadedApps = new Map();
-    this.appConfigs = new Map();
     console.log('AppLoader: Inicializado');
+    
+    // Verificar que el MessageBus esté disponible
+    if (!window.MessageBus) {
+      console.error('AppLoader: MessageBus no está disponible. Las aplicaciones no podrán comunicarse.');
+      // Crear un MessageBus básico si no existe
+      window.MessageBus = {
+        subscribe: (event, callback) => console.warn(`MessageBus no inicializado. Evento '${event}' ignorado.`),
+        publish: (event, data) => console.warn(`MessageBus no inicializado. Evento '${event}' no publicado.`)
+      };
+    }
+    
+    this.apps = {};
+    this.loadedApps = new Set();
+    this.appConfigs = null;
   }
 
-  // Cargar las apps desde la configuración
-  async loadAppsFromConfig() {
+  /**
+   * Inicializa el cargador de aplicaciones
+   */
+  async init() {
+    console.log('AppLoader: Inicializando cargador de aplicaciones...');
+    
     try {
-      console.log('AppLoader: Iniciando carga de apps desde configuración...');
-      
-      // Obtener la configuración de las apps
+      // Cargar configuración de aplicaciones
       await this.loadAppConfigs();
       
-      // Ordenar las apps por prioridad
-      const sortedApps = this.sortAppsByPriority();
-      
-      console.log('AppLoader: Orden de carga de apps:', sortedApps.map(app => `${app.name} (${app.key})`));
-      
-      // Cargar cada app en el orden correcto
-      for (const appConfig of sortedApps) {
-        if (appConfig.enabled) {
-          await this.loadAppWithDependencies(appConfig.key); // Usar la clave, no el nombre
-        }
-      }
-      
-      console.log('AppLoader: Carga de apps completada');
+      console.log('AppLoader: Cargador de aplicaciones inicializado correctamente');
+      return true;
     } catch (error) {
-      console.error('AppLoader: Error durante la carga de apps:', error);
+      console.error('AppLoader: Error durante la inicialización:', error);
       throw error;
     }
   }
 
-  // Cargar la configuración de las apps desde el archivo JSON
+  /**
+   * Carga la configuración de aplicaciones desde el sistema
+   */
   async loadAppConfigs() {
+    console.log('AppLoader: Cargando configuración de apps...');
+    
     try {
-      const response = await fetch('./config/modules.json');
-      const modulesConfig = await response.json();
+      // Obtener la configuración de aplicaciones desde el ConfigManager
+      const config = window.configManager.getConfig('modules');
       
-      // Almacenar la configuración de cada app
-      for (const [key, config] of Object.entries(modulesConfig)) {
-        this.appConfigs.set(key, config);
+      if (!config) {
+        throw new Error('No se encontró la configuración de aplicaciones');
       }
       
+      this.appConfigs = config;
       console.log('AppLoader: Configuración de apps cargada');
+      
+      // Determinar el orden de carga basado en prioridades y dependencias
+      this.determineLoadOrder();
+      
+      return true;
     } catch (error) {
       console.error('AppLoader: Error cargando configuración de apps:', error);
       throw error;
     }
   }
 
-  // Ordenar las apps por prioridad
-  sortAppsByPriority() {
-    return Array.from(this.appConfigs.entries())
-      .map(([key, config]) => ({ key, ...config })) // Incluir la clave
-      .sort((a, b) => a.priority - b.priority);
+  /**
+   * Determina el orden de carga de las aplicaciones basado en dependencias y prioridades
+   */
+  determineLoadOrder() {
+    console.log('AppLoader: Determinando orden de carga de apps...');
+    
+    // Convertir el objeto de configuración a un array
+    const appsArray = Object.entries(this.appConfigs).map(([key, config]) => ({
+      id: key,
+      ...config
+    }));
+    
+    // Filtrar solo las aplicaciones habilitadas
+    const enabledApps = appsArray.filter(app => app.enabled);
+    
+    // Ordenar por prioridad
+    enabledApps.sort((a, b) => a.priority - b.priority);
+    
+    // Resolver dependencias
+    const loadOrder = [];
+    const processedApps = new Set();
+    
+    const processApp = (app) => {
+      if (processedApps.has(app.id)) return;
+      
+      // Procesar dependencias primero
+      if (app.dependencies && app.dependencies.length > 0) {
+        app.dependencies.forEach(depId => {
+          const depApp = enabledApps.find(a => a.id === depId);
+          if (depApp) {
+            processApp(depApp);
+          } else {
+            console.warn(`AppLoader: Dependencia '${depId}' no encontrada para la app '${app.id}'`);
+          }
+        });
+      }
+      
+      // Añadir la aplicación actual al orden de carga
+      if (!processedApps.has(app.id)) {
+        loadOrder.push(app);
+        processedApps.add(app.id);
+      }
+    };
+    
+    // Procesar todas las aplicaciones
+    enabledApps.forEach(app => processApp(app));
+    
+    this.loadOrder = loadOrder;
+    
+    console.log('AppLoader: Orden de carga de apps:');
+    this.loadOrder.forEach(app => {
+      console.log(`- ${app.name} (${app.id}) con dependencias:`, app.dependencies || []);
+    });
   }
 
-  // Cargar una app y sus dependencias
-  async loadAppWithDependencies(appName, loadingStack = []) {
-    // Verificar si ya está cargada
-    if (this.loadedApps.has(appName)) {
-      console.log(`AppLoader: App '${appName}' ya está cargada`);
+  /**
+   * Carga todas las aplicaciones en el orden determinado
+   */
+  async loadApps() {
+    console.log('AppLoader: Iniciando carga de apps desde configuración...');
+    
+    if (!this.loadOrder || this.loadOrder.length === 0) {
+      console.warn('AppLoader: No hay aplicaciones para cargar');
       return;
     }
     
-    // Verificar dependencias circulares
-    if (loadingStack.includes(appName)) {
-      throw new Error(`AppLoader: Dependencia circular detectada: ${loadingStack.join(' -> ')} -> ${appName}`);
-    }
-    
-    const appConfig = this.appConfigs.get(appName);
-    if (!appConfig) {
-      throw new Error(`AppLoader: Configuración no encontrada para la app '${appName}'`);
-    }
-    
-    console.log(`AppLoader: Cargando app '${appName}' (${appConfig.name}) con dependencias:`, appConfig.dependencies || []);
-    
-    // Cargar dependencias primero
-    if (appConfig.dependencies) {
-      for (const dependency of appConfig.dependencies) {
-        await this.loadAppWithDependencies(dependency, [...loadingStack, appName]);
-      }
-    }
-    
-    // Cargar la app actual
-    await this.loadApp(appName);
-  }
-
-  // Cargar una app específica
-  async loadApp(appName) {
     try {
-      console.log(`AppLoader: Cargando app '${appName}'...`);
-      
-      // Construir la ruta de la app
-      const appPath = `../${appName}/${appName}.js`;
-      
-      // Importar dinámicamente la app
-      const app = await import(appPath);
-      
-      // Si la app tiene una función de inicialización, llamarla
-      if (app.default && typeof app.default.init === 'function') {
-        await app.default.init();
+      // Cargar cada aplicación en orden
+      for (const appConfig of this.loadOrder) {
+        await this.loadApp(appConfig);
       }
       
-      // Almacenar la app cargada
-      this.loadedApps.set(appName, app);
-      
-      console.log(`AppLoader: App '${appName}' cargada correctamente`);
-      return app;
+      console.log('AppLoader: Todas las aplicaciones cargadas correctamente');
+      return true;
     } catch (error) {
-      console.error(`AppLoader: Error cargando app '${appName}':`, error);
+      console.error('AppLoader: Error durante la carga de apps:', error);
       throw error;
     }
   }
 
-  // Obtener una app cargada
-  getApp(appName) {
-    if (!this.loadedApps.has(appName)) {
-      console.warn(`AppLoader: La app '${appName}' no está cargada`);
-      return null;
-    }
-    
-    return this.loadedApps.get(appName);
-  }
-
-  // Verificar si una app está cargada
-  isAppLoaded(appName) {
-    return this.loadedApps.has(appName);
-  }
-
-  // Descargar una app
-  async unloadApp(appName) {
-    if (!this.loadedApps.has(appName)) {
-      console.warn(`AppLoader: La app '${appName}' no está cargada`);
-      return false;
-    }
+  /**
+   * Carga una aplicación específica
+   * @param {Object} appConfig - Configuración de la aplicación
+   */
+  async loadApp(appConfig) {
+    console.log(`AppLoader: Cargando app '${appConfig.id}' (${appConfig.name}) con dependencias:`, appConfig.dependencies || []);
     
     try {
-      const app = this.loadedApps.get(appName);
-      
-      // Si la app tiene una función de destrucción, llamarla
-      if (app.default && typeof app.default.destroy === 'function') {
-        await app.default.destroy();
+      // Verificar si la aplicación ya está cargada
+      if (this.loadedApps.has(appConfig.id)) {
+        console.log(`AppLoader: App '${appConfig.id}' ya está cargada`);
+        return;
       }
       
-      // Eliminar la app del mapa
-      this.loadedApps.delete(appName);
+      // Verificar dependencias
+      if (appConfig.dependencies && appConfig.dependencies.length > 0) {
+        for (const depId of appConfig.dependencies) {
+          if (!this.loadedApps.has(depId)) {
+            console.warn(`AppLoader: Dependencia '${depId}' no está cargada para la app '${appConfig.id}'`);
+            // Intentar cargar la dependencia
+            const depConfig = this.loadOrder.find(app => app.id === depId);
+            if (depConfig) {
+              await this.loadApp(depConfig);
+            } else {
+              throw new Error(`No se pudo encontrar la dependencia '${depId}' para la app '${appConfig.id}'`);
+            }
+          } else {
+            console.log(`AppLoader: App '${depId}' ya está cargada`);
+          }
+        }
+      }
       
-      console.log(`AppLoader: App '${appName}' descargada correctamente`);
-      return true;
+      console.log(`AppLoader: Cargando app '${appConfig.id}'...`);
+      
+      // Construir la URL del script de la aplicación
+      const scriptUrl = `apps/${appConfig.id}/${appConfig.id}.js`;
+      
+      // Cargar el script de la aplicación
+      const appModule = await this.loadScript(scriptUrl);
+      
+      // Inicializar la aplicación si tiene un método init
+      let appInstance = null;
+      if (appModule && typeof appModule.init === 'function') {
+        await appModule.init();
+        appInstance = appModule;
+      } else if (appModule && appModule.default) {
+        // Si es un módulo ES6 con exportación por defecto
+        if (typeof appModule.default.init === 'function') {
+          await appModule.default.init();
+          appInstance = appModule.default;
+        } else {
+          // Si no tiene método init, asumimos que la clase ya se inicializa en el constructor
+          appInstance = new appModule.default();
+        }
+      } else if (appModule && typeof appModule === 'function') {
+        // Si es una función constructora
+        appInstance = new appModule();
+        if (typeof appInstance.init === 'function') {
+          await appInstance.init();
+        }
+      } else {
+        // Si no es un módulo válido, intentar cargarlo como script global
+        appInstance = window[appConfig.id];
+        if (appInstance && typeof appInstance.init === 'function') {
+          await appInstance.init();
+        }
+      }
+      
+      // Almacenar la instancia de la aplicación
+      if (appInstance) {
+        this.apps[appConfig.id] = appInstance;
+      }
+      
+      // Marcar la aplicación como cargada
+      this.loadedApps.add(appConfig.id);
+      
+      console.log(`AppLoader: App '${appConfig.id}' cargada correctamente`);
+      
+      // Notificar que la aplicación ha sido cargada
+      if (window.MessageBus) {
+        window.MessageBus.publish('app:loaded', {
+          appId: appConfig.id,
+          appName: appConfig.name
+        });
+      }
+      
+      return appInstance;
     } catch (error) {
-      console.error(`AppLoader: Error descargando app '${appName}':`, error);
-      return false;
+      console.error(`AppLoader: Error cargando app '${appConfig.id}':`, error);
+      throw error;
     }
   }
 
-  // Recargar una app
-  async reloadApp(appName) {
-    console.log(`AppLoader: Recargando app '${appName}'...`);
-    
-    // Descargar la app si está cargada
-    if (this.loadedApps.has(appName)) {
-      await this.unloadApp(appName);
-    }
-    
-    // Cargar la app nuevamente
-    await this.loadAppWithDependencies(appName);
-    
-    console.log(`AppLoader: App '${appName}' recargada correctamente`);
-  }
-
-  // Obtener todas las apps cargadas
-  getLoadedApps() {
-    return Array.from(this.loadedApps.keys());
-  }
-
-  // Obtener la configuración de una app
-  getAppConfig(appName) {
-    return this.appConfigs.get(appName);
-  }
-
-  // Verificar si una app está habilitada en la configuración
-  isAppEnabled(appName) {
-    const config = this.appConfigs.get(appName);
-    return config && config.enabled;
-  }
-
-  // Obtener todas las apps habilitadas
-  getEnabledApps() {
-    return Array.from(this.appConfigs.entries())
-      .filter(([_, config]) => config.enabled)
-      .map(([name, _]) => name);
-  }
-
-  // Obtener las dependencias de una app
-  getAppDependencies(appName) {
-    const config = this.appConfigs.get(appName);
-    return config ? config.dependencies || [] : [];
-  }
-
-  // Verificar si todas las dependencias de una app están cargadas
-  areDependenciesLoaded(appName) {
-    const dependencies = this.getAppDependencies(appName);
-    return dependencies.every(dep => this.isAppLoaded(dep));
-  }
-
-  // Obtener el estado de carga de todas las apps
-  getAppsStatus() {
-    const status = {};
-    
-    for (const [appName, config] of this.appConfigs.entries()) {
-      status[appName] = {
-        enabled: config.enabled,
-        loaded: this.isAppLoaded(appName),
-        dependencies: config.dependencies || [],
-        dependenciesLoaded: this.areDependenciesLoaded(appName)
+  /**
+   * Carga un script dinámicamente
+   * @param {string} url - URL del script a cargar
+   * @returns {Promise} - Promesa que se resuelve cuando el script se carga
+   */
+  loadScript(url) {
+    return new Promise((resolve, reject) => {
+      // Verificar si el script ya está cargado
+      const existingScript = document.querySelector(`script[src="${url}"]`);
+      if (existingScript) {
+        resolve();
+        return;
+      }
+      
+      const script = document.createElement('script');
+      script.src = url;
+      script.type = 'module';
+      
+      script.onload = () => {
+        console.log(`AppLoader: Script cargado: ${url}`);
+        resolve();
       };
-    }
-    
-    return status;
+      
+      script.onerror = () => {
+        console.error(`AppLoader: Error cargando script: ${url}`);
+        reject(new Error(`No se pudo cargar el script: ${url}`));
+      };
+      
+      document.head.appendChild(script);
+    });
+  }
+
+  /**
+   * Obtiene una instancia de aplicación cargada
+   * @param {string} appId - ID de la aplicación
+   * @returns {Object} - Instancia de la aplicación
+   */
+  getApp(appId) {
+    return this.apps[appId];
+  }
+
+  /**
+   * Verifica si una aplicación está cargada
+   * @param {string} appId - ID de la aplicación
+   * @returns {boolean} - True si la aplicación está cargada
+   */
+  isAppLoaded(appId) {
+    return this.loadedApps.has(appId);
+  }
+
+  /**
+   * Obtiene la lista de aplicaciones cargadas
+   * @returns {string[]} - Lista de IDs de aplicaciones cargadas
+   */
+  getLoadedApps() {
+    return Array.from(this.loadedApps);
   }
 }
+
+// Exportar la clase
+export default AppLoader;
